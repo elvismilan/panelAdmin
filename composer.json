@@ -3,7 +3,7 @@
     "description": "custom mvc panel admin with php8",
     "autoload": {
         "psr-4": {
-            "Elvismilan\\PanelAdmin\\": "src/"
+            "App\\": "src/"
         }
     },
     "authors": [
