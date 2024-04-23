@@ -2,3 +2,8 @@
 *.css.map
 *.sass.map
 *.scss.map
+
+/vendor/
+
+
+*.DS_Store
