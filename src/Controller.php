@@ -4,10 +4,23 @@ namespace App;
 
 class Controller
 {
-    protected function render($view, $data = [])
-    {
+
+    protected function render($view, $type = 'admin', $data = []) {
+    
         extract($data);
 
-        include "Views/$view.php";
+        switch($type) {
+
+            case 'web' : 
+
+                include "Views/$view.php";
+                break;
+
+            default:
+
+                include "Views/$view.php";
+        }
+
     }
+
 }
