@@ -4,6 +4,6 @@
 *.scss.map
 
 /vendor/
-
+/HTML/
 
 *.DS_Store
