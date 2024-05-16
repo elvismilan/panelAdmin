@@ -5,12 +5,12 @@
         $('.nav-menu').css("left", "-410px");
     });
 
-    $(".page-wrapper").attr("class", "page-wrapper "+localStorage.getItem("page-wrapper"));
-    $(".page-body-wrapper").attr("class", "page-body-wrapper "+localStorage.getItem("page-body-wrapper"));
+    //$(".page-wrapper").attr("class", "page-wrapper "+localStorage.getItem("page-wrapper"));
+    //$(".page-body-wrapper").attr("class", "page-body-wrapper "+localStorage.getItem("page-body-wrapper"));
 
-    if (localStorage.getItem("page-wrapper") === null) {
+    /* if (localStorage.getItem("page-wrapper") === null) {
         $(".page-wrapper").addClass("compact-wrapper");
-    }   
+    }    */
 
   // left sidebar and horizotal menu
     if($('#pageWrapper').hasClass('compact-wrapper')){
@@ -81,106 +81,101 @@
 
     }
 
-// toggle sidebar
-
-
-$('.toggle-sidebar').click(function() {   
-  $('.main-nav').toggleClass('close_icon');
-  $('.page-main-header').toggleClass('close_icon');
-});
-
-
-
-//responsive sidebar
-var $window = $(window);
-var widthwindow = $window.width();
-(function($) {
-"use strict";
-if(widthwindow+17 <= 993) {   
-    $('.toggle-sidebar').attr('checked', false);
-    $('.main-nav').addClass("close_icon");
-    $('.page-main-header').addClass("close_icon");
-}
-})(jQuery);
-
-
-$( window ).resize(function() {
-var widthwindaw = $window.width();
-
-if(widthwindaw+17 <= 991){
-    $('.toggle-sidebar').attr('checked', false);
-    $('.main-nav').addClass("close_icon");
-    $('.page-main-header').addClass("close_icon");
-}else{
-    $('.toggle-sidebar').attr('checked', false);
-    $('.main-nav').removeClass("close_icon");
-    $('.page-main-header').removeClass("close_icon");
-}
-
-if(widthwindow >= 768) {   
-    $('.toggle-sidebar').click(function() {    
+    // toggle sidebar
+    $('.toggle-sidebar').click(function() {   
         $('.main-nav').toggleClass('close_icon');
         $('.page-main-header').toggleClass('close_icon');
     });
-}
-});
 
-// horizontal arrowss
-var view = $("#mainnav");
-var move = "500px";
-var leftsideLimit = -500
+    //responsive sidebar
+    var $window = $(window);
+    var widthwindow = $window.width();
+    (function($) {
+    "use strict";
+        if(widthwindow+17 <= 993) {   
+            $('.toggle-sidebar').attr('checked', false);
+            $('.main-nav').addClass("close_icon");
+            $('.page-main-header').addClass("close_icon");
+        }
+    })(jQuery);
 
 
-// get wrapper width
-var getMenuWrapperSize = function () {
-    return $('.sidebar-wrapper').innerWidth();
-}
-var menuWrapperSize = getMenuWrapperSize();
+    $( window ).resize(function() {
+        var widthwindaw = $window.width();
 
-if ((menuWrapperSize) >= '1660') {
-    var sliderLimit = -3000
+        if(widthwindaw+17 <= 991){
+            $('.toggle-sidebar').attr('checked', false);
+            $('.main-nav').addClass("close_icon");
+            $('.page-main-header').addClass("close_icon");
+        }else{
+            $('.toggle-sidebar').attr('checked', false);
+            $('.main-nav').removeClass("close_icon");
+            $('.page-main-header').removeClass("close_icon");
+        }
+
+        if(widthwindow >= 768) {   
+            $('.toggle-sidebar').click(function() {    
+                $('.main-nav').toggleClass('close_icon');
+                $('.page-main-header').toggleClass('close_icon');
+            });
+        }
+    });
+
+    // horizontal arrowss
+    var view = $("#mainnav");
+    var move = "500px";
+    var leftsideLimit = -500
+
+    // get wrapper width
+    var getMenuWrapperSize = function () {
+        return $('.sidebar-wrapper').innerWidth();
+    }
+    var menuWrapperSize = getMenuWrapperSize();
+
+    if ((menuWrapperSize) >= '1660') {
+        var sliderLimit = -3000
+        
+    } else if ((menuWrapperSize) >= '1440') {
+        var sliderLimit = -3600
+    } else {
+        var sliderLimit = -4200
+    }
+
+    $("#left-arrow").addClass("disabled");
     
-} else if ((menuWrapperSize) >= '1440') {
-    var sliderLimit = -3600
-} else {
-    var sliderLimit = -4200
-}
-
-$("#left-arrow").addClass("disabled");
-$("#right-arrow").click(function () {
-    var currentPosition = parseInt(view.css("marginLeft"));
-    if (currentPosition >= sliderLimit) {
-        $("#left-arrow").removeClass("disabled");
-        view.stop(false, true).animate({
-            marginLeft: "-=" + move
-        }, {
-            duration: 400
-        })
-        if (currentPosition == sliderLimit) {
-            $(this).addClass("disabled");
-            console.log("sliderLimit", sliderLimit);
+    $("#right-arrow").click(function () {
+        var currentPosition = parseInt(view.css("marginLeft"));
+        if (currentPosition >= sliderLimit) {
+            $("#left-arrow").removeClass("disabled");
+            view.stop(false, true).animate({
+                marginLeft: "-=" + move
+            }, {
+                duration: 400
+            })
+            if (currentPosition == sliderLimit) {
+                $(this).addClass("disabled");
+                console.log("sliderLimit", sliderLimit);
+            }
         }
-    }
-});
+    });
 
-$("#left-arrow").click(function () {
-    var currentPosition = parseInt(view.css("marginLeft"));
-    if (currentPosition < 0) {
-        view.stop(false, true).animate({
-            marginLeft: "+=" + move
-        }, {
-            duration: 400
-        })
-        $("#right-arrow").removeClass("disabled");
-        $("#left-arrow").removeClass("disabled");
-        if (currentPosition >= leftsideLimit) {
-            $(this).addClass("disabled");
+    $("#left-arrow").click(function () {
+        var currentPosition = parseInt(view.css("marginLeft"));
+        if (currentPosition < 0) {
+            view.stop(false, true).animate({
+                marginLeft: "+=" + move
+            }, {
+                duration: 400
+            })
+            $("#right-arrow").removeClass("disabled");
+            $("#left-arrow").removeClass("disabled");
+            if (currentPosition >= leftsideLimit) {
+                $(this).addClass("disabled");
+            }
         }
-    }
+    });
 
-});
-
-// page active
+    // page active
     $( ".main-navbar" ).find( "a" ).removeClass("active");
     $( ".main-navbar" ).find( "li" ).removeClass("active");
 
@@ -200,6 +195,9 @@ $("#left-arrow").click(function () {
         }
     });
 
-    $('.custom-scrollbar').animate({
-        scrollTop: $('a.nav-link.menu-title.active').offset().top - 500
-    }, 1000);
+    if ((".custom-scrollbar").length) {
+        console.log('entra');
+        $('.custom-scrollbar').animate({
+            scrollTop: $('a.nav-link.menu-title.active').offset().top - 500
+        }, 1000);
+    }
