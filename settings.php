@@ -11,10 +11,10 @@ if ($_SERVER['SERVER_NAME'] == "localhost") {
     $protocol = strtolower(substr($_SERVER["SERVER_PROTOCOL"], 0, 5)) == 'https' ? 'https://' . $_SERVER['HTTP_HOST'] : 'http://' . $_SERVER['HTTP_HOST'];
     $path = dirname($_SERVER['PHP_SELF']);
     $paths = explode("/", $path);
-    $url = $protocol . "/" . $paths[1] . "/";
+    $url = $protocol . "/" . $paths[1];
 } else {
     $protocol = isset($_SERVER["HTTPS"]) ? 'https://' . $_SERVER['HTTP_HOST'] : 'http://' . $_SERVER['HTTP_HOST'];
-    $url = $protocol . "/" ;
+    $url = $protocol;
 }
 
 return array(

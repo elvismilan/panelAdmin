@@ -1,8 +1,8 @@
 <!-- ico-font-->
-    <link rel="stylesheet" type="text/css" href="<?= SITE_ROOT ?>assets/css/icofont.css">
+    <link rel="stylesheet" type="text/css" href="<?= SITE_ROOT ?>/public/assets/css/icofont.css">
     <!-- Themify icon-->
-    <link rel="stylesheet" type="text/css" href="<?= SITE_ROOT ?>assets/css/themify.css">
+    <link rel="stylesheet" type="text/css" href="<?= SITE_ROOT ?>/public/assets/css/themify.css">
     <!-- Flag icon-->
-    <link rel="stylesheet" type="text/css" href="<?= SITE_ROOT ?>assets/css/flag-icon.css">
+    <link rel="stylesheet" type="text/css" href="<?= SITE_ROOT ?>/public/assets/css/flag-icon.css">
     <!-- Feather icon-->
-    <link rel="stylesheet" type="text/css" href="<?= SITE_ROOT ?>assets/css/feather-icon.css">
+    <link rel="stylesheet" type="text/css" href="<?= SITE_ROOT ?>/public/assets/css/feather-icon.css">

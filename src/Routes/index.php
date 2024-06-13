@@ -1,10 +1,16 @@
 <?php
 
-use App\Controllers\HomeController;
+use App\Controllers\LoginController;
+use App\Controllers\AuthController;
+use App\Controllers\DashboardController;
 use App\Router;
 
 $router = new Router();
 
-$router->get('/', HomeController::class, 'index');
+$router->get('/', LoginController::class, 'index');
+$router->post('/login', AuthController::class, 'index');
+
+$router->get('/dashboard', DashboardController::class, 'index');
+//$router->get('/dashboard', DashboardController::class, 'sample');
 
 $router->dispatch();

@@ -11,3 +11,9 @@ RewriteRule (.+) public/$1 [L]
 # Route all other requests
 RewriteRule (.*) public/index.php?route=$1 [L,QSA]
 </IfModule>
+
+#RewriteEngine On
+#RewriteBase /my_mvc/public/
+#RewriteCond %{REQUEST_FILENAME} !-f
+#RewriteCond %{REQUEST_FILENAME} !-d
+#RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]
