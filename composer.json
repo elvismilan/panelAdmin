@@ -3,7 +3,8 @@
     "description": "custom mvc panel admin with php8",
     "autoload": {
         "psr-4": {
-            "App\\": "src/"
+            "App\\": "app/",
+            "Core\\": "core/"
         }
     },
     "authors": [
