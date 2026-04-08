@@ -1,7 +1,15 @@
 {
     "name": "elvismilan/panel-admin",
     "description": "custom mvc panel admin with php8",
+    "type": "project",
+    "license": "MIT",
     "autoload": {
+        "psr-4": {
+            "App\\": "app/",
+            "Core\\": "core/"
+        }
+    },
+    "autoload-dev": {
         "psr-4": {
             "App\\": "app/",
             "Core\\": "core/"
@@ -12,5 +20,8 @@
             "name": "Elvis Milan"
         }
     ],
-    "require": {}
+    "require": {
+        "php": "^8.2",
+        "vlucas/phpdotenv": "^5.6"
+    }
 }

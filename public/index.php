@@ -1,22 +1,19 @@
 <?php
 
-//require '../config.php';
-//require '../vendor/autoload.php';
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
-//$router = require '../src/Routes/index.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
-require_once '../vendor/autoload.php';
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../');
+$dotenv->load();
 
+use Core\App;
 use Core\Router;
 
-// Initialize the router
-$router = new Router();
+$app = new App(new Router());
 
-// Define routes
-$router->add('', ['controller' => 'Home', 'action' => 'index']);
-$router->add('home/index', ['controller' => 'Home', 'action' => 'index']);
-// Add more routes as needed
+$router = $app->getRouter();
+require_once __DIR__ . '/../routes/web.php';
 
-// Dispatch the request
-$url = isset($_GET['url']) ? $_GET['url'] : '';
-$router->dispatch($url);
+$app->run();
