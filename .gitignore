@@ -3,7 +3,11 @@
 *.sass.map
 *.scss.map
 
+/src/
 /vendor/
 /HTML/
 
 *.DS_Store
+.env
+.idea/
+.vscode/
