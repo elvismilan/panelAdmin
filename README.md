@@ -38,7 +38,19 @@ Plantilla base MVC en PHP 8 para hosting compartido, con autenticacion sobre tab
 - `core/`: nucleo del framework
 - `app/Controllers`: controladores PSR-4
 - `app/Models`: modelos PSR-4
-- `app/views`: vistas
+- `app/Views`: vistas base (fallback)
+- `resources/themes`: templates por pack/area/opcion
+
+## Themes por area
+
+- `public`: template del sitio publico CMS
+- `default`: template de login y dashboard administrador
+
+Variables de entorno recomendadas:
+
+- `PUBLIC_THEME_PACK=public`
+- `LOGIN_THEME_PACK=default`
+- `ADMIN_THEME_PACK=default`
 
 ## Seguridad y logs
 

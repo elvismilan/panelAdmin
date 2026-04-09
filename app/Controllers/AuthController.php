@@ -17,8 +17,9 @@ class AuthController extends Controller
         }
 
         $this->logAction('Acceso pantalla login', 'AUTH');
+        $loginView = $this->resolveTemplate('login', 'login/index');
 
-        $this->render('login/index', [
+        $this->render($loginView, [
             'title' => 'Iniciar Sesion',
             'error' => null,
         ]);
@@ -32,7 +33,7 @@ class AuthController extends Controller
 
         if ($username === '' || $password === '') {
             $this->logAction('Intento login sin usuario/password', 'AUTH_FAIL');
-            $this->render('login/index', [
+            $this->render($this->resolveTemplate('login', 'login/index'), [
                 'title' => 'Iniciar Sesion',
                 'error' => 'Usuario y password son obligatorios.',
             ]);
@@ -56,7 +57,7 @@ class AuthController extends Controller
 
         if (!Auth::attempt($username, $password)) {
             $this->logAction('Login fallido: ' . $username, 'AUTH_FAIL');
-            $this->render('login/index', [
+            $this->render($this->resolveTemplate('login', 'login/index'), [
                 'title' => 'Iniciar Sesion',
                 'error' => 'Credenciales invalidas.',
             ]);

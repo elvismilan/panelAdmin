@@ -7,6 +7,7 @@ use Core\Request;
 use Core\Auth;
 use Core\ActionLogger;
 use Core\Permission;
+use Core\ThemeResolver;
 use Throwable;
 
 class Controller
@@ -15,11 +16,17 @@ class Controller
     protected View $view;
     protected Request $request;
     protected ?ActionLogger $logger = null;
+    protected ThemeResolver $themeResolver;
+    protected array $pageAssets = [
+        'css' => [],
+        'js' => [],
+    ];
 
     public function __construct() {
 
         $this->view = new View();
         $this->request = new Request();
+        $this->themeResolver = new ThemeResolver();
         try {
             $this->logger = new ActionLogger();
         } catch (Throwable) {
@@ -42,6 +49,17 @@ class Controller
     }
 
     public function render(string $template, array $data = []): void {
+
+        $assets = $this->pageAssets;
+        if (isset($data['pageAssets']) && is_array($data['pageAssets'])) {
+            $incomingCss = is_array($data['pageAssets']['css'] ?? null) ? $data['pageAssets']['css'] : [];
+            $incomingJs = is_array($data['pageAssets']['js'] ?? null) ? $data['pageAssets']['js'] : [];
+
+            $assets['css'] = array_values(array_unique(array_merge($assets['css'], $this->normalizeAssetList($incomingCss))));
+            $assets['js'] = array_values(array_unique(array_merge($assets['js'], $this->normalizeAssetList($incomingJs))));
+        }
+
+        $data['pageAssets'] = $assets;
 
         $this->view->render($template, $data);
     }
@@ -114,5 +132,66 @@ class Controller
         }
 
         return $payload;
+    }
+
+    protected function resolveTemplate(string $area, string $defaultView): string
+    {
+        return $this->themeResolver->resolve($area, $defaultView);
+    }
+
+    protected function setPageAssets(array $css = [], array $js = []): void
+    {
+        $this->pageAssets = [
+            'css' => $this->normalizeAssetList($css),
+            'js' => $this->normalizeAssetList($js),
+        ];
+    }
+
+    protected function addCss(string $path): void
+    {
+        $path = trim($path);
+        if ($path === '') {
+            return;
+        }
+
+        if (!in_array($path, $this->pageAssets['css'], true)) {
+            $this->pageAssets['css'][] = $path;
+        }
+    }
+
+    protected function addJs(string $path): void
+    {
+        $path = trim($path);
+        if ($path === '') {
+            return;
+        }
+
+        if (!in_array($path, $this->pageAssets['js'], true)) {
+            $this->pageAssets['js'][] = $path;
+        }
+    }
+
+    protected function getPageAssets(): array
+    {
+        return $this->pageAssets;
+    }
+
+    private function normalizeAssetList(array $assets): array
+    {
+        $normalized = [];
+        foreach ($assets as $asset) {
+            if (!is_string($asset)) {
+                continue;
+            }
+
+            $asset = trim($asset);
+            if ($asset === '') {
+                continue;
+            }
+
+            $normalized[] = $asset;
+        }
+
+        return array_values(array_unique($normalized));
     }
 }
