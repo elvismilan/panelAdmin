@@ -86,48 +86,11 @@ class TareaModel extends Model
 
     public function existsByName(string $nombre, ?string $excludeId = null): bool
     {
-        $sql = "SELECT COUNT(*) AS total FROM {$this->tareaTable} WHERE tar_nombre = :nombre";
-        $params = ['nombre' => trim($nombre)];
-
-        if ($excludeId !== null && $excludeId !== '') {
-            $sql .= " AND tar_id <> :excludeId";
-            $params['excludeId'] = $excludeId;
-        }
-
-        $row = $this->db->query($sql, $params)->fetch();
-        return (int) ($row['total'] ?? 0) > 0;
+        return $this->existsIn($this->tareaTable, 'tar_nombre', trim($nombre), 'tar_id', $excludeId);
     }
 
     public function isLinkedToModulo(string $id): bool
     {
-        try {
-            $column = $this->detectLinkColumn();
-            if ($column === null) {
-                return false;
-            }
-
-            $sql = "SELECT COUNT(*) AS total FROM {$this->elementoTareaTable} WHERE {$column} = :id";
-            $row = $this->db->query($sql, ['id' => $id])->fetch();
-
-            return (int) ($row['total'] ?? 0) > 0;
-        } catch (\Throwable) {
-            return false;
-        }
-    }
-
-    private function detectLinkColumn(): ?string
-    {
-        $allowed = ['tar_id', 'eta_tar_id', 'elt_tar_id', 'ele_tar_id'];
-
-        $stmt = $this->db->query("SHOW COLUMNS FROM {$this->elementoTareaTable}");
-        $columns = $stmt->fetchAll();
-        foreach ($columns as $column) {
-            $name = (string) ($column['Field'] ?? '');
-            if (in_array($name, $allowed, true)) {
-                return $name;
-            }
-        }
-
-        return null;
+        return $this->linkedTo($this->elementoTareaTable, 'eta_tar_id', $id);
     }
 }

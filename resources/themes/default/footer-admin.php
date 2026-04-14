@@ -30,11 +30,17 @@
     <script src="<?= htmlspecialchars($adminAssetBase, ENT_QUOTES, 'UTF-8') ?>/js/bootstrap/popper.min.js"></script>
     <script src="<?= htmlspecialchars($adminAssetBase, ENT_QUOTES, 'UTF-8') ?>/js/bootstrap/bootstrap.min.js"></script>
     <!-- Plugins JS start-->
+    <script src="<?= htmlspecialchars($adminAssetBase, ENT_QUOTES, 'UTF-8') ?>/js/datepicker/date-picker/datepicker.js"></script>
+    <script src="<?= htmlspecialchars($adminAssetBase, ENT_QUOTES, 'UTF-8') ?>/js/datepicker/date-picker/datepicker.en.js"></script>
+    <script src="<?= htmlspecialchars($adminAssetBase, ENT_QUOTES, 'UTF-8') ?>/js/datepicker/date-picker/datepicker.custom.js"></script>
     <!-- Plugins JS Ends-->
     <!-- Theme js-->
     <script src="<?= htmlspecialchars($adminAssetBase, ENT_QUOTES, 'UTF-8') ?>/js/script.js"></script>
     <!-- <script src="<?= htmlspecialchars($adminAssetBase, ENT_QUOTES, 'UTF-8') ?>/js/theme-customizer/customizer.js"></script> -->
     <!-- login js-->
     <!-- Plugin used-->
+    <?php foreach (($pageAssets['js'] ?? []) as $_js): ?>
+    <script src="<?= htmlspecialchars((string) $_js, ENT_QUOTES, 'UTF-8') ?>"></script>
+    <?php endforeach; ?>
   </body>
 </html>

@@ -136,31 +136,17 @@ class ElementoModel extends Model
 
     public function existsByNombre(string $nombre, ?string $excludeId = null): bool
     {
-        $sql = "SELECT COUNT(*) AS total FROM {$this->elementoTable} WHERE ele_nombre = :nombre";
-        $params = ['nombre' => trim($nombre)];
-
-        if ($excludeId !== null && $excludeId !== '') {
-            $sql .= " AND ele_id <> :excludeId";
-            $params['excludeId'] = $excludeId;
-        }
-
-        $row = $this->db->query($sql, $params)->fetch();
-        return (int) ($row['total'] ?? 0) > 0;
+        return $this->existsIn($this->elementoTable, 'ele_nombre', trim($nombre), 'ele_id', $excludeId);
     }
 
     public function isLinked(string $id): bool
     {
-        $sql = "SELECT COUNT(*) AS total FROM {$this->elementoTareaTable} WHERE eta_ele_id = :id";
-        $row = $this->db->query($sql, ['id' => $id])->fetch();
-        return (int) ($row['total'] ?? 0) > 0;
+        return $this->linkedTo($this->elementoTareaTable, 'eta_ele_id', $id);
     }
 
     public function isLinkedToPermiso(string $id): bool
     {
-        $permisoTable = $this->tableName('permiso');
-        $sql = "SELECT COUNT(*) AS total FROM {$permisoTable} WHERE pmo_ele_id = :id";
-        $row = $this->db->query($sql, ['id' => $id])->fetch();
-        return (int) ($row['total'] ?? 0) > 0;
+        return $this->linkedTo($this->tableName('permiso'), 'pmo_ele_id', $id);
     }
 
     private function syncTareas(string $eleId, array $tareaIds): void

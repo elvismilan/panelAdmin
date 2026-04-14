@@ -4518,7 +4518,7 @@ table tbody .border-bottom-warning td {
   margin-bottom: 15px;
 }
 .page-wrapper.compact-wrapper .page-body-wrapper header.main-nav .sidebar-user img {
-  border: 10px solid rgba(36, 105, 92, 0.2);
+  border: 5px solid rgba(36, 105, 92, 0.2);
 }
 .page-wrapper.compact-wrapper .page-body-wrapper header.main-nav .sidebar-user .setting-primary {
   position: absolute;

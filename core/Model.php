@@ -120,4 +120,47 @@ class Model
 
         return $this->db->lastInsertId();
     }
+
+    /**
+     * Check whether a value already exists in a table column (for uniqueness validation).
+     * Optionally exclude one record from the check (e.g. the row being edited).
+     *
+     * @param string      $table         Fully-qualified table name (with prefix).
+     * @param string      $column        Column to match on.
+     * @param mixed       $value         Value to look for.
+     * @param string|null $excludeColumn Column to use for the exclusion (usually the PK).
+     * @param mixed       $excludeValue  Value to exclude (e.g. current record's PK).
+     */
+    protected function existsIn(
+        string $table,
+        string $column,
+        mixed $value,
+        ?string $excludeColumn = null,
+        mixed $excludeValue = null
+    ): bool {
+        $sql    = "SELECT COUNT(*) AS total FROM {$table} WHERE {$column} = :value";
+        $params = ['value' => $value];
+
+        if ($excludeColumn !== null && $excludeValue !== null && $excludeValue !== '') {
+            $sql .= " AND {$excludeColumn} <> :excludeValue";
+            $params['excludeValue'] = $excludeValue;
+        }
+
+        $row = $this->db->query($sql, $params)->fetch();
+        return (int) ($row['total'] ?? 0) > 0;
+    }
+
+    /**
+     * Check whether a value is referenced in another table (for cascade/delete guards).
+     *
+     * @param string $table  Fully-qualified table name (with prefix).
+     * @param string $column Column to match on.
+     * @param mixed  $value  Value to look for.
+     */
+    protected function linkedTo(string $table, string $column, mixed $value): bool
+    {
+        $sql = "SELECT COUNT(*) AS total FROM {$table} WHERE {$column} = :value";
+        $row = $this->db->query($sql, ['value' => $value])->fetch();
+        return (int) ($row['total'] ?? 0) > 0;
+    }
 }

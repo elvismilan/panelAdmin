@@ -14,8 +14,8 @@
                     ?>
                     <p>Esta seguro que desea eliminar la tarea <strong><?= htmlspecialchars((string) ($form['tar_nombre'] ?? ''), ENT_QUOTES, 'UTF-8') ?></strong>?</p>
                     <?php if (!empty($linkedToModulo)): ?>
-                    <div class="row justify-content-center">
-                        <div class="col-sm-7 mb-3">
+                    <div class="row justify-content-start mb-3">
+                        <div class="col-sm-7">
                             <div class="alert alert-danger" role="alert">
                                 <i class="fa fa-ban me-1" aria-hidden="true"></i>
                                 <strong>No se puede eliminar.</strong> Esta tarea esta asociada a uno o mas modulos. Desvincule la tarea de los modulos antes de continuar.

@@ -1,6 +1,8 @@
 <?php
 $adminAssetBase = rtrim((string) ($_ENV['ADMIN_ASSET_BASE'] ?? ($_ENV['LOGIN_OPTION1_ASSET_BASE'] ?? '/assets/theme-one')), '/');
-$adminUserName = trim((string) ($user['full_name'] ?? $user['username'] ?? 'Usuario'));
+$adminUserName  = trim((string) ($user['full_name'] ?? $user['username'] ?? 'Usuario'));
+$adminUserPhoto = trim((string) ($user['photo'] ?? ''));
+$adminGroupName = trim((string) ($user['group_name'] ?? $user['group'] ?? ''));
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -30,6 +32,10 @@ $adminUserName = trim((string) ($user['full_name'] ?? $user['username'] ?? 'Usua
     <!-- Feather icon-->
     <link rel="stylesheet" type="text/css" href="<?= htmlspecialchars($adminAssetBase, ENT_QUOTES, 'UTF-8') ?>/css/feather-icon.css">
     <!-- Plugins css start-->
+    <link rel="stylesheet" type="text/css" href="<?= htmlspecialchars($adminAssetBase, ENT_QUOTES, 'UTF-8') ?>/css/date-picker.css">
+    <?php foreach (($pageAssets['css'] ?? []) as $_css): ?>
+    <link rel="stylesheet" type="text/css" href="<?= htmlspecialchars((string) $_css, ENT_QUOTES, 'UTF-8') ?>">
+    <?php endforeach; ?>
     <!-- Plugins css Ends-->
     <!-- Bootstrap css-->
     <link rel="stylesheet" type="text/css" href="<?= htmlspecialchars($adminAssetBase, ENT_QUOTES, 'UTF-8') ?>/css/bootstrap.css">
@@ -147,11 +153,22 @@ $adminUserName = trim((string) ($user['full_name'] ?? $user['username'] ?? 'Usua
         <header class="main-nav">
           <div class="sidebar-user text-center">
             <a class="setting-primary" href="javascript:void(0)"><i data-feather="settings"></i></a>
-              <img class="img-90 rounded-circle" src="<?= htmlspecialchars($adminAssetBase, ENT_QUOTES, 'UTF-8') ?>/images/dashboard/1.png" alt="">
-            <a href="user-profile.html">
-                <h6 class="mt-3 f-14 f-w-600"><?= htmlspecialchars($adminUserName, ENT_QUOTES, 'UTF-8') ?></h6>
+            <?php if ($adminUserPhoto !== ''): ?>
+              <img class="img-70 rounded-circle"
+                   src="/<?= htmlspecialchars($adminUserPhoto, ENT_QUOTES, 'UTF-8') ?>"
+                   alt="<?= htmlspecialchars($adminUserName, ENT_QUOTES, 'UTF-8') ?>"
+                   style="object-fit:cover;">
+            <?php else: ?>
+              <img class="img-70 rounded-circle"
+                   src="<?= htmlspecialchars($adminAssetBase, ENT_QUOTES, 'UTF-8') ?>/images/dashboard/1.png"
+                   alt="<?= htmlspecialchars($adminUserName, ENT_QUOTES, 'UTF-8') ?>">
+            <?php endif; ?>
+            <a href="#">
+              <h6 class="mt-3 f-14 f-w-600"><?= htmlspecialchars($adminUserName, ENT_QUOTES, 'UTF-8') ?></h6>
             </a>
-            <p class="mb-0 font-roboto">Human Resources Department</p>
+            <?php if ($adminGroupName !== ''): ?>
+            <p class="mb-0 font-roboto"><?= htmlspecialchars($adminGroupName, ENT_QUOTES, 'UTF-8') ?></p>
+            <?php endif; ?>
           </div>
           <nav>
             <div class="main-navbar">
