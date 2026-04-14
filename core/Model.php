@@ -10,6 +10,7 @@ class Model
     protected string $table;
     protected string $primaryKey = 'id';
     protected string $tablePrefix;
+    private string $lastSqlLog = '';
 
     public function __construct() {
 
@@ -71,8 +72,12 @@ class Model
         $values = ':' . implode(', :', array_keys($data));
         $sql = "INSERT INTO $this->table ($fields) VALUES ($values)";
         $this->db->query($sql, $data);
-        return $this->db->lastInsertId();
+        $id = $this->db->lastInsertId();
 
+        $logValues = implode(',', array_map(fn($v) => $v === null ? '/NULL/' : '/' . $v . '/', array_values($data)));
+        $this->lastSqlLog = "INSERT INTO {$this->table}({$fields}) VALUES ({$logValues})";
+
+        return $id;
     }
 
     public function update(int|string $id, array $data): bool {
@@ -85,15 +90,30 @@ class Model
         $sql = "UPDATE $this->table SET $fields WHERE {$this->primaryKey} = :id";
         $data['id'] = $id;
         $this->db->query($sql, $data);
-        return true;
 
+        $sets = [];
+        foreach ($data as $k => $v) {
+            if ($k === 'id') continue;
+            $sets[] = $k . '=' . ($v === null ? '/NULL/' : '/' . $v . '/');
+        }
+        $this->lastSqlLog = "UPDATE {$this->table} SET " . implode(', ', $sets) . " WHERE {$this->primaryKey}=/{$id}/";
+
+        return true;
     }
 
     public function delete(int|string $id): bool {
 
         $sql = "DELETE FROM $this->table WHERE {$this->primaryKey} = :id";
         $this->db->query($sql, ['id' => $id]);
+
+        $this->lastSqlLog = "DELETE FROM {$this->table} WHERE {$this->primaryKey}=/{$id}/";
+
         return true;
+    }
+
+    public function getLastSqlLog(): string
+    {
+        return $this->lastSqlLog;
     }
 
     public function getLastInsertId(): string {

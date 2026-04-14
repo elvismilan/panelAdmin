@@ -6,17 +6,25 @@ class Validator
 {
     private array $data;
     private array $rules;
+    private array $labels = [];
     private array $errors = [];
 
-    private function __construct(array $data, array $rules)
+    private function __construct(array $data, array $rules, array $labels = [])
     {
-        $this->data = $data;
-        $this->rules = $rules;
+        $this->data   = $data;
+        $this->rules  = $rules;
+        $this->labels = $labels;
     }
 
-    public static function make(array $data, array $rules): self
+    public static function make(array $data, array $rules, array $labels = []): self
     {
-        return new self($data, $rules);
+        return new self($data, $rules, $labels);
+    }
+
+    private function getLabel(string $field): string
+    {
+        $label = $this->labels[$field] ?? $field;
+        return '<strong>' . htmlspecialchars($label, ENT_QUOTES, 'UTF-8') . '</strong>';
     }
 
     public function passes(): bool
@@ -42,40 +50,40 @@ class Validator
 
                     case 'required':
                         if ($value === null || $value === '') {
-                            $this->addError($field, "El campo {$field} es obligatorio.");
+                            $this->addError($field, "El campo {$this->getLabel($field)} es obligatorio.");
                         }
                         break;
 
                     case 'string':
                         if ($value !== null && !is_string($value)) {
-                            $this->addError($field, "El campo {$field} debe ser texto.");
+                            $this->addError($field, "El campo {$this->getLabel($field)} debe ser texto.");
                         }
                         break;
 
                     case 'min':
                         $min = (int) $arg;
                         if (is_string($value) && mb_strlen($value) < $min) {
-                            $this->addError($field, "El campo {$field} debe tener al menos {$min} caracteres.");
+                            $this->addError($field, "El campo {$this->getLabel($field)} debe tener al menos {$min} caracteres.");
                         }
                         break;
 
                     case 'max':
                         $max = (int) $arg;
                         if (is_string($value) && mb_strlen($value) > $max) {
-                            $this->addError($field, "El campo {$field} no debe exceder {$max} caracteres.");
+                            $this->addError($field, "El campo {$this->getLabel($field)} no debe exceder {$max} caracteres.");
                         }
                         break;
 
                     case 'in':
                         $allowed = $arg === '' ? [] : explode(',', $arg);
                         if (!in_array((string) $value, $allowed, true)) {
-                            $this->addError($field, "El campo {$field} tiene un valor invalido.");
+                            $this->addError($field, "El campo {$this->getLabel($field)} tiene un valor invalido.");
                         }
                         break;
 
                     case 'regex':
                         if (!is_string($value) || @preg_match($arg, $value) !== 1) {
-                            $this->addError($field, "El campo {$field} tiene un formato invalido.");
+                            $this->addError($field, "El campo {$this->getLabel($field)} tiene un formato invalido.");
                         }
                         break;
                 }

@@ -84,6 +84,8 @@ class TareaController extends Controller
         $params = $this->request->getParams();
         $validator = Validator::make($params, [
             'tar_nombre' => 'required|string|min:2|max:120',
+        ], [
+            'tar_nombre' => 'Nombre',
         ]);
         $validator->passes();
         $nombre = (string) $validator->value('tar_nombre', '');
@@ -113,9 +115,10 @@ class TareaController extends Controller
             return;
         }
 
-        $model->createTask([
+        $tarId = $model->createTask([
             'tar_nombre' => $nombre,
         ]);
+        $this->logAction($model->getLastSqlLog(), 'CREATE');
 
         $this->flashSuccess('Tarea creada correctamente.');
 
@@ -149,6 +152,8 @@ class TareaController extends Controller
         $params = $this->request->getParams();
         $validator = Validator::make($params, [
             'tar_nombre' => 'required|string|min:2|max:120',
+        ], [
+            'tar_nombre' => 'Nombre',
         ]);
         $validator->passes();
         $nombre = (string) $validator->value('tar_nombre', '');
@@ -183,6 +188,7 @@ class TareaController extends Controller
         $model->updateTask($id, [
             'tar_nombre' => $nombre,
         ]);
+        $this->logAction($model->getLastSqlLog(), 'UPDATE');
 
         $this->flashSuccess('Tarea actualizada correctamente.');
 
@@ -193,17 +199,19 @@ class TareaController extends Controller
     {
         $this->requireAuth();
 
-        $tarea = (new TareaModel())->findById($id);
+        $model = new TareaModel();
+        $tarea = $model->findById($id);
         if (!is_array($tarea)) {
             $this->redirect('/admin/tareas');
             return;
         }
 
         $this->renderAdminModule('tarea/eliminar', [
-            'title' => 'Eliminar tarea',
-            'user' => Auth::user(),
-            'form' => $tarea,
-            'tareaId' => $id,
+            'title'          => 'Eliminar tarea',
+            'user'           => Auth::user(),
+            'form'           => $tarea,
+            'tareaId'        => $id,
+            'linkedToModulo' => $model->isLinkedToModulo($id),
         ]);
     }
 
@@ -219,17 +227,15 @@ class TareaController extends Controller
         }
 
         if ($model->isLinkedToModulo($id)) {
-            $this->renderAdminModule('tarea/eliminar', [
-                'title' => 'Eliminar tarea',
-                'user' => Auth::user(),
-                'error' => 'No se puede eliminar: la tarea esta asociada a modulos en wr_elemento_tarea.',
-                'form' => $tarea,
-                'tareaId' => $id,
-            ]);
+            $this->flashError('No se puede eliminar la tarea porque esta asociada a uno o mas modulos. Desvincule la tarea de los modulos antes de continuar.');
+            $this->redirect('/admin/tareas/' . urlencode($id) . '/eliminar');
             return;
         }
 
+        $nombre = (string) ($tarea['tar_nombre'] ?? '');
         $model->deleteTask($id);
+        $this->logAction($model->getLastSqlLog(), 'DELETE');
+
         $this->flashSuccess('Tarea eliminada correctamente.');
         $this->redirect('/admin/tareas');
     }

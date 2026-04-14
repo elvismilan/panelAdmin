@@ -8,7 +8,7 @@ class HomeController extends Controller
 {
     public function index(): void
     {
-        $this->logAction('Acceso home', 'NAV');
+        //$this->logAction('Acceso home', 'NAV');
         $view = $this->resolveTemplate('public', 'home/index');
 
         $this->render($view, [

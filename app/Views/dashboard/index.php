@@ -9,7 +9,10 @@
                     <p>Nombre: <strong><?= htmlspecialchars($user['full_name'] ?? $user['username'] ?? 'N/A', ENT_QUOTES, 'UTF-8') ?></strong></p>
                     <p>Usuario: <strong><?= htmlspecialchars($user['username'] ?? 'N/A', ENT_QUOTES, 'UTF-8') ?></strong></p>
                     <p>Grupo: <strong><?= htmlspecialchars($user['group'] ?? 'N/A', ENT_QUOTES, 'UTF-8') ?></strong></p>
-                    <p><a href="/admin/tareas" class="btn btn-info btn-sm">Ir al modulo de tareas</a></p>
+                    <p>
+                        <a href="/admin/tareas" class="btn btn-info btn-sm me-2">Ir al modulo de tareas</a>
+                        <a href="/admin/modulos" class="btn btn-secondary btn-sm">Ir al modulo de modulos</a>
+                    </p>
                     <form method="post" action="/logout"><button type="submit" class="btn btn-primary">Cerrar sesion</button></form>
                 </div>
             </div>
