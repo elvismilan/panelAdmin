@@ -83,6 +83,6 @@ class UserModel extends Model
             }
         }
 
-        return hash_equals($storedPassword, $plainPassword);
+        return false;
     }
 }

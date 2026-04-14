@@ -16,7 +16,7 @@ class AuthController extends Controller
             $this->redirect('/dashboard');
         }
 
-        $this->logAction('Acceso pantalla login', 'AUTH');
+        //$this->logAction('Acceso pantalla login', 'AUTH');
         $loginView = $this->resolveTemplate('login', 'login/index');
 
         $this->render($loginView, [
@@ -50,33 +50,21 @@ class AuthController extends Controller
 
         if (is_array($user)) {
             Auth::login($user);
-            $this->logAction('Login exitoso con wr_usuario: ' . $username, 'AUTH_OK');
+            $this->logAction('Ingreso al Sistema', 'AUTH_OK');
             $this->redirect('/dashboard');
             return;
         }
 
-        if (!Auth::attempt($username, $password)) {
-            $this->logAction('Login fallido: ' . $username, 'AUTH_FAIL');
-            $this->render($this->resolveTemplate('login', 'login/index'), [
-                'title' => 'Iniciar Sesion',
-                'error' => 'Credenciales invalidas.',
-            ]);
-            return;
-        }
-
-        Auth::login([
-            'id' => $username,
-            'username' => $username,
-            'auth_driver' => 'env',
+        $this->logAction('Login fallido: ' . $username, 'AUTH_FAIL');
+        $this->render($this->resolveTemplate('login', 'login/index'), [
+            'title' => 'Iniciar Sesion',
+            'error' => 'Credenciales invalidas.',
         ]);
-        $this->logAction('Login exitoso con credenciales de entorno: ' . $username, 'AUTH_OK');
-
-        $this->redirect('/dashboard');
     }
 
     public function logout(): void
     {
-        $this->logAction('Logout usuario', 'AUTH');
+        $this->logAction('Salir del Sistema', 'AUTH');
         Auth::logout();
         $this->redirect('/login');
     }

@@ -61,6 +61,10 @@ class Controller
 
         $data['pageAssets'] = $assets;
 
+        if (!isset($data['flashes'])) {
+            $data['flashes'] = $this->consumeFlashes();
+        }
+
         $this->view->render($template, $data);
     }
 
@@ -174,6 +178,140 @@ class Controller
     protected function getPageAssets(): array
     {
         return $this->pageAssets;
+    }
+
+    protected function getDefaultPerPage(): int
+    {
+        $value = (int) ($_ENV['PAGINATION_PER_PAGE'] ?? 8);
+        if ($value < 1) {
+            return 8;
+        }
+
+        return min($value, 100);
+    }
+
+    protected function getCurrentPage(): int
+    {
+        $params = $this->request->getParams();
+        $page = (int) ($params['page'] ?? 1);
+
+        return max($page, 1);
+    }
+
+    protected function getQueryParam(string $key, string $default = ''): string
+    {
+        $params = $this->request->getParams();
+        $value = $params[$key] ?? $default;
+
+        return is_string($value) ? trim($value) : $default;
+    }
+
+    protected function getQueryParams(array $fields): array
+    {
+        $params = [];
+
+        foreach ($fields as $key => $default) {
+            if (is_int($key)) {
+                $name = (string) $default;
+                $fallback = '';
+            } else {
+                $name = (string) $key;
+                $fallback = is_scalar($default) ? (string) $default : '';
+            }
+
+            if ($name === '') {
+                continue;
+            }
+
+            $params[$name] = $this->getQueryParam($name, $fallback);
+        }
+
+        return $params;
+    }
+
+    protected function buildPagination(int $totalRows, int $currentPage, int $perPage, string $basePath, array $queryParams = []): array
+    {
+        $safePerPage = max(1, $perPage);
+        $totalPages = max((int) ceil($totalRows / $safePerPage), 1);
+        $safePage = max(1, min($currentPage, $totalPages));
+        $offset = ($safePage - 1) * $safePerPage;
+        $from = $totalRows > 0 ? $offset + 1 : 0;
+        $to = min($offset + $safePerPage, $totalRows);
+
+        $cleanQuery = [];
+        foreach ($queryParams as $key => $value) {
+            if (!is_string($key)) {
+                continue;
+            }
+
+            if (!is_scalar($value)) {
+                continue;
+            }
+
+            $stringValue = trim((string) $value);
+            if ($stringValue === '') {
+                continue;
+            }
+
+            $cleanQuery[$key] = $stringValue;
+        }
+
+        return [
+            'totalRows' => $totalRows,
+            'perPage' => $safePerPage,
+            'currentPage' => $safePage,
+            'totalPages' => $totalPages,
+            'offset' => $offset,
+            'from' => $from,
+            'to' => $to,
+            'hasPrev' => $safePage > 1,
+            'hasNext' => $safePage < $totalPages,
+            'prevPage' => $safePage - 1,
+            'nextPage' => $safePage + 1,
+            'basePath' => $basePath,
+            'query' => $cleanQuery,
+        ];
+    }
+
+    protected function flash(string $type, string $message): void
+    {
+        $type = trim($type);
+        $message = trim($message);
+        if ($type === '' || $message === '') {
+            return;
+        }
+
+        Session::start();
+        $flashes = Session::get('_flash_messages', []);
+        if (!is_array($flashes)) {
+            $flashes = [];
+        }
+
+        if (!isset($flashes[$type]) || !is_array($flashes[$type])) {
+            $flashes[$type] = [];
+        }
+
+        $flashes[$type][] = $message;
+        Session::set('_flash_messages', $flashes);
+    }
+
+    protected function flashSuccess(string $message): void
+    {
+        $this->flash('success', $message);
+    }
+
+    protected function flashError(string $message): void
+    {
+        $this->flash('danger', $message);
+    }
+
+    protected function consumeFlashes(): array
+    {
+        Session::start();
+        $flashes = Session::get('_flash_messages', []);
+        Session::remove('_flash_messages');
+
+        return is_array($flashes) ? $flashes : [];
     }
 
     private function normalizeAssetList(array $assets): array

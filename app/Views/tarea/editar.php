@@ -1,0 +1,27 @@
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="card">
+                <div class="card-header pb-0">
+                    <h5>Editar tarea</h5><span>Actualizar registro existente</span>
+                </div>
+                <div class="card-body">
+                    <?php
+                    $errorView = dirname(__DIR__) . '/components/form-errors.php';
+                    if (is_file($errorView)) {
+                        include $errorView;
+                    }
+                    ?>
+                    <form method="post" action="/admin/tareas/<?= urlencode((string) ($tareaId ?? '')) ?>/actualizar">
+                        <div class="mb-3">
+                            <label for="tar_nombre" class="form-label">Nombre</label>
+                            <input id="tar_nombre" class="form-control" type="text" name="tar_nombre" value="<?= htmlspecialchars((string) ($form['tar_nombre'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Actualizar</button>
+                        <a href="/admin/tareas" class="btn btn-light">Cancelar</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

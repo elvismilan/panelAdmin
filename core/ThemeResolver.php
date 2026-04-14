@@ -19,9 +19,16 @@ class ThemeResolver
         $defaultPack = $this->defaultPackForArea($area);
         $pack = $this->resolvePackForArea($area, $defaultPack);
         $option = trim((string) ($_ENV[strtoupper($area) . '_THEME_OPTION'] ?? '1'));
-        $mappedOptionView = $this->optionViewForArea($area, $option);
+        $mappedOptionView = $this->shouldUseOptionMap($area, $defaultView)
+            ? $this->optionViewForArea($area, $option)
+            : null;
 
         $themeCandidates = [];
+
+        $defaultView = ltrim($defaultView, '/');
+        if ($defaultView !== '') {
+            $themeCandidates[] = "{$pack}/{$area}/{$defaultView}";
+        }
 
         if ($mappedOptionView !== null) {
             $themeCandidates[] = "{$pack}/{$area}/{$mappedOptionView}";
@@ -91,5 +98,13 @@ class ThemeResolver
         ];
 
         return $optionMap[$area][$option] ?? null;
+    }
+
+    private function shouldUseOptionMap(string $area, string $defaultView): bool
+    {
+        $normalized = ltrim(strtolower($defaultView), '/');
+
+        return ($area === 'login' && $normalized === 'login/index')
+            || ($area === 'admin' && $normalized === 'dashboard/index');
     }
 }

@@ -5,12 +5,14 @@
         $('.nav-menu').css("left", "-410px");
     });
 
-    $(".page-wrapper").attr("class", "page-wrapper "+localStorage.getItem("page-wrapper"));
-    $(".page-body-wrapper").attr("class", "page-body-wrapper "+localStorage.getItem("page-body-wrapper"));
+    var wrapperClass = "compact-wrapper modern-sidebar";
+    var bodyWrapperClass = "sidebar-icon";
 
-    if (localStorage.getItem("page-wrapper") === null) {
-        $(".page-wrapper").addClass("compact-wrapper");
-    }   
+    localStorage.setItem("page-wrapper", wrapperClass);
+    localStorage.setItem("page-body-wrapper", bodyWrapperClass);
+
+    $(".page-wrapper").attr("class", "page-wrapper " + wrapperClass);
+    $(".page-body-wrapper").attr("class", "page-body-wrapper " + bodyWrapperClass);
 
   // left sidebar and horizotal menu
     if($('#pageWrapper').hasClass('compact-wrapper')){

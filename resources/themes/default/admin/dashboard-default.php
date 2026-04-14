@@ -1,35 +1,23 @@
 <?php
-$sharedDir = dirname(__DIR__) . '/shared';
+$themeDir = dirname(__DIR__);
+$adminHeader = $themeDir . '/header-admin.php';
+$adminFooter = $themeDir . '/footer-admin.php';
+$sharedDir = $themeDir . '/shared';
 $sharedHeader = $sharedDir . '/header.php';
 $sharedFooter = $sharedDir . '/footer.php';
-$useStandaloneLayout = !is_file($sharedHeader) && !is_file($sharedFooter);
-$pageAssets = $pageAssets ?? ['css' => [], 'js' => []];
-$cssAssets = is_array($pageAssets['css'] ?? null) ? $pageAssets['css'] : [];
-$jsAssets = is_array($pageAssets['js'] ?? null) ? $pageAssets['js'] : [];
+$dashboardView = dirname(__DIR__, 4) . '/app/Views/dashboard/index.php';
+$hasAdminLayout = is_file($adminHeader) && is_file($adminFooter);
 ?>
-<?php if ($useStandaloneLayout): ?>
-<!doctype html>
-<html lang="es">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?= htmlspecialchars($title ?? 'Dashboard', ENT_QUOTES, 'UTF-8') ?></title>
-    <?php foreach ($cssAssets as $cssFile): ?>
-        <link rel="stylesheet" href="<?= htmlspecialchars($cssFile, ENT_QUOTES, 'UTF-8') ?>">
-    <?php endforeach; ?>
-</head>
-<body>
+<?php if ($hasAdminLayout): ?>
+    <?php include $adminHeader; ?>
+<?php elseif (is_file($sharedHeader)): ?>
+    <?php include $sharedHeader; ?>
 <?php endif; ?>
-<?php if (is_file($sharedHeader)) { include $sharedHeader; } ?>
-    <h1>Dashboard - Opcion 1</h1>
-    <p>Usuario: <strong><?= htmlspecialchars($user['username'] ?? 'N/A', ENT_QUOTES, 'UTF-8') ?></strong></p>
-    <p>Grupo: <strong><?= htmlspecialchars($user['group'] ?? 'N/A', ENT_QUOTES, 'UTF-8') ?></strong></p>
-    <form method="post" action="/logout"><button type="submit">Cerrar sesion</button></form>
-<?php if (is_file($sharedFooter)) { include $sharedFooter; } ?>
-<?php if ($useStandaloneLayout): ?>
-    <?php foreach ($jsAssets as $jsFile): ?>
-        <script src="<?= htmlspecialchars($jsFile, ENT_QUOTES, 'UTF-8') ?>"></script>
-    <?php endforeach; ?>
-</body>
-</html>
+<?php if (is_file($dashboardView)): ?>
+    <?php include $dashboardView; ?>
+<?php endif; ?>
+<?php if ($hasAdminLayout): ?>
+    <?php include $adminFooter; ?>
+<?php elseif (is_file($sharedFooter)): ?>
+    <?php include $sharedFooter; ?>
 <?php endif; ?>

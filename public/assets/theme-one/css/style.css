@@ -3491,7 +3491,7 @@ table tbody .border-bottom-warning td {
   -webkit-box-align: center;
       -ms-flex-align: center;
           align-items: center;
-  padding: 24px 40px;
+  padding: 20px 30px;
   border-right: 1px solid #e6edef;
 }
 .page-main-header .main-header-right .main-header-left .dark-logo-wrapper {
@@ -4512,10 +4512,10 @@ table tbody .border-bottom-warning td {
   margin-bottom: 0;
 }
 .page-wrapper.compact-wrapper .page-body-wrapper header.main-nav .sidebar-user {
-  padding: 30px;
+  padding: 15px;
   position: relative;
   border-bottom: 1px solid #e6edef;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 }
 .page-wrapper.compact-wrapper .page-body-wrapper header.main-nav .sidebar-user img {
   border: 10px solid rgba(36, 105, 92, 0.2);
@@ -4952,7 +4952,7 @@ table tbody .border-bottom-warning td {
   padding-top: 75px;
 }
 .page-wrapper.modern-sidebar.compact-wrapper .page-body-wrapper header.main-nav {
-  top: 113px;
+  top: 104px;
   height: calc(100vh - 145px);
   overflow: hidden;
   border-bottom-left-radius: 20px;
@@ -4970,13 +4970,13 @@ table tbody .border-bottom-warning td {
   margin-left: 30px;
 }
 .page-wrapper.modern-sidebar.compact-wrapper .page-body-wrapper header.main-nav .main-navbar .nav-menu {
-  height: calc(100vh - 430px);
+  height: calc(100vh - 360px);
 }
 .page-wrapper.modern-sidebar.compact-wrapper .page-body-wrapper .page-body {
   margin-left: 290px;
   overflow-y: scroll !important;
-  min-height: calc(100vh - 185px);
-  max-height: calc(100vh - 185px);
+  min-height: calc(100vh - 175px);
+  max-height: calc(100vh - 175px);
   margin-bottom: auto;
   margin-top: auto;
   border-top-right-radius: 20px;
@@ -15809,7 +15809,7 @@ p.data-attributes svg {
 
 footer {
   background-color: #fff;
-  padding: 15px;
+  padding: 10px 15px;
   bottom: 0;
   left: 0;
   margin-left: 275px;

@@ -10,7 +10,7 @@ class DashboardController extends Controller
     public function index(): void
     {
         $this->requireAuth();
-        $this->logAction('Acceso dashboard', 'NAV');
+        //$this->logAction('Acceso dashboard', 'NAV');
 
         $user = Auth::user();
         $this->render($this->resolveTemplate('admin', 'dashboard/index'), [
