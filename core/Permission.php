@@ -29,7 +29,7 @@ class Permission
         $this->tableGrupo = $prefix . 'grupo';
         $this->tableTarea = $prefix . 'tarea';
 
-        $this->db = new Database($dsn, (string) ($_ENV['DB_USER'] ?? ''), (string) ($_ENV['DB_PASS'] ?? ''));
+        $this->db = Database::getInstance($dsn, (string) ($_ENV['DB_USER'] ?? ''), (string) ($_ENV['DB_PASS'] ?? ''));
     }
 
     public function canAccessElement(string $groupId, int $elementId): bool

@@ -25,7 +25,7 @@ class Model
             $dsn = sprintf('mysql:host=%s;dbname=%s;charset=%s', $host, $dsn, $charset);
         }
 
-        $this->db = new Database($dsn, (string) ($_ENV['DB_USER'] ?? ''), (string) ($_ENV['DB_PASS'] ?? ''));
+        $this->db = Database::getInstance($dsn, (string) ($_ENV['DB_USER'] ?? ''), (string) ($_ENV['DB_PASS'] ?? ''));
         $this->tablePrefix = (string) ($_ENV['DB_PREFIX'] ?? 'wr_');
     }
 
