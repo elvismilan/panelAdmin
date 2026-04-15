@@ -20,12 +20,6 @@ class PersonaController extends Controller
         ['w' => 300, 'h' => 300, 'mode' => 'fit'],  // medium (proportional)
     ];
 
-    private function renderAdminModule(string $moduleView, array $data = []): void
-    {
-        $data['moduleView'] = $moduleView;
-        $this->render($this->resolveTemplate('admin', 'layout'), $data);
-    }
-
     // -------------------------------------------------------------------------
     // INDEX
     // -------------------------------------------------------------------------

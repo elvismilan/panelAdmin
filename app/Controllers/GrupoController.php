@@ -10,12 +10,6 @@ use Throwable;
 
 class GrupoController extends Controller
 {
-    private function renderAdminModule(string $moduleView, array $data = []): void
-    {
-        $data['moduleView'] = $moduleView;
-        $this->render($this->resolveTemplate('admin', 'layout'), $data);
-    }
-
     // -------------------------------------------------------------------------
     // INDEX
     // -------------------------------------------------------------------------

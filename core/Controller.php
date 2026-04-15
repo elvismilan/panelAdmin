@@ -154,6 +154,12 @@ class Controller
         return $payload;
     }
 
+    protected function renderAdminModule(string $moduleView, array $data = []): void
+    {
+        $data['moduleView'] = $moduleView;
+        $this->render($this->resolveTemplate('admin', 'layout'), $data);
+    }
+
     protected function resolveTemplate(string $area, string $defaultView): string
     {
         return $this->themeResolver->resolve($area, $defaultView);
