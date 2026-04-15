@@ -127,14 +127,15 @@ class Controller
     protected function logAction(string $action, string $type = 'GENERAL', bool $persist = true): array
     {
         $user = Auth::user();
+        $ip   = (string) ($_SERVER['REMOTE_ADDR'] ?? '0.0.0.0');
         $payload = [
-            'accion' => $action,
+            'accion'  => $action,
             'usuario' => (string) ($user['id'] ?? $user['username'] ?? 'ANON'),
-            'fecha' => date('Y-m-d'),
-            'hora' => date('H:i:s'),
-            'tipo' => $type,
-            'ip' => (string) ($_SERVER['REMOTE_ADDR'] ?? '0.0.0.0'),
-            'pc' => (string) (@gethostbyaddr((string) ($_SERVER['REMOTE_ADDR'] ?? '0.0.0.0')) ?: 'unknown'),
+            'fecha'   => date('Y-m-d'),
+            'hora'    => date('H:i:s'),
+            'tipo'    => $type,
+            'ip'      => $ip,
+            'pc'      => $this->resolveHostname($ip),
         ];
 
         if (!$persist) {
@@ -152,6 +153,30 @@ class Controller
         }
 
         return $payload;
+    }
+
+    private function resolveHostname(string $ip): string
+    {
+        $cacheKey = '_hostname_cache';
+
+        Session::start();
+        $cache = Session::get($cacheKey, []);
+
+        if (!is_array($cache)) {
+            $cache = [];
+        }
+
+        if (isset($cache[$ip])) {
+            return $cache[$ip];
+        }
+
+        $hostname = gethostbyaddr($ip);
+        $resolved = ($hostname !== false && $hostname !== $ip) ? $hostname : 'unknown';
+
+        $cache[$ip] = $resolved;
+        Session::set($cacheKey, $cache);
+
+        return $resolved;
     }
 
     protected function renderAdminModule(string $moduleView, array $data = []): void
