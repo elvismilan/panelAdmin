@@ -18,7 +18,7 @@ class AuthController extends Controller
         }
 
         //$this->logAction('Acceso pantalla login', 'AUTH');
-        $loginView = $this->resolveTemplate('login', 'login/index');
+        $loginView = $this->resolveTemplate('login', 'auth/login');
 
         $this->render($loginView, [
             'title' => 'Iniciar Sesion',
@@ -31,7 +31,7 @@ class AuthController extends Controller
         $this->requireCsrf('/login');
 
         $ip          = (string) ($_SERVER['REMOTE_ADDR'] ?? '0.0.0.0');
-        $loginView   = $this->resolveTemplate('login', 'login/index');
+        $loginView   = $this->resolveTemplate('login', 'auth/login');
         $rateLimiter = null;
 
         try {

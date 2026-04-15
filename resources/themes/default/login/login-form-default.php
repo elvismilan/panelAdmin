@@ -12,32 +12,32 @@ if (is_file($headerFile)) {
                 <div class="col-12">
                     <div class="login-card">
                         <form class="theme-form login-form" method="post" action="/login">
+                            <?= $csrfField ?>
                             <h4 class="text-center">Iniciar Sesión</h4>
                             <h6 class="text-center">¡Bienvenido de nuevo! Inicia sesión en tu cuenta.</h6>
                             <?php if (!empty($error)): ?>
                                 <div class="form-group">
-                                    <p style="color:#b00020;"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></p>
+                                    <div class="alert alert-danger" role="alert">
+                                        <?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?>
+                                    </div>
                                 </div>
                             <?php endif; ?>
                             <div class="form-group">
-                                <label>Username</label>
+                                <label>Usuario</label>
                                 <div class="input-group"><span class="input-group-text"><i class="icon-email"></i></span>
-                                    <input class="form-control" name="username" required="" placeholder="username">
+                                    <input class="form-control" name="username" required="" placeholder="usuario" autocomplete="username">
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label>Contraseña</label>
                                 <div class="input-group"><span class="input-group-text"><i class="icon-lock"></i></span>
-                                    <input class="form-control" type="password" name="password" required="" placeholder="*********">
-                                    <div class="show-hide"><span class="show">                         </span></div>
+                                    <input class="form-control" type="password" name="password" required="" placeholder="*********" autocomplete="current-password">
+                                    <div class="show-hide"><span class="show"></span></div>
                                 </div>
                             </div>
-                            
                             <div class="form-group">
                                 <button class="btn btn-primary btn-block" type="submit">Ingresar</button>
                             </div>
-                            
-                            <p><a class="ms-2" href="log-in.html">¿Has olvidado tu contraseña?</a></p>
                         </form>
                     </div>
                 </div>

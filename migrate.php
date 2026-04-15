@@ -10,7 +10,7 @@
  *   php migrate.php rollback  — revierte la ultima migracion (requiere archivo *_down.sql)
  */
 
-define('MIGRATIONS_DIR', __DIR__ . '/bd/migrations');
+define('MIGRATIONS_DIR', __DIR__ . '/core/database/migrations');
 define('ENV_FILE', __DIR__ . '/.env');
 
 // ---------------------------------------------------------------------------

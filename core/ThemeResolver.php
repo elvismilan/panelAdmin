@@ -104,7 +104,7 @@ class ThemeResolver
     {
         $normalized = ltrim(strtolower($defaultView), '/');
 
-        return ($area === 'login' && $normalized === 'login/index')
+        return ($area === 'login' && in_array($normalized, ['login/index', 'auth/login'], true))
             || ($area === 'admin' && $normalized === 'dashboard/index');
     }
 }
