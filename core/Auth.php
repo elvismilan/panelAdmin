@@ -26,8 +26,7 @@ class Auth
 
     public static function logout(): void
     {
-        Session::remove(self::SESSION_KEY);
-        Session::regenerateId();
+        Session::destroy();
     }
 
     public static function requireAuth(string $redirectTo = '/login'): void
