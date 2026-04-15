@@ -12,7 +12,7 @@ class Model
     protected string $tablePrefix;
     protected bool   $softDeletes = false;
     protected string $deletedAtColumn = 'deleted_at';
-    private string $lastSqlLog = '';
+    private array $lastActionLog = [];
 
     public function __construct() {
 
@@ -76,8 +76,7 @@ class Model
         $this->db->query($sql, $data);
         $id = $this->db->lastInsertId();
 
-        $logValues = implode(',', array_map(fn($v) => $v === null ? '/NULL/' : '/' . $v . '/', array_values($data)));
-        $this->lastSqlLog = "INSERT INTO {$this->table}({$fields}) VALUES ({$logValues})";
+        $this->lastActionLog = ['op' => 'INSERT', 'table' => $this->table, 'data' => $data, 'id' => $id];
 
         return $id;
     }
@@ -93,12 +92,7 @@ class Model
         $data['id'] = $id;
         $this->db->query($sql, $data);
 
-        $sets = [];
-        foreach ($data as $k => $v) {
-            if ($k === 'id') continue;
-            $sets[] = $k . '=' . ($v === null ? '/NULL/' : '/' . $v . '/');
-        }
-        $this->lastSqlLog = "UPDATE {$this->table} SET " . implode(', ', $sets) . " WHERE {$this->primaryKey}=/{$id}/";
+        $this->lastActionLog = ['op' => 'UPDATE', 'table' => $this->table, 'pk' => $id, 'data' => array_diff_key($data, ['id' => ''])];
 
         return true;
     }
@@ -109,11 +103,11 @@ class Model
             $col = $this->deletedAtColumn;
             $sql = "UPDATE {$this->table} SET {$col} = NOW() WHERE {$this->primaryKey} = :id AND {$col} IS NULL";
             $this->db->query($sql, ['id' => $id]);
-            $this->lastSqlLog = "UPDATE {$this->table} SET {$col}=NOW() WHERE {$this->primaryKey}=/{$id}/";
+            $this->lastActionLog = ['op' => 'SOFT_DELETE', 'table' => $this->table, 'pk' => $id];
         } else {
             $sql = "DELETE FROM {$this->table} WHERE {$this->primaryKey} = :id";
             $this->db->query($sql, ['id' => $id]);
-            $this->lastSqlLog = "DELETE FROM {$this->table} WHERE {$this->primaryKey}=/{$id}/";
+            $this->lastActionLog = ['op' => 'DELETE', 'table' => $this->table, 'pk' => $id];
         }
 
         return true;
@@ -133,7 +127,7 @@ class Model
             "UPDATE {$this->table} SET {$col} = NULL WHERE {$this->primaryKey} = :id",
             ['id' => $id]
         );
-        $this->lastSqlLog = "UPDATE {$this->table} SET {$col}=NULL WHERE {$this->primaryKey}=/{$id}/";
+        $this->lastActionLog = ['op' => 'RESTORE', 'table' => $this->table, 'pk' => $id];
 
         return true;
     }
@@ -152,9 +146,15 @@ class Model
         return " AND {$col} IS NULL";
     }
 
+    public function getLastActionLog(): string
+    {
+        return json_encode($this->lastActionLog, JSON_UNESCAPED_UNICODE) ?: '{}';
+    }
+
+    /** @deprecated Usar getLastActionLog() */
     public function getLastSqlLog(): string
     {
-        return $this->lastSqlLog;
+        return $this->getLastActionLog();
     }
 
     public function getLastInsertId(): string {

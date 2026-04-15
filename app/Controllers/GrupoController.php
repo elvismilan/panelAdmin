@@ -101,9 +101,7 @@ class GrupoController extends Controller
             'gru_descripcion' => 'Descripcion',
             'gru_estado'      => 'Estado',
         ]);
-        $validator->passes();
-
-        if ($validator->first() !== null) {
+        if (!$validator->passes()) {
             $this->renderAdminModule('grupo/agregar', [
                 'title'     => 'Nuevo grupo',
                 'user'      => Auth::user(),
@@ -149,7 +147,7 @@ class GrupoController extends Controller
 
         try {
             $model->createGrupo($params);
-            $this->logAction($model->getLastSqlLog(), 'CREATE');
+            $this->logAction($model->getLastActionLog(), 'CREATE');
 
             // Sincronizar permisos
             $permisos = $this->parsePermisos($params);
@@ -226,9 +224,7 @@ class GrupoController extends Controller
             'gru_descripcion' => 'Descripcion',
             'gru_estado'      => 'Estado',
         ]);
-        $validator->passes();
-
-        if ($validator->first() !== null) {
+        if (!$validator->passes()) {
             $this->renderAdminModule('grupo/editar', [
                 'title'    => 'Editar grupo',
                 'user'     => Auth::user(),
@@ -260,7 +256,7 @@ class GrupoController extends Controller
 
         try {
             $model->updateGrupo($id, $params);
-            $this->logAction($model->getLastSqlLog(), 'UPDATE');
+            $this->logAction($model->getLastActionLog(), 'UPDATE');
 
             // Sincronizar permisos
             $permisos = $this->parsePermisos($params);
@@ -344,7 +340,7 @@ class GrupoController extends Controller
             $this->logAction("DELETE_PERMISOS grupo={$id}", 'DELETE');
 
             $model->deleteGrupo($id);
-            $this->logAction($model->getLastSqlLog(), 'DELETE');
+            $this->logAction($model->getLastActionLog(), 'DELETE');
         } catch (Throwable $e) {
             error_log('[GrupoController::borrar] ' . $e->getMessage());
             $this->flashError('Ocurrio un error al eliminar el grupo. Intente nuevamente.');

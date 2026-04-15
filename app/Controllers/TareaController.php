@@ -82,10 +82,10 @@ class TareaController extends Controller
         ], [
             'tar_nombre' => 'Nombre',
         ]);
-        $validator->passes();
+        $passes = $validator->passes();
         $nombre = (string) $validator->value('tar_nombre', '');
 
-        if ($validator->first() !== null) {
+        if (!$passes) {
             $this->renderAdminModule('tarea/agregar', [
                 'title' => 'Nueva tarea',
                 'user' => Auth::user(),
@@ -113,7 +113,7 @@ class TareaController extends Controller
         $tarId = $model->createTask([
             'tar_nombre' => $nombre,
         ]);
-        $this->logAction($model->getLastSqlLog(), 'CREATE');
+        $this->logAction($model->getLastActionLog(), 'CREATE');
 
         $this->flashSuccess('Tarea creada correctamente.');
 
@@ -151,10 +151,10 @@ class TareaController extends Controller
         ], [
             'tar_nombre' => 'Nombre',
         ]);
-        $validator->passes();
+        $passes = $validator->passes();
         $nombre = (string) $validator->value('tar_nombre', '');
 
-        if ($validator->first() !== null) {
+        if (!$passes) {
             $this->renderAdminModule('tarea/editar', [
                 'title' => 'Editar tarea',
                 'user' => Auth::user(),
@@ -184,7 +184,7 @@ class TareaController extends Controller
         $model->updateTask($id, [
             'tar_nombre' => $nombre,
         ]);
-        $this->logAction($model->getLastSqlLog(), 'UPDATE');
+        $this->logAction($model->getLastActionLog(), 'UPDATE');
 
         $this->flashSuccess('Tarea actualizada correctamente.');
 
@@ -232,7 +232,7 @@ class TareaController extends Controller
 
         $nombre = (string) ($tarea['tar_nombre'] ?? '');
         $model->deleteTask($id);
-        $this->logAction($model->getLastSqlLog(), 'DELETE');
+        $this->logAction($model->getLastActionLog(), 'DELETE');
 
         $this->flashSuccess('Tarea eliminada correctamente.');
         $this->redirect('/tareas');

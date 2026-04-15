@@ -106,9 +106,7 @@ class UsuarioController extends Controller
             'usu_estado'   => 'Estado',
             'usu_per_id'   => 'Persona',
         ]);
-        $validator->passes();
-
-        if ($validator->first() !== null) {
+        if (!$validator->passes()) {
             $this->renderAdminModule('usuario/agregar', [
                 'title'    => 'Nuevo usuario',
                 'user'     => Auth::user(),
@@ -153,7 +151,7 @@ class UsuarioController extends Controller
         }
 
         $model->createUsuario($params);
-        $this->logAction($model->getLastSqlLog(), 'CREATE');
+        $this->logAction($model->getLastActionLog(), 'CREATE');
 
         $this->flashSuccess('Usuario registrado correctamente.');
         $this->redirect('/usuarios');
@@ -214,9 +212,7 @@ class UsuarioController extends Controller
             'usu_per_id'   => 'Persona',
             'usu_password' => 'Contrasena',
         ]);
-        $validator->passes();
-
-        if ($validator->first() !== null) {
+        if (!$validator->passes()) {
             $this->renderAdminModule('usuario/editar', [
                 'title'     => 'Editar usuario',
                 'user'      => Auth::user(),
@@ -264,7 +260,7 @@ class UsuarioController extends Controller
         }
 
         $model->updateUsuario($id, $params);
-        $this->logAction($model->getLastSqlLog(), 'UPDATE');
+        $this->logAction($model->getLastActionLog(), 'UPDATE');
 
         $this->flashSuccess('Usuario actualizado correctamente.');
         $this->redirect('/usuarios');
@@ -326,7 +322,7 @@ class UsuarioController extends Controller
         }
 
         $model->deleteUsuario($id);
-        $this->logAction($model->getLastSqlLog(), 'DELETE');
+        $this->logAction($model->getLastActionLog(), 'DELETE');
 
         $this->flashSuccess('Usuario eliminado correctamente.');
         $this->redirect('/usuarios');

@@ -126,9 +126,7 @@ class PersonaController extends Controller
             'per_ci'               => 'CI',
             'per_fecha_nacimiento' => 'Fecha de nacimiento',
         ]);
-        $validator->passes();
-
-        if ($validator->first() !== null) {
+        if (!$validator->passes()) {
             $this->renderAdminModule('persona/agregar', [
                 'title'  => 'Nueva persona',
                 'user'   => Auth::user(),
@@ -182,7 +180,7 @@ class PersonaController extends Controller
 
         $params['per_foto'] = $fotoPath;
         $perId = $model->createPersona($params);
-        $this->logAction($model->getLastSqlLog(), 'CREATE');
+        $this->logAction($model->getLastActionLog(), 'CREATE');
 
         $this->flashSuccess('Persona registrada correctamente.');
         $this->redirect('/personas');
@@ -249,9 +247,7 @@ class PersonaController extends Controller
             'per_ci'               => 'CI',
             'per_fecha_nacimiento' => 'Fecha de nacimiento',
         ]);
-        $validator->passes();
-
-        if ($validator->first() !== null) {
+        if (!$validator->passes()) {
             $this->renderAdminModule('persona/editar', [
                 'title'     => 'Editar persona',
                 'user'      => Auth::user(),
@@ -311,7 +307,7 @@ class PersonaController extends Controller
 
         $params['per_foto'] = $fotoPath;
         $model->updatePersona($id, $params);
-        $this->logAction($model->getLastSqlLog(), 'UPDATE');
+        $this->logAction($model->getLastActionLog(), 'UPDATE');
 
         $this->flashSuccess('Persona actualizada correctamente.');
         $this->redirect('/personas');
@@ -360,7 +356,7 @@ class PersonaController extends Controller
         }
 
         $model->deletePersona($id);
-        $this->logAction($model->getLastSqlLog(), 'DELETE');
+        $this->logAction($model->getLastActionLog(), 'DELETE');
 
         $this->flashSuccess('Persona eliminada correctamente.');
         $this->redirect('/personas');

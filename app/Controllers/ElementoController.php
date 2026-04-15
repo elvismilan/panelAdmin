@@ -113,11 +113,11 @@ class ElementoController extends Controller
             'ele_orden'   => 'Orden',
             'ele_padre'   => 'Modulo padre',
         ]);
-        $validator->passes();
+        $passes = $validator->passes();
 
         $nombre = (string) $validator->value('ele_nombre', '');
 
-        if ($validator->first() !== null) {
+        if (!$passes) {
             $this->renderAdminModule('elemento/agregar', [
                 'title' => 'Nuevo modulo',
                 'user' => Auth::user(),
@@ -162,7 +162,7 @@ class ElementoController extends Controller
         }
 
         $eleId = $model->createElemento($params, $tareaIds);
-        $this->logAction($model->getLastSqlLog(), 'CREATE');
+        $this->logAction($model->getLastActionLog(), 'CREATE');
 
         $this->flashSuccess('Modulo creado correctamente.');
         $this->redirect('/modulos');
@@ -227,11 +227,11 @@ class ElementoController extends Controller
             'ele_orden'   => 'Orden',
             'ele_padre'   => 'Modulo padre',
         ]);
-        $validator->passes();
+        $passes = $validator->passes();
 
         $nombre = (string) $validator->value('ele_nombre', '');
 
-        if ($validator->first() !== null) {
+        if (!$passes) {
             $this->renderAdminModule('elemento/editar', [
                 'title' => 'Editar modulo',
                 'user' => Auth::user(),
@@ -279,7 +279,7 @@ class ElementoController extends Controller
         }
 
         $model->updateElemento($id, $params, $tareaIds);
-        $this->logAction($model->getLastSqlLog(), 'UPDATE');
+        $this->logAction($model->getLastActionLog(), 'UPDATE');
 
         $this->flashSuccess('Modulo actualizado correctamente.');
         $this->redirect('/modulos');
@@ -325,7 +325,7 @@ class ElementoController extends Controller
 
         $nombre = (string) ($elemento['ele_nombre'] ?? '');
         $model->deleteElemento($id);
-        $this->logAction($model->getLastSqlLog(), 'DELETE');
+        $this->logAction($model->getLastActionLog(), 'DELETE');
 
         $this->flashSuccess('Modulo eliminado correctamente.');
         $this->redirect('/modulos');
