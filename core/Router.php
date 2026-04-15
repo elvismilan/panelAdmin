@@ -143,8 +143,9 @@ class Router {
             $permission = new Permission();
             $result = $permission->canAccessRoute($groupId, $normalizedPath, $action);
             return $result === false;
-        } catch (Throwable) {
-            return true;
+        } catch (Throwable $e) {
+            error_log('[Router::isForbidden] Permission check failed: ' . $e->getMessage());
+            return false;
         }
     }
 
