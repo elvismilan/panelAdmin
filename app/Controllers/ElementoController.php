@@ -60,6 +60,7 @@ class ElementoController extends Controller
     public function agregar(): void
     {
         $this->requireAuth();
+        $this->requireCsrf();
 
         $model = new ElementoModel();
 
@@ -87,6 +88,7 @@ class ElementoController extends Controller
     public function guardar(): void
     {
         $this->requireAuth();
+        $this->requireCsrf();
 
         $model = new ElementoModel();
         $params = $this->request->getParams();
@@ -169,6 +171,7 @@ class ElementoController extends Controller
     public function editar(string $id): void
     {
         $this->requireAuth();
+        $this->requireCsrf();
 
         $model = new ElementoModel();
         $elemento = $model->findById($id);
@@ -193,6 +196,7 @@ class ElementoController extends Controller
     public function actualizar(string $id): void
     {
         $this->requireAuth();
+        $this->requireCsrf();
 
         $model = new ElementoModel();
         $elemento = $model->findById($id);
@@ -304,6 +308,7 @@ class ElementoController extends Controller
     public function borrar(string $id): void
     {
         $this->requireAuth();
+        $this->requireCsrf();
 
         $model    = new ElementoModel();
         $elemento = $model->findById($id);

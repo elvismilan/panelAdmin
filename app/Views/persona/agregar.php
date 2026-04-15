@@ -13,6 +13,7 @@
                     }
                     ?>
                     <form method="post" action="/personas/guardar" enctype="multipart/form-data">
+                        <?= $csrfField ?>
                         <div class="row">
                             <!-- Foto -->
                             <div class="col-12 mb-4">

@@ -37,6 +37,7 @@
 
                     <form method="post"
                           action="/grupos/<?= urlencode((string) ($grupoId ?? '')) ?>/borrar">
+                        <?= $csrfField ?>
                         <button type="submit"
                                 class="btn btn-danger"
                                 <?= !empty($hasUsuarios) ? 'disabled' : '' ?>>

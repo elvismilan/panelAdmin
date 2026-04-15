@@ -16,7 +16,7 @@
                         <a href="/usuarios" class="btn btn-danger btn-sm">Ir al modulo de usuarios</a>
                         <a href="/grupos" class="btn btn-info btn-sm">Ir al modulo de grupos</a>
                     </p>
-                    <form method="post" action="/logout"><button type="submit" class="btn btn-primary">Cerrar sesion</button></form>
+                    <form method="post" action="/logout"><?= $csrfField ?><button type="submit" class="btn btn-primary">Cerrar sesion</button></form>
                 </div>
             </div>
         </div>

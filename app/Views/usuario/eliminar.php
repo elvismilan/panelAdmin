@@ -43,6 +43,7 @@
                     <?php endif; ?>
 
                     <form method="post" action="/usuarios/<?= urlencode((string) ($usuarioId ?? '')) ?>/borrar">
+                        <?= $csrfField ?>
                         <button type="submit" class="btn btn-danger"
                             <?= (!empty($isSelf) || !empty($hasLogs)) ? 'disabled' : '' ?>>Eliminar</button>
                         <a href="/usuarios" class="btn btn-light">Cancelar</a>

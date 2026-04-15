@@ -24,6 +24,7 @@
                     </div>
                     <?php endif; ?>
                     <form method="post" action="/tareas/<?= urlencode((string) ($tareaId ?? '')) ?>/borrar">
+                        <?= $csrfField ?>
                         <button type="submit" class="btn btn-danger" <?= !empty($linkedToModulo) ? 'disabled' : '' ?>>Eliminar</button>
                         <a href="/tareas" class="btn btn-light">Cancelar</a>
                     </form>

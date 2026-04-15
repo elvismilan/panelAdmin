@@ -13,6 +13,7 @@
                     }
                     ?>
                     <form method="post" action="/modulos/guardar">
+                        <?= $csrfField ?>
                         <div class="row g-3">
                             <div class="col-md-7">
                                 <div class="row g-2">

@@ -13,6 +13,7 @@
                     }
                     ?>
                     <form method="post" action="/grupos/guardar" autocomplete="off">
+                        <?= $csrfField ?>
                         <div class="row">
                             <!-- ID del grupo -->
                             <div class="col-md-4 mb-3">

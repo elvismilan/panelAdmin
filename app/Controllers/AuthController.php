@@ -27,6 +27,7 @@ class AuthController extends Controller
 
     public function login(): void
     {
+        $this->requireCsrf('/login');
         $params = $this->request->getParams();
         $username = trim((string) ($params['username'] ?? ''));
         $password = (string) ($params['password'] ?? '');
@@ -64,6 +65,7 @@ class AuthController extends Controller
 
     public function logout(): void
     {
+        $this->requireCsrf('/dashboard');
         $this->logAction('Salir del Sistema', 'AUTH');
         Auth::logout();
         $this->redirect('/login');

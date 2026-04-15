@@ -15,6 +15,7 @@
                     <form method="post"
                           action="/grupos/<?= urlencode((string) ($grupoId ?? '')) ?>/actualizar"
                           autocomplete="off">
+                        <?= $csrfField ?>
                         <div class="row">
                             <!-- ID del grupo (solo lectura) -->
                             <div class="col-md-4 mb-3">

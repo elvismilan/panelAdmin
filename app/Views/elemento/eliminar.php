@@ -34,6 +34,7 @@
                     </div>
                     <?php endif; ?>
                     <form method="post" action="/modulos/<?= urlencode((string) ($elementoId ?? '')) ?>/borrar">
+                        <?= $csrfField ?>
                         <button type="submit" class="btn btn-danger" <?= !empty($linkedToPermiso) ? 'disabled' : '' ?>>Eliminar</button>
                         <a href="/modulos" class="btn btn-light">Cancelar</a>
                     </form>

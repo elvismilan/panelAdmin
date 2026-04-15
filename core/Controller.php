@@ -61,6 +61,10 @@ class Controller
 
         $data['pageAssets'] = $assets;
 
+        if (!isset($data['csrfField'])) {
+            $data['csrfField'] = Csrf::field();
+        }
+
         if (!isset($data['flashes'])) {
             $data['flashes'] = $this->consumeFlashes();
         }
@@ -101,6 +105,21 @@ class Controller
     protected function requireAuth(string $redirectTo = '/login'): void
     {
         Auth::requireAuth($redirectTo);
+    }
+
+    protected function requireCsrf(string $redirectTo = ''): void
+    {
+        $params = $this->request->getParams();
+        if (Csrf::validate($params)) {
+            return;
+        }
+
+        if ($redirectTo !== '') {
+            $this->redirect($redirectTo);
+        }
+
+        http_response_code(419);
+        exit('Solicitud invalida (token CSRF incorrecto o expirado). Vuelve atras e intenta de nuevo.');
     }
 
     protected function requireElementPermission(int $elementId, string $redirectTo = '/dashboard'): void

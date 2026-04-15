@@ -13,6 +13,7 @@
                     }
                     ?>
                     <form method="post" action="/tareas/guardar">
+                        <?= $csrfField ?>
                         <div class="mb-3">
                             <label for="tar_nombre" class="form-label">Nombre</label>
                             <input id="tar_nombre" class="form-control" type="text" name="tar_nombre" value="<?= htmlspecialchars((string) ($form['tar_nombre'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">

@@ -13,6 +13,7 @@
                     }
                     ?>
                     <form method="post" action="/usuarios/guardar" autocomplete="off">
+                        <?= $csrfField ?>
                         <div class="row">
                             <!-- Usuario -->
                             <div class="col-md-6 mb-3">

@@ -15,6 +15,7 @@
                     <form method="post"
                           action="/personas/<?= urlencode((string) ($personaId ?? '')) ?>/actualizar"
                           enctype="multipart/form-data">
+                        <?= $csrfField ?>
                         <div class="row">
                             <!-- Foto -->
                             <div class="col-12 mb-4">

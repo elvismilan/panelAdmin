@@ -88,6 +88,7 @@ class UsuarioController extends Controller
     public function guardar(): void
     {
         $this->requireAuth();
+        $this->requireCsrf();
 
         $model  = new UsuarioModel();
         $params = $this->request->getParams();
@@ -190,6 +191,7 @@ class UsuarioController extends Controller
     public function actualizar(string $id): void
     {
         $this->requireAuth();
+        $this->requireCsrf();
 
         $model   = new UsuarioModel();
         $usuario = $model->findById($id);
@@ -275,6 +277,7 @@ class UsuarioController extends Controller
     public function eliminar(string $id): void
     {
         $this->requireAuth();
+        $this->requireCsrf();
 
         $model   = new UsuarioModel();
         $usuario = $model->findById($id);
@@ -300,6 +303,7 @@ class UsuarioController extends Controller
     public function borrar(string $id): void
     {
         $this->requireAuth();
+        $this->requireCsrf();
 
         $model   = new UsuarioModel();
         $usuario = $model->findById($id);

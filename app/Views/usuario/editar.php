@@ -15,6 +15,7 @@
                     <form method="post"
                           action="/usuarios/<?= urlencode((string) ($usuarioId ?? '')) ?>/actualizar"
                           autocomplete="off">
+                        <?= $csrfField ?>
                         <div class="row">
                             <!-- Usuario (solo lectura) -->
                             <div class="col-md-6 mb-3">

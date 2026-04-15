@@ -73,6 +73,7 @@ class TareaController extends Controller
     public function guardar(): void
     {
         $this->requireAuth();
+        $this->requireCsrf();
 
         $model = new TareaModel();
         $params = $this->request->getParams();
@@ -141,6 +142,7 @@ class TareaController extends Controller
     public function actualizar(string $id): void
     {
         $this->requireAuth();
+        $this->requireCsrf();
 
         $model = new TareaModel();
         $params = $this->request->getParams();
@@ -192,6 +194,7 @@ class TareaController extends Controller
     public function eliminar(string $id): void
     {
         $this->requireAuth();
+        $this->requireCsrf();
 
         $model = new TareaModel();
         $tarea = $model->findById($id);
@@ -212,6 +215,7 @@ class TareaController extends Controller
     public function borrar(string $id): void
     {
         $this->requireAuth();
+        $this->requireCsrf();
 
         $model = new TareaModel();
         $tarea = $model->findById($id);
