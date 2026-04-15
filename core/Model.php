@@ -8,8 +8,10 @@ class Model
 {
     protected Database $db;
     protected string $table;
-    protected string $primaryKey = 'id';
+    protected string $primaryKey  = 'id';
     protected string $tablePrefix;
+    protected bool   $softDeletes = false;
+    protected string $deletedAtColumn = 'deleted_at';
     private string $lastSqlLog = '';
 
     public function __construct() {
@@ -101,14 +103,53 @@ class Model
         return true;
     }
 
-    public function delete(int|string $id): bool {
-
-        $sql = "DELETE FROM $this->table WHERE {$this->primaryKey} = :id";
-        $this->db->query($sql, ['id' => $id]);
-
-        $this->lastSqlLog = "DELETE FROM {$this->table} WHERE {$this->primaryKey}=/{$id}/";
+    public function delete(int|string $id): bool
+    {
+        if ($this->softDeletes) {
+            $col = $this->deletedAtColumn;
+            $sql = "UPDATE {$this->table} SET {$col} = NOW() WHERE {$this->primaryKey} = :id AND {$col} IS NULL";
+            $this->db->query($sql, ['id' => $id]);
+            $this->lastSqlLog = "UPDATE {$this->table} SET {$col}=NOW() WHERE {$this->primaryKey}=/{$id}/";
+        } else {
+            $sql = "DELETE FROM {$this->table} WHERE {$this->primaryKey} = :id";
+            $this->db->query($sql, ['id' => $id]);
+            $this->lastSqlLog = "DELETE FROM {$this->table} WHERE {$this->primaryKey}=/{$id}/";
+        }
 
         return true;
+    }
+
+    /**
+     * Restaura un registro eliminado con soft delete.
+     */
+    public function restore(int|string $id): bool
+    {
+        if (!$this->softDeletes) {
+            return false;
+        }
+
+        $col = $this->deletedAtColumn;
+        $this->db->query(
+            "UPDATE {$this->table} SET {$col} = NULL WHERE {$this->primaryKey} = :id",
+            ['id' => $id]
+        );
+        $this->lastSqlLog = "UPDATE {$this->table} SET {$col}=NULL WHERE {$this->primaryKey}=/{$id}/";
+
+        return true;
+    }
+
+    /**
+     * Clausula WHERE para excluir registros eliminados (soft delete).
+     * Retorna string vacio si el modelo no usa soft deletes.
+     */
+    protected function notDeletedClause(string $alias = ''): string
+    {
+        if (!$this->softDeletes) {
+            return '';
+        }
+
+        $col = $alias !== '' ? "{$alias}.{$this->deletedAtColumn}" : $this->deletedAtColumn;
+        return " AND {$col} IS NULL";
     }
 
     public function getLastSqlLog(): string

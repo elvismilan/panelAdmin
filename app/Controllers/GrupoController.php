@@ -173,6 +173,7 @@ class GrupoController extends Controller
             return;
         }
 
+        $this->invalidateMenuCache();
         $this->flashSuccess('Grupo registrado correctamente.');
         $this->redirect('/grupos');
     }
@@ -284,6 +285,7 @@ class GrupoController extends Controller
             return;
         }
 
+        $this->invalidateMenuCache();
         $this->flashSuccess('Grupo actualizado correctamente.');
         $this->redirect('/grupos');
     }
@@ -350,6 +352,7 @@ class GrupoController extends Controller
             return;
         }
 
+        $this->invalidateMenuCache();
         $this->flashSuccess('Grupo eliminado correctamente.');
         $this->redirect('/grupos');
     }

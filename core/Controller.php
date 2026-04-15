@@ -70,19 +70,7 @@ class Controller
         }
 
         if (!isset($data['adminMenu']) && Auth::check()) {
-            $user = Auth::user();
-            $groupId = trim((string) ($user['group'] ?? ''));
-
-            if ($groupId !== '') {
-                try {
-                    $menuService = new MenuService();
-                    $data['adminMenu'] = $menuService->buildForGroup($groupId);
-                } catch (Throwable) {
-                    $data['adminMenu'] = [];
-                }
-            } else {
-                $data['adminMenu'] = [];
-            }
+            $data['adminMenu'] = $this->resolveAdminMenu();
         }
 
         $this->view->render($template, $data);
@@ -172,6 +160,41 @@ class Controller
         }
 
         return $payload;
+    }
+
+    private function resolveAdminMenu(): array
+    {
+        $user    = Auth::user();
+        $groupId = trim((string) ($user['group'] ?? ''));
+
+        if ($groupId === '') {
+            return [];
+        }
+
+        $cacheKey = '_menu_cache';
+
+        Session::start();
+        $cached = Session::get($cacheKey);
+
+        if (is_array($cached) && ($cached['group'] ?? '') === $groupId) {
+            return $cached['menu'];
+        }
+
+        try {
+            $menuService = new MenuService();
+            $menu        = $menuService->buildForGroup($groupId);
+        } catch (Throwable) {
+            $menu = [];
+        }
+
+        Session::set($cacheKey, ['group' => $groupId, 'menu' => $menu]);
+
+        return $menu;
+    }
+
+    protected function invalidateMenuCache(): void
+    {
+        Session::remove('_menu_cache');
     }
 
     private function resolveHostname(string $ip): string
