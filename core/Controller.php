@@ -65,6 +65,22 @@ class Controller
             $data['flashes'] = $this->consumeFlashes();
         }
 
+        if (!isset($data['adminMenu']) && Auth::check()) {
+            $user = Auth::user();
+            $groupId = trim((string) ($user['group'] ?? ''));
+
+            if ($groupId !== '') {
+                try {
+                    $menuService = new MenuService();
+                    $data['adminMenu'] = $menuService->buildForGroup($groupId);
+                } catch (Throwable) {
+                    $data['adminMenu'] = [];
+                }
+            } else {
+                $data['adminMenu'] = [];
+            }
+        }
+
         $this->view->render($template, $data);
     }
 

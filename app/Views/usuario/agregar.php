@@ -12,7 +12,7 @@
                         include $errorView;
                     }
                     ?>
-                    <form method="post" action="/admin/usuarios/guardar" autocomplete="off">
+                    <form method="post" action="/usuarios/guardar" autocomplete="off">
                         <div class="row">
                             <!-- Usuario -->
                             <div class="col-md-6 mb-3">
@@ -99,7 +99,7 @@
                         </div>
 
                         <button type="submit" class="btn btn-primary">Guardar</button>
-                        <a href="/admin/usuarios" class="btn btn-light">Cancelar</a>
+                        <a href="/usuarios" class="btn btn-light">Cancelar</a>
                     </form>
                 </div>
             </div>

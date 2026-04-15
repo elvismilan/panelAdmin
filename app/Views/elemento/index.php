@@ -1,4 +1,23 @@
 <div class="container-fluid">
+    <?php
+    $groupId = trim((string) (($user['group'] ?? '')));
+    $canAgregar = false;
+    $canEditar = false;
+    $canEliminar = false;
+
+    if ($groupId !== '') {
+        try {
+            $permission = new \Core\Permission();
+            $canAgregar = $permission->canAccessRoute($groupId, '/modulos/agregar', 'agregar') === true;
+            $canEditar = $permission->canAccessRoute($groupId, '/modulos/1/editar', 'editar') === true;
+            $canEliminar = $permission->canAccessRoute($groupId, '/modulos/1/eliminar', 'eliminar') === true;
+        } catch (\Throwable) {
+            $canAgregar = false;
+            $canEditar = false;
+            $canEliminar = false;
+        }
+    }
+    ?>
     <div class="row">
         <div class="col-sm-12">
             <div class="card">
@@ -6,11 +25,13 @@
                     <div>
                         <h5>Modulos</h5><span>Listado de modulos del sistema</span>
                     </div>
-                    <div class="btn-group" role="group" aria-label="Acciones de modulos">
-                        <a href="/admin/modulos/agregar" class="btn btn-primary btn-sm d-inline-flex align-items-center">
-                           <span>Agregar</span>
-                        </a>
-                    </div>
+                    <?php if ($canAgregar): ?>
+                        <div class="btn-group" role="group" aria-label="Acciones de modulos">
+                            <a href="/modulos/agregar" class="btn btn-primary btn-sm d-inline-flex align-items-center">
+                               <span>Agregar</span>
+                            </a>
+                        </div>
+                    <?php endif; ?>
                 </div>
                 <div class="card-body pt-3">
                     <?php
@@ -64,12 +85,20 @@
                                             </span>
                                         </td>
                                         <td class="text-center">
-                                            <a href="/admin/modulos/<?= urlencode((string) ($elemento['ele_id'] ?? '')) ?>/editar" class="btn btn-warning px-2 py-1" title="Editar" aria-label="Editar">
-                                                <i class="fa fa-pencil" aria-hidden="true"></i>
-                                            </a>
-                                            <a href="/admin/modulos/<?= urlencode((string) ($elemento['ele_id'] ?? '')) ?>/eliminar" class="btn btn-danger px-2 py-1" title="Eliminar" aria-label="Eliminar">
-                                                <i class="fa fa-trash" aria-hidden="true"></i>
-                                            </a>
+                                            <?php $itemId = urlencode((string) ($elemento['ele_id'] ?? '')); ?>
+                                            <?php if ($canEditar): ?>
+                                                <a href="/modulos/<?= $itemId ?>/editar" class="btn btn-warning px-2 py-1" title="Editar" aria-label="Editar">
+                                                    <i class="fa fa-pencil" aria-hidden="true"></i>
+                                                </a>
+                                            <?php endif; ?>
+                                            <?php if ($canEliminar): ?>
+                                                <a href="/modulos/<?= $itemId ?>/eliminar" class="btn btn-danger px-2 py-1" title="Eliminar" aria-label="Eliminar">
+                                                    <i class="fa fa-trash" aria-hidden="true"></i>
+                                                </a>
+                                            <?php endif; ?>
+                                            <?php if (!$canEditar && !$canEliminar): ?>
+                                                <span class="text-muted">—</span>
+                                            <?php endif; ?>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>

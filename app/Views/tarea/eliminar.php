@@ -23,9 +23,9 @@
                         </div>
                     </div>
                     <?php endif; ?>
-                    <form method="post" action="/admin/tareas/<?= urlencode((string) ($tareaId ?? '')) ?>/borrar">
+                    <form method="post" action="/tareas/<?= urlencode((string) ($tareaId ?? '')) ?>/borrar">
                         <button type="submit" class="btn btn-danger" <?= !empty($linkedToModulo) ? 'disabled' : '' ?>>Eliminar</button>
-                        <a href="/admin/tareas" class="btn btn-light">Cancelar</a>
+                        <a href="/tareas" class="btn btn-light">Cancelar</a>
                     </form>
                 </div>
             </div>

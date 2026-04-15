@@ -11,7 +11,7 @@
               <div class="col-md-6 footer-copyright">
               </div>
               <div class="col-md-6">
-                <p class="pull-right mb-0">Copyright 2014-26 © elvismilan Todos los derechos reservados. <i class="fa fa-laptop font-secondary"></i></p>
+                <p class="pull-right mb-0">Copyright © elvismilan.com 2014-26 <i class="fa fa-laptop font-secondary"></i></p>
               </div>
             </div>
           </div>

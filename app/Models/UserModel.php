@@ -8,14 +8,12 @@ class UserModel extends Model
 {
     private string $usuarioTable;
     private string $personaTable;
-    private string $grupoTable;
 
     public function __construct()
     {
         parent::__construct();
         $this->usuarioTable = $this->tableName('usuario');
         $this->personaTable = $this->tableName('persona');
-        $this->grupoTable   = $this->tableName('grupo');
     }
 
     public function authenticate(string $username, string $password): ?array
@@ -29,11 +27,9 @@ class UserModel extends Model
                     p.per_nombre,
                     p.per_apellido,
                     p.per_foto,
-                    p.per_email,
-                    g.gru_descripcion
+                                        p.per_email
                 FROM {$this->usuarioTable} u
                 LEFT JOIN {$this->personaTable} p ON p.per_id = u.usu_per_id
-                LEFT JOIN {$this->grupoTable} g ON g.gru_id = u.usu_gru_id
                 WHERE u.usu_id = :username
                   AND u.usu_estado = :estado
                 LIMIT 1";
@@ -59,7 +55,7 @@ class UserModel extends Model
             'username' => (string) $user['usu_id'],
             'person_id' => (int) ($user['usu_per_id'] ?? 0),
             'group' => (string) ($user['usu_gru_id'] ?? ''),
-            'group_name' => (string) ($user['gru_descripcion'] ?? ''),
+            'group_name' => (string) ($user['usu_gru_id'] ?? ''),
             'full_name' => $fullName,
             'email' => (string) ($user['per_email'] ?? ''),
             'photo' => (string) ($user['per_foto'] ?? ''),

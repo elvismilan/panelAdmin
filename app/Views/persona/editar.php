@@ -13,7 +13,7 @@
                     }
                     ?>
                     <form method="post"
-                          action="/admin/personas/<?= urlencode((string) ($personaId ?? '')) ?>/actualizar"
+                          action="/personas/<?= urlencode((string) ($personaId ?? '')) ?>/actualizar"
                           enctype="multipart/form-data">
                         <div class="row">
                             <!-- Foto -->
@@ -115,7 +115,7 @@
                         </div>
 
                         <button type="submit" class="btn btn-primary">Actualizar</button>
-                        <a href="/admin/personas" class="btn btn-light">Cancelar</a>
+                        <a href="/personas" class="btn btn-light">Cancelar</a>
                     </form>
                 </div>
             </div>

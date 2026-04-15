@@ -29,12 +29,12 @@ class UsuarioController extends Controller
         $perPage    = $this->getDefaultPerPage();
         $filters    = $this->getQueryParams(['q' => '']);
         $search     = (string) ($filters['q'] ?? '');
-        $pagination = $this->buildPagination(0, $page, $perPage, '/admin/usuarios', ['q' => $search]);
+        $pagination = $this->buildPagination(0, $page, $perPage, '/usuarios', ['q' => $search]);
 
         try {
             $model      = new UsuarioModel();
             $totalRows  = $model->countAll($search);
-            $pagination = $this->buildPagination($totalRows, $page, $perPage, '/admin/usuarios', ['q' => $search]);
+            $pagination = $this->buildPagination($totalRows, $page, $perPage, '/usuarios', ['q' => $search]);
             $usuarios   = $model->paginate((int) $pagination['offset'], (int) $pagination['perPage'], $search);
         } catch (Throwable) {
             $usuarios = [];
@@ -47,7 +47,7 @@ class UsuarioController extends Controller
             'pagination'   => $pagination,
             'search'       => $search,
             'searchConfig' => [
-                'action'      => '/admin/usuarios',
+                'action'      => '/usuarios',
                 'method'      => 'GET',
                 'fields'      => [
                     [
@@ -60,7 +60,7 @@ class UsuarioController extends Controller
                 ],
                 'submitLabel' => 'Buscar',
                 'submitIcon'  => 'fa fa-search',
-                'clearUrl'    => $search !== '' ? '/admin/usuarios' : '',
+                'clearUrl'    => $search !== '' ? '/usuarios' : '',
             ],
         ]);
     }
@@ -161,7 +161,7 @@ class UsuarioController extends Controller
         $this->logAction($model->getLastSqlLog(), 'CREATE');
 
         $this->flashSuccess('Usuario registrado correctamente.');
-        $this->redirect('/admin/usuarios');
+        $this->redirect('/usuarios');
     }
 
     // -------------------------------------------------------------------------
@@ -176,7 +176,7 @@ class UsuarioController extends Controller
         $model   = new UsuarioModel();
         $usuario = $model->findById($id);
         if (!is_array($usuario)) {
-            $this->redirect('/admin/usuarios');
+            $this->redirect('/usuarios');
             return;
         }
 
@@ -200,7 +200,7 @@ class UsuarioController extends Controller
         $model   = new UsuarioModel();
         $usuario = $model->findById($id);
         if (!is_array($usuario)) {
-            $this->redirect('/admin/usuarios');
+            $this->redirect('/usuarios');
             return;
         }
 
@@ -271,7 +271,7 @@ class UsuarioController extends Controller
         $this->logAction($model->getLastSqlLog(), 'UPDATE');
 
         $this->flashSuccess('Usuario actualizado correctamente.');
-        $this->redirect('/admin/usuarios');
+        $this->redirect('/usuarios');
     }
 
     // -------------------------------------------------------------------------
@@ -285,7 +285,7 @@ class UsuarioController extends Controller
         $model   = new UsuarioModel();
         $usuario = $model->findById($id);
         if (!is_array($usuario)) {
-            $this->redirect('/admin/usuarios');
+            $this->redirect('/usuarios');
             return;
         }
 
@@ -310,20 +310,20 @@ class UsuarioController extends Controller
         $model   = new UsuarioModel();
         $usuario = $model->findById($id);
         if (!is_array($usuario)) {
-            $this->redirect('/admin/usuarios');
+            $this->redirect('/usuarios');
             return;
         }
 
         $currentUser = Auth::user();
         if (($currentUser['id'] ?? '') === $id) {
             $this->flashError('No puedes eliminar tu propio usuario.');
-            $this->redirect('/admin/usuarios/' . urlencode($id) . '/eliminar');
+            $this->redirect('/usuarios/' . urlencode($id) . '/eliminar');
             return;
         }
 
         if ($model->hasLogs($id)) {
             $this->flashError('No se puede eliminar el usuario porque tiene acciones registradas en el sistema.');
-            $this->redirect('/admin/usuarios/' . urlencode($id) . '/eliminar');
+            $this->redirect('/usuarios/' . urlencode($id) . '/eliminar');
             return;
         }
 
@@ -331,6 +331,6 @@ class UsuarioController extends Controller
         $this->logAction($model->getLastSqlLog(), 'DELETE');
 
         $this->flashSuccess('Usuario eliminado correctamente.');
-        $this->redirect('/admin/usuarios');
+        $this->redirect('/usuarios');
     }
 }

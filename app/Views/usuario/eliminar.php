@@ -42,10 +42,10 @@
                     </div>
                     <?php endif; ?>
 
-                    <form method="post" action="/admin/usuarios/<?= urlencode((string) ($usuarioId ?? '')) ?>/borrar">
+                    <form method="post" action="/usuarios/<?= urlencode((string) ($usuarioId ?? '')) ?>/borrar">
                         <button type="submit" class="btn btn-danger"
                             <?= (!empty($isSelf) || !empty($hasLogs)) ? 'disabled' : '' ?>>Eliminar</button>
-                        <a href="/admin/usuarios" class="btn btn-light">Cancelar</a>
+                        <a href="/usuarios" class="btn btn-light">Cancelar</a>
                     </form>
                 </div>
             </div>

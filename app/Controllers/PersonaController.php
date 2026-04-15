@@ -39,12 +39,12 @@ class PersonaController extends Controller
         $perPage    = $this->getDefaultPerPage();
         $filters    = $this->getQueryParams(['q' => '']);
         $search     = (string) ($filters['q'] ?? '');
-        $pagination = $this->buildPagination(0, $page, $perPage, '/admin/personas', ['q' => $search]);
+        $pagination = $this->buildPagination(0, $page, $perPage, '/personas', ['q' => $search]);
 
         try {
             $model      = new PersonaModel();
             $totalRows  = $model->countAll($search);
-            $pagination = $this->buildPagination($totalRows, $page, $perPage, '/admin/personas', ['q' => $search]);
+            $pagination = $this->buildPagination($totalRows, $page, $perPage, '/personas', ['q' => $search]);
             $personas   = $model->paginate((int) $pagination['offset'], (int) $pagination['perPage'], $search);
         } catch (Throwable) {
             $personas = [];
@@ -57,7 +57,7 @@ class PersonaController extends Controller
             'pagination' => $pagination,
             'search'     => $search,
             'searchConfig' => [
-                'action'      => '/admin/personas',
+                'action'      => '/personas',
                 'method'      => 'GET',
                 'fields'      => [
                     [
@@ -70,7 +70,7 @@ class PersonaController extends Controller
                 ],
                 'submitLabel' => 'Buscar',
                 'submitIcon'  => 'fa fa-search',
-                'clearUrl'    => $search !== '' ? '/admin/personas' : '',
+                'clearUrl'    => $search !== '' ? '/personas' : '',
             ],
         ]);
     }
@@ -190,7 +190,7 @@ class PersonaController extends Controller
         $this->logAction($model->getLastSqlLog(), 'CREATE');
 
         $this->flashSuccess('Persona registrada correctamente.');
-        $this->redirect('/admin/personas');
+        $this->redirect('/personas');
     }
 
     // -------------------------------------------------------------------------
@@ -205,7 +205,7 @@ class PersonaController extends Controller
         $model   = new PersonaModel();
         $persona = $model->findById($id);
         if (!is_array($persona)) {
-            $this->redirect('/admin/personas');
+            $this->redirect('/personas');
             return;
         }
 
@@ -226,7 +226,7 @@ class PersonaController extends Controller
         $model   = new PersonaModel();
         $persona = $model->findById($id);
         if (!is_array($persona)) {
-            $this->redirect('/admin/personas');
+            $this->redirect('/personas');
             return;
         }
 
@@ -318,7 +318,7 @@ class PersonaController extends Controller
         $this->logAction($model->getLastSqlLog(), 'UPDATE');
 
         $this->flashSuccess('Persona actualizada correctamente.');
-        $this->redirect('/admin/personas');
+        $this->redirect('/personas');
     }
 
     // -------------------------------------------------------------------------
@@ -332,7 +332,7 @@ class PersonaController extends Controller
         $model   = new PersonaModel();
         $persona = $model->findById($id);
         if (!is_array($persona)) {
-            $this->redirect('/admin/personas');
+            $this->redirect('/personas');
             return;
         }
 
@@ -352,13 +352,13 @@ class PersonaController extends Controller
         $model   = new PersonaModel();
         $persona = $model->findById($id);
         if (!is_array($persona)) {
-            $this->redirect('/admin/personas');
+            $this->redirect('/personas');
             return;
         }
 
         if ($model->isLinkedToUsuario($id)) {
             $this->flashError('No se puede eliminar la persona porque tiene un usuario asociado. Elimine primero el usuario.');
-            $this->redirect('/admin/personas/' . urlencode($id) . '/eliminar');
+            $this->redirect('/personas/' . urlencode($id) . '/eliminar');
             return;
         }
 
@@ -366,7 +366,7 @@ class PersonaController extends Controller
         $this->logAction($model->getLastSqlLog(), 'DELETE');
 
         $this->flashSuccess('Persona eliminada correctamente.');
-        $this->redirect('/admin/personas');
+        $this->redirect('/personas');
     }
 
     // -------------------------------------------------------------------------

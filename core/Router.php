@@ -2,6 +2,8 @@
 
 namespace Core;
 
+use Throwable;
+
 class Router {
 
     private array $routes;
@@ -54,6 +56,17 @@ class Router {
 
             $matches = [];
             if ($this->matchPath($route['path'], $path, $matches)) {
+                if ($this->isForbidden($path, (string) ($route['action'] ?? ''))) {
+                    $this->renderErrorPage(403, 'resources:themes/default/errors/forbidden', [
+                        'title' => 'Acceso denegado',
+                        'code' => 403,
+                        'heading' => 'No tienes permiso para esta accion',
+                        'message' => 'Tu grupo no tiene habilitada esta tarea para el modulo solicitado.',
+                        'homeUrl' => '/dashboard',
+                    ]);
+                    return;
+                }
+
                 $controllerClass = $route['controller'];
                 $action = $route['action'];
 
@@ -75,8 +88,13 @@ class Router {
             }
         }
 
-        http_response_code(404);
-        echo '404 Not Found';
+        $this->renderErrorPage(404, 'resources:themes/default/errors/not-found', [
+            'title' => 'Pagina no encontrada',
+            'code' => 404,
+            'heading' => 'Modulo o ruta no encontrada',
+            'message' => 'La URL solicitada no existe o fue movida.',
+            'homeUrl' => Auth::check() ? '/dashboard' : '/',
+        ]);
     }
 
     public function route(): void
@@ -102,6 +120,47 @@ class Router {
         }
 
         return true;
+    }
+
+    private function isForbidden(string $path, string $action): bool
+    {
+        if (!Auth::check()) {
+            return false;
+        }
+
+        $normalizedPath = trim($path);
+        if ($normalizedPath === '' || $normalizedPath === '/' || str_starts_with($normalizedPath, '/dashboard')) {
+            return false;
+        }
+
+        $user = Auth::user();
+        $groupId = trim((string) ($user['group'] ?? ''));
+        if ($groupId === '') {
+            return true;
+        }
+
+        try {
+            $permission = new Permission();
+            $result = $permission->canAccessRoute($groupId, $normalizedPath, $action);
+            return $result === false;
+        } catch (Throwable) {
+            return true;
+        }
+    }
+
+    private function renderErrorPage(int $statusCode, string $template, array $data = []): void
+    {
+        http_response_code($statusCode);
+
+        try {
+            $view = new View();
+            $view->render($template, $data);
+            return;
+        } catch (Throwable) {
+            // Fallback defensivo si falla el template o assets.
+        }
+
+        echo $statusCode === 403 ? '403 Forbidden' : '404 Not Found';
     }
 
     public function getRoutes(): array {

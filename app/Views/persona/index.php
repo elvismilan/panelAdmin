@@ -1,4 +1,23 @@
 <div class="container-fluid">
+    <?php
+    $groupId = trim((string) (($user['group'] ?? '')));
+    $canAgregar = false;
+    $canEditar = false;
+    $canEliminar = false;
+
+    if ($groupId !== '') {
+        try {
+            $permission = new \Core\Permission();
+            $canAgregar = $permission->canAccessRoute($groupId, '/personas/agregar', 'agregar') === true;
+            $canEditar = $permission->canAccessRoute($groupId, '/personas/1/editar', 'editar') === true;
+            $canEliminar = $permission->canAccessRoute($groupId, '/personas/1/eliminar', 'eliminar') === true;
+        } catch (\Throwable) {
+            $canAgregar = false;
+            $canEditar = false;
+            $canEliminar = false;
+        }
+    }
+    ?>
     <div class="row">
         <div class="col-sm-12">
             <div class="card">
@@ -6,11 +25,13 @@
                     <div>
                         <h5>Personas</h5><span>Listado de personas registradas</span>
                     </div>
-                    <div class="btn-group" role="group" aria-label="Acciones de personas">
-                        <a href="/admin/personas/agregar" class="btn btn-primary btn-sm d-inline-flex align-items-center">
-                            <span>Agregar</span>
-                        </a>
-                    </div>
+                    <?php if ($canAgregar): ?>
+                        <div class="btn-group" role="group" aria-label="Acciones de personas">
+                            <a href="/personas/agregar" class="btn btn-primary btn-sm d-inline-flex align-items-center">
+                                <span>Agregar</span>
+                            </a>
+                        </div>
+                    <?php endif; ?>
                 </div>
                 <div class="card-body pt-3">
                     <?php
@@ -81,14 +102,22 @@
                                             </span>
                                         </td>
                                         <td class="text-center">
-                                            <a href="/admin/personas/<?= urlencode((string) ($persona['per_id'] ?? '')) ?>/editar"
-                                               class="btn btn-warning px-2 py-1" title="Editar" aria-label="Editar">
-                                                <i class="fa fa-pencil" aria-hidden="true"></i>
-                                            </a>
-                                            <a href="/admin/personas/<?= urlencode((string) ($persona['per_id'] ?? '')) ?>/eliminar"
-                                               class="btn btn-danger px-2 py-1" title="Eliminar" aria-label="Eliminar">
-                                                <i class="fa fa-trash" aria-hidden="true"></i>
-                                            </a>
+                                            <?php $itemId = urlencode((string) ($persona['per_id'] ?? '')); ?>
+                                            <?php if ($canEditar): ?>
+                                                <a href="/personas/<?= $itemId ?>/editar"
+                                                   class="btn btn-warning px-2 py-1" title="Editar" aria-label="Editar">
+                                                    <i class="fa fa-pencil" aria-hidden="true"></i>
+                                                </a>
+                                            <?php endif; ?>
+                                            <?php if ($canEliminar): ?>
+                                                <a href="/personas/<?= $itemId ?>/eliminar"
+                                                   class="btn btn-danger px-2 py-1" title="Eliminar" aria-label="Eliminar">
+                                                    <i class="fa fa-trash" aria-hidden="true"></i>
+                                                </a>
+                                            <?php endif; ?>
+                                            <?php if (!$canEditar && !$canEliminar): ?>
+                                                <span class="text-muted">—</span>
+                                            <?php endif; ?>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>

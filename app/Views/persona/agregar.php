@@ -12,7 +12,7 @@
                         include $errorView;
                     }
                     ?>
-                    <form method="post" action="/admin/personas/guardar" enctype="multipart/form-data">
+                    <form method="post" action="/personas/guardar" enctype="multipart/form-data">
                         <div class="row">
                             <!-- Foto -->
                             <div class="col-12 mb-4">
@@ -113,7 +113,7 @@
                         </div>
 
                         <button type="submit" class="btn btn-primary">Guardar</button>
-                        <a href="/admin/personas" class="btn btn-light">Cancelar</a>
+                        <a href="/personas" class="btn btn-light">Cancelar</a>
                     </form>
                 </div>
             </div>

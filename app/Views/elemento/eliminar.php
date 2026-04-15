@@ -33,9 +33,9 @@
                         </div>
                     </div>
                     <?php endif; ?>
-                    <form method="post" action="/admin/modulos/<?= urlencode((string) ($elementoId ?? '')) ?>/borrar">
+                    <form method="post" action="/modulos/<?= urlencode((string) ($elementoId ?? '')) ?>/borrar">
                         <button type="submit" class="btn btn-danger" <?= !empty($linkedToPermiso) ? 'disabled' : '' ?>>Eliminar</button>
-                        <a href="/admin/modulos" class="btn btn-light">Cancelar</a>
+                        <a href="/modulos" class="btn btn-light">Cancelar</a>
                     </form>
                 </div>
             </div>

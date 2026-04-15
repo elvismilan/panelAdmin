@@ -26,12 +26,12 @@ class TareaController extends Controller
         $perPage = $this->getDefaultPerPage();
         $filters = $this->getQueryParams(['q' => '']);
         $search = (string) ($filters['q'] ?? '');
-        $pagination = $this->buildPagination(0, $page, $perPage, '/admin/tareas', ['q' => $search]);
+        $pagination = $this->buildPagination(0, $page, $perPage, '/tareas', ['q' => $search]);
 
         try {
             $model = new TareaModel();
             $totalRows = $model->countAll($search);
-            $pagination = $this->buildPagination($totalRows, $page, $perPage, '/admin/tareas', ['q' => $search]);
+            $pagination = $this->buildPagination($totalRows, $page, $perPage, '/tareas', ['q' => $search]);
             $tareas = $model->paginate((int) $pagination['offset'], (int) $pagination['perPage'], $search);
         } catch (Throwable) {
             $tareas = [];
@@ -44,7 +44,7 @@ class TareaController extends Controller
             'pagination' => $pagination,
             'search' => $search,
             'searchConfig' => [
-                'action' => '/admin/tareas',
+                'action' => '/tareas',
                 'method' => 'GET',
                 'fields' => [
                     [
@@ -57,7 +57,7 @@ class TareaController extends Controller
                 ],
                 'submitLabel' => 'Buscar',
                 'submitIcon' => 'fa fa-search',
-                'clearUrl' => $search !== '' ? '/admin/tareas' : '',
+                'clearUrl' => $search !== '' ? '/tareas' : '',
             ],
         ]);
     }
@@ -122,7 +122,7 @@ class TareaController extends Controller
 
         $this->flashSuccess('Tarea creada correctamente.');
 
-        $this->redirect('/admin/tareas');
+        $this->redirect('/tareas');
     }
 
     public function editar(string $id): void
@@ -131,7 +131,7 @@ class TareaController extends Controller
 
         $tarea = (new TareaModel())->findById($id);
         if (!is_array($tarea)) {
-            $this->redirect('/admin/tareas');
+            $this->redirect('/tareas');
             return;
         }
 
@@ -192,7 +192,7 @@ class TareaController extends Controller
 
         $this->flashSuccess('Tarea actualizada correctamente.');
 
-        $this->redirect('/admin/tareas');
+        $this->redirect('/tareas');
     }
 
     public function eliminar(string $id): void
@@ -202,7 +202,7 @@ class TareaController extends Controller
         $model = new TareaModel();
         $tarea = $model->findById($id);
         if (!is_array($tarea)) {
-            $this->redirect('/admin/tareas');
+            $this->redirect('/tareas');
             return;
         }
 
@@ -222,13 +222,13 @@ class TareaController extends Controller
         $model = new TareaModel();
         $tarea = $model->findById($id);
         if (!is_array($tarea)) {
-            $this->redirect('/admin/tareas');
+            $this->redirect('/tareas');
             return;
         }
 
         if ($model->isLinkedToModulo($id)) {
             $this->flashError('No se puede eliminar la tarea porque esta asociada a uno o mas modulos. Desvincule la tarea de los modulos antes de continuar.');
-            $this->redirect('/admin/tareas/' . urlencode($id) . '/eliminar');
+            $this->redirect('/tareas/' . urlencode($id) . '/eliminar');
             return;
         }
 
@@ -237,6 +237,6 @@ class TareaController extends Controller
         $this->logAction($model->getLastSqlLog(), 'DELETE');
 
         $this->flashSuccess('Tarea eliminada correctamente.');
-        $this->redirect('/admin/tareas');
+        $this->redirect('/tareas');
     }
 }

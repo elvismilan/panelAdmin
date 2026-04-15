@@ -12,7 +12,7 @@
                         include $errorView;
                     }
                     ?>
-                    <form method="post" action="/admin/modulos/<?= urlencode((string) ($elementoId ?? '')) ?>/actualizar">
+                    <form method="post" action="/modulos/<?= urlencode((string) ($elementoId ?? '')) ?>/actualizar">
                         <div class="row g-3">
                             <div class="col-md-7">
                                 <div class="row g-2">
@@ -75,10 +75,25 @@
                                     </div>
                                     <div class="col-md-6 mb-3">
                                         <div id="grupo_icono">
-                                            <label for="ele_icono" class="form-label">Icono <small class="text-muted">(clase CSS, ej: fa fa-home)</small></label>
-                                            <input id="ele_icono" class="form-control" type="text" name="ele_icono"
-                                                maxlength="250"
-                                                value="<?= htmlspecialchars((string) ($form['ele_icono'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
+                                            <label for="ele_icono" class="form-label">Icono</label>
+                                            <select id="ele_icono" class="form-select" name="ele_icono">
+                                                <option value="">-- Sin icono --</option>
+                                                <?php
+                                                $iconActual = (string) ($form['ele_icono'] ?? '');
+                                                foreach (($iconOptions ?? []) as $opt):
+                                                    $optValue = (string) ($opt['value'] ?? '');
+                                                    $optLabel = (string) ($opt['label'] ?? $optValue);
+                                                ?>
+                                                    <option value="<?= htmlspecialchars($optValue, ENT_QUOTES, 'UTF-8') ?>"
+                                                        <?= $iconActual === $optValue ? 'selected' : '' ?>>
+                                                        <?= htmlspecialchars($optLabel, ENT_QUOTES, 'UTF-8') ?> (<?= htmlspecialchars($optValue, ENT_QUOTES, 'UTF-8') ?>)
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                            <div class="form-text">
+                                                Vista previa:
+                                                <i id="preview_ele_icono" class="<?= htmlspecialchars($iconActual !== '' ? $iconActual : 'fa fa-circle-o', ENT_QUOTES, 'UTF-8') ?> ms-1" aria-hidden="true"></i>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -151,7 +166,7 @@
                         </div>
                         <div class="mt-3">
                             <button type="submit" class="btn btn-primary">Actualizar</button>
-                            <a href="/admin/modulos" class="btn btn-light">Cancelar</a>
+                            <a href="/modulos" class="btn btn-light">Cancelar</a>
                         </div>
                     </form>
                     <script>
@@ -166,6 +181,19 @@
                             }
                             tipoSelect.addEventListener('change', toggleExtras);
                             toggleExtras();
+
+                            var iconSelect = document.getElementById('ele_icono');
+                            var iconPreview = document.getElementById('preview_ele_icono');
+                            function updateIconPreview() {
+                                if (!iconSelect || !iconPreview) return;
+                                var selected = iconSelect.value.trim();
+                                iconPreview.className = (selected !== '' ? selected : 'fa fa-circle-o') + ' ms-1';
+                            }
+                            if (iconSelect) {
+                                iconSelect.addEventListener('change', updateIconPreview);
+                                updateIconPreview();
+                            }
+
                             var checkAll = document.getElementById('checkAllTareas');
                             checkAll.addEventListener('change', function () {
                                 document.querySelectorAll('.tarea-check').forEach(function (c) {

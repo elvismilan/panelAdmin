@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\ElementoModel;
+use Core\Helpers\IconHelper;
 use Core\Auth;
 use Core\Controller;
 use Core\Validator;
@@ -26,12 +27,12 @@ class ElementoController extends Controller
         $perPage = $this->getDefaultPerPage();
         $filters = $this->getQueryParams(['q' => '']);
         $search = (string) ($filters['q'] ?? '');
-        $pagination = $this->buildPagination(0, $page, $perPage, '/admin/modulos', ['q' => $search]);
+        $pagination = $this->buildPagination(0, $page, $perPage, '/modulos', ['q' => $search]);
 
         try {
             $model = new ElementoModel();
             $totalRows = $model->countAll($search);
-            $pagination = $this->buildPagination($totalRows, $page, $perPage, '/admin/modulos', ['q' => $search]);
+            $pagination = $this->buildPagination($totalRows, $page, $perPage, '/modulos', ['q' => $search]);
             $elementos = $model->paginate((int) $pagination['offset'], (int) $pagination['perPage'], $search);
         } catch (Throwable) {
             $elementos = [];
@@ -44,7 +45,7 @@ class ElementoController extends Controller
             'pagination' => $pagination,
             'search' => $search,
             'searchConfig' => [
-                'action' => '/admin/modulos',
+                'action' => '/modulos',
                 'method' => 'GET',
                 'fields' => [
                     [
@@ -57,7 +58,7 @@ class ElementoController extends Controller
                 ],
                 'submitLabel' => 'Buscar',
                 'submitIcon' => 'fa fa-search',
-                'clearUrl' => $search !== '' ? '/admin/modulos' : '',
+                'clearUrl' => $search !== '' ? '/modulos' : '',
             ],
         ]);
     }
@@ -73,6 +74,7 @@ class ElementoController extends Controller
             'user' => Auth::user(),
             'error' => null,
             'padres' => $model->allForDropdown(),
+            'iconOptions' => IconHelper::options(),
             'todasTareas' => $model->allTareas(),
             'tareasSeleccionadas' => [],
             'form' => [
@@ -126,6 +128,22 @@ class ElementoController extends Controller
                 'error' => $validator->first(),
                 'errors' => $validator->errors(),
                 'padres' => $model->allForDropdown(),
+                'iconOptions' => IconHelper::optionsWithSelected((string) ($params['ele_icono'] ?? '')),
+                'todasTareas' => $model->allTareas(),
+                'tareasSeleccionadas' => $tareaIds,
+                'form' => $params,
+            ]);
+            return;
+        }
+
+        $iconClass = trim((string) ($params['ele_icono'] ?? ''));
+        if ($iconClass !== '' && !IconHelper::isAllowed($iconClass)) {
+            $this->renderAdminModule('elemento/agregar', [
+                'title' => 'Nuevo modulo',
+                'user' => Auth::user(),
+                'error' => 'El icono seleccionado no es valido.',
+                'padres' => $model->allForDropdown(),
+                'iconOptions' => IconHelper::optionsWithSelected($iconClass),
                 'todasTareas' => $model->allTareas(),
                 'tareasSeleccionadas' => $tareaIds,
                 'form' => $params,
@@ -139,6 +157,7 @@ class ElementoController extends Controller
                 'user' => Auth::user(),
                 'error' => 'Ya existe un modulo con ese nombre.',
                 'padres' => $model->allForDropdown(),
+                'iconOptions' => IconHelper::optionsWithSelected((string) ($params['ele_icono'] ?? '')),
                 'todasTareas' => $model->allTareas(),
                 'tareasSeleccionadas' => $tareaIds,
                 'form' => $params,
@@ -150,7 +169,7 @@ class ElementoController extends Controller
         $this->logAction($model->getLastSqlLog(), 'CREATE');
 
         $this->flashSuccess('Modulo creado correctamente.');
-        $this->redirect('/admin/modulos');
+        $this->redirect('/modulos');
     }
 
     public function editar(string $id): void
@@ -160,7 +179,7 @@ class ElementoController extends Controller
         $model = new ElementoModel();
         $elemento = $model->findById($id);
         if (!is_array($elemento)) {
-            $this->redirect('/admin/modulos');
+            $this->redirect('/modulos');
             return;
         }
 
@@ -171,6 +190,7 @@ class ElementoController extends Controller
             'form' => $elemento,
             'elementoId' => $id,
             'padres' => $model->allForDropdown(),
+            'iconOptions' => IconHelper::optionsWithSelected((string) ($elemento['ele_icono'] ?? '')),
             'todasTareas' => $model->allTareas(),
             'tareasSeleccionadas' => $model->getElementoTareaIds($id),
         ]);
@@ -183,7 +203,7 @@ class ElementoController extends Controller
         $model = new ElementoModel();
         $elemento = $model->findById($id);
         if (!is_array($elemento)) {
-            $this->redirect('/admin/modulos');
+            $this->redirect('/modulos');
             return;
         }
 
@@ -222,6 +242,23 @@ class ElementoController extends Controller
                 'form' => $params,
                 'elementoId' => $id,
                 'padres' => $model->allForDropdown(),
+                'iconOptions' => IconHelper::optionsWithSelected((string) ($params['ele_icono'] ?? '')),
+                'todasTareas' => $model->allTareas(),
+                'tareasSeleccionadas' => $tareaIds,
+            ]);
+            return;
+        }
+
+        $iconClass = trim((string) ($params['ele_icono'] ?? ''));
+        if ($iconClass !== '' && !IconHelper::isAllowed($iconClass)) {
+            $this->renderAdminModule('elemento/editar', [
+                'title' => 'Editar modulo',
+                'user' => Auth::user(),
+                'error' => 'El icono seleccionado no es valido.',
+                'form' => $params,
+                'elementoId' => $id,
+                'padres' => $model->allForDropdown(),
+                'iconOptions' => IconHelper::optionsWithSelected($iconClass),
                 'todasTareas' => $model->allTareas(),
                 'tareasSeleccionadas' => $tareaIds,
             ]);
@@ -236,6 +273,7 @@ class ElementoController extends Controller
                 'form' => $params,
                 'elementoId' => $id,
                 'padres' => $model->allForDropdown(),
+                'iconOptions' => IconHelper::optionsWithSelected((string) ($params['ele_icono'] ?? '')),
                 'todasTareas' => $model->allTareas(),
                 'tareasSeleccionadas' => $tareaIds,
             ]);
@@ -246,7 +284,7 @@ class ElementoController extends Controller
         $this->logAction($model->getLastSqlLog(), 'UPDATE');
 
         $this->flashSuccess('Modulo actualizado correctamente.');
-        $this->redirect('/admin/modulos');
+        $this->redirect('/modulos');
     }
 
     public function eliminar(string $id): void
@@ -256,7 +294,7 @@ class ElementoController extends Controller
         $model   = new ElementoModel();
         $elemento = $model->findById($id);
         if (!is_array($elemento)) {
-            $this->redirect('/admin/modulos');
+            $this->redirect('/modulos');
             return;
         }
 
@@ -276,13 +314,13 @@ class ElementoController extends Controller
         $model    = new ElementoModel();
         $elemento = $model->findById($id);
         if (!is_array($elemento)) {
-            $this->redirect('/admin/modulos');
+            $this->redirect('/modulos');
             return;
         }
 
         if ($model->isLinkedToPermiso($id)) {
             $this->flashError('No se puede eliminar el modulo porque tiene permisos asignados. Elimine primero los permisos asociados.');
-            $this->redirect('/admin/modulos/' . urlencode($id) . '/eliminar');
+            $this->redirect('/modulos/' . urlencode($id) . '/eliminar');
             return;
         }
 
@@ -291,6 +329,6 @@ class ElementoController extends Controller
         $this->logAction($model->getLastSqlLog(), 'DELETE');
 
         $this->flashSuccess('Modulo eliminado correctamente.');
-        $this->redirect('/admin/modulos');
+        $this->redirect('/modulos');
     }
 }

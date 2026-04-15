@@ -36,9 +36,9 @@
                     </div>
                     <?php endif; ?>
 
-                    <form method="post" action="/admin/personas/<?= urlencode((string) ($personaId ?? '')) ?>/borrar">
+                    <form method="post" action="/personas/<?= urlencode((string) ($personaId ?? '')) ?>/borrar">
                         <button type="submit" class="btn btn-danger" <?= !empty($linkedToUsuario) ? 'disabled' : '' ?>>Eliminar</button>
-                        <a href="/admin/personas" class="btn btn-light">Cancelar</a>
+                        <a href="/personas" class="btn btn-light">Cancelar</a>
                     </form>
                 </div>
             </div>

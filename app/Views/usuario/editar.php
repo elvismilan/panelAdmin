@@ -13,7 +13,7 @@
                     }
                     ?>
                     <form method="post"
-                          action="/admin/usuarios/<?= urlencode((string) ($usuarioId ?? '')) ?>/actualizar"
+                          action="/usuarios/<?= urlencode((string) ($usuarioId ?? '')) ?>/actualizar"
                           autocomplete="off">
                         <div class="row">
                             <!-- Usuario (solo lectura) -->
@@ -97,7 +97,7 @@
                         </div>
 
                         <button type="submit" class="btn btn-primary">Actualizar</button>
-                        <a href="/admin/usuarios" class="btn btn-light">Cancelar</a>
+                        <a href="/usuarios" class="btn btn-light">Cancelar</a>
                     </form>
                 </div>
             </div>
