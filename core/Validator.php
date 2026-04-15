@@ -149,8 +149,8 @@ class Validator
     private function parseRule(string $rule): array
     {
         $parts = explode(':', $rule, 2);
-        $name = strtolower(trim($parts[0] ?? ''));
-        $arg = trim($parts[1] ?? '');
+        $name = strtolower(trim($parts[0]));
+        $arg  = trim($parts[1] ?? '');
 
         return [$name, $arg];
     }

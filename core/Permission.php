@@ -98,7 +98,7 @@ class Permission
             $candidates[] = $full;
         }
 
-        if (isset($segments[0])) {
+        if ($full !== $segments[0]) {
             $candidates[] = $segments[0];
         }
 

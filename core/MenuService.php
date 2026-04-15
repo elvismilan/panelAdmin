@@ -59,7 +59,7 @@ class MenuService
                 ORDER BY e.ele_orden ASC, e.ele_id ASC";
 
         $rows = $this->db->query($sql, ['grupo' => $groupId])->fetchAll();
-        if (!is_array($rows) || $rows === []) {
+        if ($rows === []) {
             return [];
         }
 

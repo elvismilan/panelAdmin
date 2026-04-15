@@ -125,7 +125,7 @@ class IconHelper
         }
 
         foreach ($options as $option) {
-            if (($option['value'] ?? '') === $selectedValue) {
+            if ($option['value'] === $selectedValue) {
                 return $options;
             }
         }
