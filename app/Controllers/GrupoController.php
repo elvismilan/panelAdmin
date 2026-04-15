@@ -164,10 +164,11 @@ class GrupoController extends Controller
                 'CREATE'
             );
         } catch (Throwable $e) {
+            error_log('[GrupoController::guardar] ' . $e->getMessage());
             $this->renderAdminModule('grupo/agregar', [
                 'title'     => 'Nuevo grupo',
                 'user'      => Auth::user(),
-                'error'     => 'Error al guardar el grupo: ' . $e->getMessage(),
+                'error'     => 'Ocurrio un error al guardar el grupo. Intente nuevamente.',
                 'errors'    => [],
                 'elementos' => $model->getAllElementos(),
                 'permisos'  => $this->parsePermisos($params),
@@ -271,10 +272,11 @@ class GrupoController extends Controller
                 'UPDATE'
             );
         } catch (Throwable $e) {
+            error_log('[GrupoController::actualizar] ' . $e->getMessage());
             $this->renderAdminModule('grupo/editar', [
                 'title'    => 'Editar grupo',
                 'user'     => Auth::user(),
-                'error'    => 'Error al actualizar el grupo: ' . $e->getMessage(),
+                'error'    => 'Ocurrio un error al actualizar el grupo. Intente nuevamente.',
                 'errors'   => [],
                 'elementos' => $model->getAllElementos(),
                 'permisos' => $this->parsePermisos($params),
@@ -342,7 +344,8 @@ class GrupoController extends Controller
             $model->deleteGrupo($id);
             $this->logAction($model->getLastSqlLog(), 'DELETE');
         } catch (Throwable $e) {
-            $this->flashError('Error al eliminar el grupo: ' . $e->getMessage());
+            error_log('[GrupoController::borrar] ' . $e->getMessage());
+            $this->flashError('Ocurrio un error al eliminar el grupo. Intente nuevamente.');
             $this->redirect('/grupos/' . urlencode($id) . '/eliminar');
             return;
         }
