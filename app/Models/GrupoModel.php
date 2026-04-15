@@ -201,35 +201,40 @@ class GrupoModel extends Model
     public function syncPermisos(string $grupoId, array $permisos): void
     {
         $conn = $this->db->getConnection();
+        $conn->beginTransaction();
 
-        // Eliminar permisos actuales
-        $del = $conn->prepare("DELETE FROM {$this->permisoTable} WHERE pmo_gru_id = :gru_id");
-        $del->bindValue(':gru_id', $grupoId, \PDO::PARAM_STR);
-        $del->execute();
+        try {
+            $del = $conn->prepare("DELETE FROM {$this->permisoTable} WHERE pmo_gru_id = :gru_id");
+            $del->bindValue(':gru_id', $grupoId, \PDO::PARAM_STR);
+            $del->execute();
 
-        if (empty($permisos)) {
-            return;
-        }
+            if (!empty($permisos)) {
+                $ins = $conn->prepare(
+                    "INSERT INTO {$this->permisoTable} (pmo_ele_id, pmo_tar_id, pmo_gru_id)
+                     VALUES (:ele_id, :tar_id, :gru_id)"
+                );
 
-        $ins = $conn->prepare(
-            "INSERT INTO {$this->permisoTable} (pmo_ele_id, pmo_tar_id, pmo_gru_id)
-             VALUES (:ele_id, :tar_id, :gru_id)"
-        );
-
-        foreach ($permisos as $pair) {
-            $parts = explode(':', (string) $pair, 2);
-            if (count($parts) !== 2) {
-                continue;
+                foreach ($permisos as $pair) {
+                    $parts = explode(':', (string) $pair, 2);
+                    if (count($parts) !== 2) {
+                        continue;
+                    }
+                    $eleId = (int) $parts[0];
+                    $tarId = (int) $parts[1];
+                    if ($eleId <= 0 || $tarId <= 0) {
+                        continue;
+                    }
+                    $ins->bindValue(':ele_id', $eleId, \PDO::PARAM_INT);
+                    $ins->bindValue(':tar_id', $tarId, \PDO::PARAM_INT);
+                    $ins->bindValue(':gru_id', $grupoId, \PDO::PARAM_STR);
+                    $ins->execute();
+                }
             }
-            $eleId = (int) $parts[0];
-            $tarId = (int) $parts[1];
-            if ($eleId <= 0 || $tarId <= 0) {
-                continue;
-            }
-            $ins->bindValue(':ele_id', $eleId, \PDO::PARAM_INT);
-            $ins->bindValue(':tar_id', $tarId, \PDO::PARAM_INT);
-            $ins->bindValue(':gru_id', $grupoId, \PDO::PARAM_STR);
-            $ins->execute();
+
+            $conn->commit();
+        } catch (\Throwable $e) {
+            $conn->rollBack();
+            throw $e;
         }
     }
 }
