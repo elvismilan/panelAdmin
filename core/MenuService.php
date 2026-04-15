@@ -197,7 +197,7 @@ class MenuService
             return $url;
         }
 
-        $taskPart = trim($task);
+        $taskPart = strtolower(trim($task));
         if ($taskPart === '') {
             return $url;
         }
