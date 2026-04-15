@@ -7,3 +7,15 @@ RewriteRule ^ - [L]
 
 # Route all other requests to front controller
 RewriteRule ^ index.php [L,QSA]
+
+# -------------------------------------------------------------------------
+# Headers de seguridad HTTP (aplica tambien a assets estaticos)
+# -------------------------------------------------------------------------
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+    Header always unset X-Powered-By
+    Header always unset Server
+</IfModule>
