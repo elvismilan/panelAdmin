@@ -7,13 +7,26 @@ use PDOStatement;
 
 class Database
 {
+    /** @var array<string, self> */
+    private static array $instances = [];
+
     private PDO $pdo;
     private string $dsn;
     private string $username;
     private string $password;
 
+    public static function getInstance(string $dsn, string $username, string $password): self
+    {
+        $key = $dsn . '|' . $username;
+        if (!isset(self::$instances[$key])) {
+            self::$instances[$key] = new self($dsn, $username, $password);
+        }
+
+        return self::$instances[$key];
+    }
+
     public function __construct(string $dsn, string $username, string $password) {
-        
+
         $this->dsn = $dsn;
         $this->username = $username;
         $this->password = $password;

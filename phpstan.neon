@@ -1,0 +1,15 @@
+parameters:
+    level: 5
+    paths:
+        - app
+        - core
+    excludePaths:
+        - app/Views
+    treatPhpDocTypesAsCertain: false
+    bootstrapFiles:
+        - vendor/autoload.php
+    # GD extension está instalada y cargada; PHPStan 2 no incluye stubs de GD
+    ignoreErrors:
+        -
+            identifier: function.notFound
+            path: core/ImageUploader.php

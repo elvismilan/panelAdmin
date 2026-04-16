@@ -24,7 +24,7 @@ class ActionLogger
 
         $prefix = (string) ($_ENV['DB_PREFIX'] ?? 'wr_');
         $this->logsTable = $prefix . 'logs';
-        $this->db = new Database($dsn, (string) ($_ENV['DB_USER'] ?? ''), (string) ($_ENV['DB_PASS'] ?? ''));
+        $this->db = Database::getInstance($dsn, (string) ($_ENV['DB_USER'] ?? ''), (string) ($_ENV['DB_PASS'] ?? ''));
     }
 
     public function record(array $payload): bool
@@ -57,8 +57,6 @@ class ActionLogger
 
     private function detectHost(): string
     {
-        $ip = $this->detectIp();
-        $host = @gethostbyaddr($ip);
-        return $host ?: 'unknown';
+        return 'unknown';
     }
 }

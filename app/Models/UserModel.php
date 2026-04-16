@@ -27,7 +27,7 @@ class UserModel extends Model
                     p.per_nombre,
                     p.per_apellido,
                     p.per_foto,
-                    p.per_email
+                                        p.per_email
                 FROM {$this->usuarioTable} u
                 LEFT JOIN {$this->personaTable} p ON p.per_id = u.usu_per_id
                 WHERE u.usu_id = :username
@@ -55,6 +55,7 @@ class UserModel extends Model
             'username' => (string) $user['usu_id'],
             'person_id' => (int) ($user['usu_per_id'] ?? 0),
             'group' => (string) ($user['usu_gru_id'] ?? ''),
+            'group_name' => (string) ($user['usu_gru_id'] ?? ''),
             'full_name' => $fullName,
             'email' => (string) ($user['per_email'] ?? ''),
             'photo' => (string) ($user['per_foto'] ?? ''),
@@ -83,6 +84,6 @@ class UserModel extends Model
             }
         }
 
-        return hash_equals($storedPassword, $plainPassword);
+        return false;
     }
 }
