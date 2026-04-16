@@ -5,6 +5,7 @@ use App\Controllers\DashboardController;
 use App\Controllers\ElementoController;
 use App\Controllers\GrupoController;
 use App\Controllers\HomeController;
+use App\Controllers\LogController;
 use App\Controllers\PersonaController;
 use App\Controllers\TareaController;
 use App\Controllers\UsuarioController;
@@ -50,6 +51,10 @@ $router->get('/usuarios/{id}/editar', UsuarioController::class, 'editar');
 $router->post('/usuarios/{id}/actualizar', UsuarioController::class, 'actualizar');
 $router->get('/usuarios/{id}/eliminar', UsuarioController::class, 'eliminar');
 $router->post('/usuarios/{id}/borrar', UsuarioController::class, 'borrar');
+
+// Logs
+$router->get('/logs', LogController::class, 'index');
+$router->get('/logs/{id}/ver', LogController::class, 'ver');
 
 $router->get('/grupos', GrupoController::class, 'index');
 $router->get('/grupos/agregar', GrupoController::class, 'agregar');
