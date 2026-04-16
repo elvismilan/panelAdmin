@@ -7,16 +7,8 @@
                 </div>
                 <div class="card-body">
                     <p>Nombre: <strong><?= htmlspecialchars($user['full_name'] ?? $user['username'] ?? 'N/A', ENT_QUOTES, 'UTF-8') ?></strong></p>
-                    <p>Usuario: <strong><?= htmlspecialchars($user['username'] ?? 'N/A', ENT_QUOTES, 'UTF-8') ?></strong></p>
                     <p>Grupo: <strong><?= htmlspecialchars($user['group'] ?? 'N/A', ENT_QUOTES, 'UTF-8') ?></strong></p>
-                    <p>
-                        <a href="/tareas" class="btn btn-info btn-sm me-2">Ir al modulo de tareas</a>
-                        <a href="/modulos" class="btn btn-secondary btn-sm me-2">Ir al modulo de modulos</a>
-                        <a href="/personas" class="btn btn-warning btn-sm me-2">Ir al modulo de personas</a>
-                        <a href="/usuarios" class="btn btn-danger btn-sm">Ir al modulo de usuarios</a>
-                        <a href="/grupos" class="btn btn-info btn-sm">Ir al modulo de grupos</a>
-                    </p>
-                    <form method="post" action="/logout"><?= $csrfField ?><button type="submit" class="btn btn-primary">Cerrar sesion</button></form>
+                   
                 </div>
             </div>
         </div>

@@ -46,7 +46,6 @@
                                     <th style="width:140px;">Tipo</th>
                                     <th style="width:90px;">Usuario</th>
                                     <th>Acción</th>
-                                    <th style="width:130px;">IP</th>
                                     <th class="text-center" style="width:80px;">Ver</th>
                                 </tr>
                             </thead>
@@ -86,7 +85,6 @@
                                         <td class="small" title="<?= htmlspecialchars($accion, ENT_QUOTES, 'UTF-8') ?>">
                                             <?= htmlspecialchars($accionCorta, ENT_QUOTES, 'UTF-8') ?>
                                         </td>
-                                        <td class="small font-monospace"><?= htmlspecialchars((string) ($log['log_ip'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
                                         <td class="text-center">
                                             <?php if ($canVer): ?>
                                                 <a href="/logs/<?= $itemId ?>/ver"
