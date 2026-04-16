@@ -89,6 +89,23 @@ class UsuarioModel extends Model
         return is_array($row) ? $row : null;
     }
 
+    /**
+     * Retorna el email de la persona vinculada al usuario, o null si no tiene.
+     */
+    public function getPersonaEmail(string $usuId): ?string
+    {
+        $sql = "SELECT p.per_email
+                FROM {$this->usuarioTable} u
+                INNER JOIN {$this->personaTable} p ON p.per_id = u.usu_per_id
+                WHERE u.usu_id = :id
+                  AND p.per_email IS NOT NULL
+                  AND p.per_email <> ''
+                LIMIT 1";
+
+        $row = $this->db->query($sql, ['id' => $usuId])->fetch();
+        return is_array($row) && isset($row['per_email']) ? (string) $row['per_email'] : null;
+    }
+
     public function createUsuario(array $data): string
     {
         return $this->create([

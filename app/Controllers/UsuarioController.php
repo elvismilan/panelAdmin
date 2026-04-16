@@ -5,7 +5,9 @@ namespace App\Controllers;
 use App\Models\UsuarioModel;
 use Core\Auth;
 use Core\Controller;
+use Core\Mailer;
 use Core\Validator;
+use PHPMailer\PHPMailer\Exception as MailerException;
 use Throwable;
 
 class UsuarioController extends Controller
@@ -152,6 +154,41 @@ class UsuarioController extends Controller
 
         $model->createUsuario($params);
         $this->logAction($model->getLastActionLog(), 'CREATE');
+
+        // Enviar credenciales por email si la persona vinculada tiene correo
+        $usuId = trim((string) ($params['usu_id'] ?? ''));
+        $email = ($params['usu_per_id'] ?? '') !== '' ? $model->getPersonaEmail($usuId) : null;
+
+        if ($email !== null) {
+            try {
+                $persona   = $model->findById($usuId);
+                $userName  = trim(
+                    ((string) ($persona['per_nombre'] ?? '')) . ' ' .
+                    ((string) ($persona['per_apellido'] ?? ''))
+                );
+                $siteRoot  = rtrim((string) ($_ENV['SITE_ROOT'] ?? ''), '/');
+                $emailHtml = $this->renderEmailView('emails/usuario-credenciales', [
+                    'userName'  => $userName !== '' ? $userName : $usuId,
+                    'usuId'     => $usuId,
+                    'password'  => trim((string) ($params['usu_password'] ?? '')),
+                    'loginUrl'  => $siteRoot . '/login',
+                    'siteTitle' => (string) ($_ENV['SITE_TITLE'] ?? 'Web Revolution'),
+                    'address'   => (string) ($_ENV['ADDRESS']    ?? ''),
+                    'country'   => (string) ($_ENV['COUNTRY']    ?? ''),
+                ]);
+
+                $mailer = new Mailer();
+                $mailer->send(
+                    $email,
+                    'Tus credenciales de acceso — ' . ($_ENV['SITE_TITLE'] ?? 'Web Revolution'),
+                    $emailHtml
+                );
+            } catch (MailerException $e) {
+                error_log('[UsuarioController::guardar] Mailer error: ' . $e->getMessage());
+            } catch (Throwable $e) {
+                error_log('[UsuarioController::guardar] Error al enviar credenciales: ' . $e->getMessage());
+            }
+        }
 
         $this->flashSuccess('Usuario registrado correctamente.');
         $this->redirect('/usuarios');
