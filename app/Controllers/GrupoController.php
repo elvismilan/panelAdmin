@@ -66,7 +66,6 @@ class GrupoController extends Controller
     public function agregar(): void
     {
         $this->requireAuth();
-        $this->requireCsrf();
 
         $model = new GrupoModel();
 
@@ -183,7 +182,6 @@ class GrupoController extends Controller
     public function editar(string $id): void
     {
         $this->requireAuth();
-        $this->requireCsrf();
 
         $model = new GrupoModel();
         $grupo = $model->findById($id);
@@ -293,7 +291,6 @@ class GrupoController extends Controller
     public function eliminar(string $id): void
     {
         $this->requireAuth();
-        $this->requireCsrf();
 
         $model = new GrupoModel();
         $grupo = $model->findById($id);

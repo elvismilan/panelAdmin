@@ -60,7 +60,6 @@ class ElementoController extends Controller
     public function agregar(): void
     {
         $this->requireAuth();
-        $this->requireCsrf();
 
         $model = new ElementoModel();
 
@@ -171,7 +170,6 @@ class ElementoController extends Controller
     public function editar(string $id): void
     {
         $this->requireAuth();
-        $this->requireCsrf();
 
         $model = new ElementoModel();
         $elemento = $model->findById($id);
