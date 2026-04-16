@@ -28,16 +28,16 @@ header('Referrer-Policy: strict-origin-when-cross-origin');
 header('Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()');
 
 // Content Security Policy
-// - default-src 'self'          solo recursos del mismo dominio por defecto
-// - script-src  'self' 'unsafe-inline'  permite scripts inline del tema (Bootstrap/jQuery)
-// - style-src   'self' 'unsafe-inline'  permite estilos inline del tema
-// - img-src     'self' data:            permite imagenes locales y base64
-// - font-src    'self' data:            permite fuentes locales y embebidas
-// - form-action 'self'                  los formularios solo envian datos al mismo dominio
-// - frame-ancestors 'none'              ninguna pagina puede embeber este panel en un iframe
-// - base-uri    'self'                  previene inyeccion via etiqueta <base>
+// - default-src 'self'                         solo recursos del mismo dominio por defecto
+// - script-src  'self' 'unsafe-inline'         permite scripts inline del tema (Bootstrap/jQuery)
+// - style-src   'self' 'unsafe-inline' fonts.googleapis.com  permite estilos inline + Google Fonts CSS
+// - img-src     'self' data:                   permite imagenes locales y base64
+// - font-src    'self' data: fonts.gstatic.com permite fuentes locales, embebidas y Google Fonts archivos
+// - form-action 'self'                         los formularios solo envian datos al mismo dominio
+// - frame-ancestors 'none'                     ninguna pagina puede embeber este panel en un iframe
+// - base-uri    'self'                         previene inyeccion via etiqueta <base>
 // Nota: elimina 'unsafe-inline' en script-src si el tema no usa scripts inline.
-header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; form-action 'self'; frame-ancestors 'none'; base-uri 'self'");
+header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data:; font-src 'self' data: https://fonts.gstatic.com; form-action 'self'; frame-ancestors 'none'; base-uri 'self'");
 
 // Elimina el header que expone la version de PHP
 header_remove('X-Powered-By');

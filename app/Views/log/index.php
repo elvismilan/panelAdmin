@@ -20,7 +20,6 @@
                 <div class="card-header pb-0 d-flex justify-content-between align-items-center">
                     <div>
                         <h5>Logs del sistema</h5>
-                        <span>Historial de acciones registradas</span>
                     </div>
                 </div>
                 <div class="card-body pt-3">
@@ -37,13 +36,6 @@
                         include $flashView;
                     }
                     ?>
-
-                    <?php if (!empty($pagination['totalRows'])): ?>
-                        <p class="text-muted small mb-2">
-                            Mostrando <?= (int) ($pagination['from'] ?? 0) ?>–<?= (int) ($pagination['to'] ?? 0) ?>
-                            de <?= (int) ($pagination['totalRows'] ?? 0) ?> registros
-                        </p>
-                    <?php endif; ?>
 
                     <div class="table-responsive">
                         <table class="table table-hover align-middle">

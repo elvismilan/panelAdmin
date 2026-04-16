@@ -1554,7 +1554,6 @@
   }
   .page-wrapper.compact-wrapper .page-body-wrapper header.main-nav {
     top: 65px;
-    width: 120px !important;
   }
   .ttl-info {
     display: block;
@@ -3298,7 +3297,7 @@
     margin-top: 10px;
   }
   .page-wrapper.compact-wrapper .page-body-wrapper.sidebar-icon header.main-nav {
-    top: 59px;
+    top: 65px;
   }
   .page-wrapper.compact-wrapper .page-body-wrapper.sidebar-icon header.main-nav .main-navbar .nav-menu {
     height: calc(100vh - 79px);

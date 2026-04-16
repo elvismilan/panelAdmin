@@ -6,6 +6,7 @@ use App\Models\UsuarioModel;
 use Core\Auth;
 use Core\Controller;
 use Core\Mailer;
+use Core\NotificacionService;
 use Core\Validator;
 use PHPMailer\PHPMailer\Exception as MailerException;
 use Throwable;
@@ -154,6 +155,7 @@ class UsuarioController extends Controller
 
         $model->createUsuario($params);
         $this->logAction($model->getLastActionLog(), 'CREATE');
+        NotificacionService::registrar('usuarios', 'CREATE', (string) (Auth::user()['id'] ?? 'ANON'), $usuId);
 
         // Enviar credenciales por email si la persona vinculada tiene correo
         $usuId = trim((string) ($params['usu_id'] ?? ''));

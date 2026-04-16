@@ -6,6 +6,7 @@ use App\Controllers\ElementoController;
 use App\Controllers\GrupoController;
 use App\Controllers\HomeController;
 use App\Controllers\LogController;
+use App\Controllers\NotificacionController;
 use App\Controllers\PersonaController;
 use App\Controllers\TareaController;
 use App\Controllers\UsuarioController;
@@ -55,6 +56,11 @@ $router->post('/usuarios/{id}/borrar', UsuarioController::class, 'borrar');
 // Logs
 $router->get('/logs', LogController::class, 'index');
 $router->get('/logs/{id}/ver', LogController::class, 'ver');
+
+// Notificaciones
+$router->get('/notificaciones',              NotificacionController::class, 'index');
+$router->get('/notificaciones/{id}/ver',     NotificacionController::class, 'ver');
+$router->post('/notificaciones/{id}/leida',  NotificacionController::class, 'marcarLeida');
 
 $router->get('/grupos', GrupoController::class, 'index');
 $router->get('/grupos/agregar', GrupoController::class, 'agregar');
