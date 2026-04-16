@@ -38,6 +38,9 @@ if (is_file($headerFile)) {
                             <div class="form-group">
                                 <button class="btn btn-primary btn-block" type="submit">Ingresar</button>
                             </div>
+                            <p class="mt-2 mb-0">
+                                <a class="ms-2" href="/forgot-password">¿Olvidaste tu contraseña?</a>
+                            </p>
                         </form>
                     </div>
                 </div>
