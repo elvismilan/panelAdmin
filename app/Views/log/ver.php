@@ -13,7 +13,7 @@
                         <h5>Detalle del log</h5>
                         <span>Registro #<?= htmlspecialchars((string) ($log['log_id'] ?? ''), ENT_QUOTES, 'UTF-8') ?></span>
                     </div>
-                    <a href="/logs" class="btn btn-light btn-sm">
+                    <a href="<?= htmlspecialchars(\Core\Url::to('/logs'), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-light btn-sm">
                         <i class="fa fa-arrow-left me-1" aria-hidden="true"></i>
                         Volver
                     </a>

@@ -36,14 +36,14 @@
                     <?php endif; ?>
 
                     <form method="post"
-                          action="/grupos/<?= urlencode((string) ($grupoId ?? '')) ?>/borrar">
+                          action="<?= htmlspecialchars(\Core\Url::to('/grupos/' . urlencode((string) ($grupoId ?? '')) . '/borrar'), ENT_QUOTES, 'UTF-8') ?>">
                         <?= $csrfField ?>
                         <button type="submit"
                                 class="btn btn-danger"
                                 <?= !empty($hasUsuarios) ? 'disabled' : '' ?>>
                             <i class="fa fa-trash me-1" aria-hidden="true"></i>Eliminar
                         </button>
-                        <a href="/grupos" class="btn btn-light">Cancelar</a>
+                        <a href="<?= htmlspecialchars(\Core\Url::to('/grupos'), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-light">Cancelar</a>
                     </form>
                 </div>
             </div>

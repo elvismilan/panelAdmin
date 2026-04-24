@@ -78,7 +78,7 @@ class Controller
 
     public function redirect(string $url): void {
 
-        header('Location: ' . $url);
+        header('Location: ' . Url::to($url));
         exit;
     }
 

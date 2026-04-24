@@ -44,7 +44,7 @@
                     ?>
 
                     <?php /* Filtros adicionales: modulo y estado leida */ ?>
-                    <form method="get" action="/notificaciones" class="row g-2 mb-3">
+                    <form method="get" action="<?= htmlspecialchars(\Core\Url::to('/notificaciones'), ENT_QUOTES, 'UTF-8') ?>" class="row g-2 mb-3">
                         <?php if (!empty($search)): ?>
                             <input type="hidden" name="q" value="<?= htmlspecialchars($search, ENT_QUOTES, 'UTF-8') ?>">
                         <?php endif; ?>
@@ -70,7 +70,7 @@
                         </div>
                         <?php if ($moduloActual !== '' || $leidaActual !== ''): ?>
                             <div class="col-auto">
-                                <a href="/notificaciones<?= $search !== '' ? '?q=' . urlencode($search) : '' ?>"
+                                <a href="<?= htmlspecialchars(\Core\Url::to('/notificaciones' . ($search !== '' ? '?q=' . urlencode($search) : '')), ENT_QUOTES, 'UTF-8') ?>"
                                    class="btn btn-outline-secondary btn-sm">
                                     Limpiar filtros
                                 </a>
@@ -163,7 +163,7 @@
                                         </td>
                                         <td class="text-center">
                                             <?php if ($canVer): ?>
-                                                <a href="/notificaciones/<?= $itemId ?>/ver"
+                                                                <a href="<?= htmlspecialchars(\Core\Url::to('/notificaciones/' . $itemId . '/ver'), ENT_QUOTES, 'UTF-8') ?>"
                                                    class="btn btn-info btn-sm px-2 py-1"
                                                    title="Ver detalle"
                                                    aria-label="Ver detalle">

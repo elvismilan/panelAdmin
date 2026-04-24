@@ -20,6 +20,10 @@ Plantilla base MVC en PHP 8 para hosting compartido, con autenticacion sobre tab
 
 3. Ajustar credenciales en `.env`.
 
+	 - Define `APP_URL` con la URL publica completa (incluye subcarpeta si aplica), por ejemplo:
+		 - `APP_URL=https://tudominio.com/panel`
+	 - `SITE_ROOT` se mantiene para compatibilidad y uso en correos.
+
 4. Crear/importar tu propia base de datos segun el cliente.
 
 5. Configurar tablas base de autenticacion y permisos con prefijo `wr_`:
@@ -63,3 +67,4 @@ Variables de entorno recomendadas:
 
 - Opcion recomendada: apuntar el dominio a carpeta `public`
 - Opcion alternativa: dejar dominio en raiz y usar `.htaccess` raiz para redirigir a `public`
+- Si el panel se sirve dentro de subcarpeta o reverse proxy, configura `APP_URL` con esa ruta base para generar URLs absolutas correctas.

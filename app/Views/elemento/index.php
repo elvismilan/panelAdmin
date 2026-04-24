@@ -27,7 +27,7 @@
                     </div>
                     <?php if ($canAgregar): ?>
                         <div class="btn-group" role="group" aria-label="Acciones de modulos">
-                            <a href="/modulos/agregar" class="btn btn-primary btn-sm d-inline-flex align-items-center">
+                            <a href="<?= htmlspecialchars(\Core\Url::to('/modulos/agregar'), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-primary btn-sm d-inline-flex align-items-center">
                                <span>Agregar</span>
                             </a>
                         </div>
@@ -87,12 +87,12 @@
                                         <td class="text-center">
                                             <?php $itemId = urlencode((string) ($elemento['ele_id'] ?? '')); ?>
                                             <?php if ($canEditar): ?>
-                                                <a href="/modulos/<?= $itemId ?>/editar" class="btn btn-warning px-2 py-1" title="Editar" aria-label="Editar">
+                                                <a href="<?= htmlspecialchars(\Core\Url::to('/modulos/' . $itemId . '/editar'), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-warning px-2 py-1" title="Editar" aria-label="Editar">
                                                     <i class="fa fa-pencil" aria-hidden="true"></i>
                                                 </a>
                                             <?php endif; ?>
                                             <?php if ($canEliminar): ?>
-                                                <a href="/modulos/<?= $itemId ?>/eliminar" class="btn btn-danger px-2 py-1" title="Eliminar" aria-label="Eliminar">
+                                                <a href="<?= htmlspecialchars(\Core\Url::to('/modulos/' . $itemId . '/eliminar'), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-danger px-2 py-1" title="Eliminar" aria-label="Eliminar">
                                                     <i class="fa fa-trash" aria-hidden="true"></i>
                                                 </a>
                                             <?php endif; ?>

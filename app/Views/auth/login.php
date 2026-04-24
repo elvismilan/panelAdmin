@@ -12,7 +12,7 @@
 		<p style="color:#b00020;"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></p>
 	<?php endif; ?>
 
-	<form method="post" action="/login">
+	<form method="post" action="<?= htmlspecialchars(\Core\Url::to('/login'), ENT_QUOTES, 'UTF-8') ?>">
 		<?= $csrfField ?>
 		<label>
 			Usuario

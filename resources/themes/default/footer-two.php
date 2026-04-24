@@ -1,5 +1,5 @@
 <?php
-$assetBase = rtrim((string) ($_ENV['LOGIN_OPTION2_ASSET_BASE'] ?? '/assets/theme-two'), '/');
+$assetBase = \Core\Url::to(rtrim((string) ($_ENV['LOGIN_OPTION2_ASSET_BASE'] ?? '/assets/theme-two'), '/'));
 $pageAssets = $pageAssets ?? ['css' => [], 'js' => []];
 $jsAssets = is_array($pageAssets['js'] ?? null) ? $pageAssets['js'] : [];
 ?>

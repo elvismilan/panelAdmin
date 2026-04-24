@@ -4,7 +4,7 @@ $footerFile = dirname(__DIR__) . '/footer-two.php';
 if (is_file($headerFile)) {
     include $headerFile;
 }
-$assetBase = rtrim((string) ($_ENV['LOGIN_OPTION2_ASSET_BASE'] ?? '/assets/theme-two'), '/');
+$assetBase = \Core\Url::to(rtrim((string) ($_ENV['LOGIN_OPTION2_ASSET_BASE'] ?? '/assets/theme-two'), '/'));
 ?>
 
 <!--begin::Main-->

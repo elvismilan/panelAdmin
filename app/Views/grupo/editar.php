@@ -13,7 +13,7 @@
                     }
                     ?>
                     <form method="post"
-                          action="/grupos/<?= urlencode((string) ($grupoId ?? '')) ?>/actualizar"
+                          action="<?= htmlspecialchars(\Core\Url::to('/grupos/' . urlencode((string) ($grupoId ?? '')) . '/actualizar'), ENT_QUOTES, 'UTF-8') ?>"
                           autocomplete="off">
                         <?= $csrfField ?>
                         <div class="row">
@@ -195,7 +195,7 @@
                         </div>
 
                         <button type="submit" class="btn btn-primary">Actualizar</button>
-                        <a href="/grupos" class="btn btn-light">Cancelar</a>
+                        <a href="<?= htmlspecialchars(\Core\Url::to('/grupos'), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-light">Cancelar</a>
                     </form>
                 </div>
             </div>

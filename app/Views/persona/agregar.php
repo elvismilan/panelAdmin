@@ -12,7 +12,7 @@
                         include $errorView;
                     }
                     ?>
-                    <form method="post" action="/personas/guardar" enctype="multipart/form-data">
+                    <form method="post" action="<?= htmlspecialchars(\Core\Url::to('/personas/guardar'), ENT_QUOTES, 'UTF-8') ?>" enctype="multipart/form-data">
                         <?= $csrfField ?>
                         <div class="row">
                             <!-- Foto -->
@@ -114,7 +114,7 @@
                         </div>
 
                         <button type="submit" class="btn btn-primary">Guardar</button>
-                        <a href="/personas" class="btn btn-light">Cancelar</a>
+                        <a href="<?= htmlspecialchars(\Core\Url::to('/personas'), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-light">Cancelar</a>
                     </form>
                 </div>
             </div>

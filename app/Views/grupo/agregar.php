@@ -12,7 +12,7 @@
                         include $errorView;
                     }
                     ?>
-                    <form method="post" action="/grupos/guardar" autocomplete="off">
+                    <form method="post" action="<?= htmlspecialchars(\Core\Url::to('/grupos/guardar'), ENT_QUOTES, 'UTF-8') ?>" autocomplete="off">
                         <?= $csrfField ?>
                         <div class="row">
                             <!-- ID del grupo -->
@@ -193,7 +193,7 @@
                         </div>
 
                         <button type="submit" class="btn btn-primary">Guardar</button>
-                        <a href="/grupos" class="btn btn-light">Cancelar</a>
+                        <a href="<?= htmlspecialchars(\Core\Url::to('/grupos'), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-light">Cancelar</a>
                     </form>
                 </div>
             </div>

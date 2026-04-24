@@ -7,6 +7,7 @@ use Core\Auth;
 use Core\Controller;
 use Core\Mailer;
 use Core\NotificacionService;
+use Core\Url;
 use Core\Validator;
 use PHPMailer\PHPMailer\Exception as MailerException;
 use Throwable;
@@ -168,12 +169,11 @@ class UsuarioController extends Controller
                     ((string) ($persona['per_nombre'] ?? '')) . ' ' .
                     ((string) ($persona['per_apellido'] ?? ''))
                 );
-                $siteRoot  = rtrim((string) ($_ENV['SITE_ROOT'] ?? ''), '/');
                 $emailHtml = $this->renderEmailView('emails/usuario-credenciales', [
                     'userName'  => $userName !== '' ? $userName : $usuId,
                     'usuId'     => $usuId,
                     'password'  => trim((string) ($params['usu_password'] ?? '')),
-                    'loginUrl'  => $siteRoot . '/login',
+                    'loginUrl'  => Url::to('/login'),
                     'siteTitle' => (string) ($_ENV['SITE_TITLE'] ?? 'Web Revolution'),
                     'address'   => (string) ($_ENV['ADDRESS']    ?? ''),
                     'country'   => (string) ($_ENV['COUNTRY']    ?? ''),

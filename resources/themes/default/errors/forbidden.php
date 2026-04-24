@@ -1,9 +1,9 @@
 <?php
 $title = $title ?? 'Acceso denegado';
-$assetBase = rtrim((string) ($_ENV['LOGIN_OPTION1_ASSET_BASE'] ?? $_ENV['LOGIN_ASSET_BASE'] ?? '/assets/theme-one'), '/');
+$assetBase = \Core\Url::to(rtrim((string) ($_ENV['LOGIN_OPTION1_ASSET_BASE'] ?? $_ENV['LOGIN_ASSET_BASE'] ?? '/assets/theme-one'), '/'));
 $heading = $heading ?? 'No tienes permiso para esta accion';
 $message = $message ?? 'No cuentas con permisos para continuar.';
-$homeUrl = $homeUrl ?? '/dashboard';
+$homeUrl = $homeUrl ?? \Core\Url::to('/dashboard');
 $code = (int) ($code ?? 403);
 
 $headerFile = dirname(__DIR__) . '/auth-layout-header.php';

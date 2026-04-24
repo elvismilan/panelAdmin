@@ -2,7 +2,7 @@
 use Core\Helpers\MenuHelper;
 use Core\Helpers\NotificationHelper;
 
-$adminAssetBase = rtrim((string) ($_ENV['ADMIN_ASSET_BASE'] ?? ($_ENV['LOGIN_OPTION1_ASSET_BASE'] ?? '/assets/theme-one')), '/');
+$adminAssetBase = \Core\Url::to(rtrim((string) ($_ENV['ADMIN_ASSET_BASE'] ?? ($_ENV['LOGIN_OPTION1_ASSET_BASE'] ?? '/assets/theme-one')), '/'));
 $adminUserName  = trim((string) ($user['full_name'] ?? $user['username'] ?? 'Usuario'));
 $adminUserPhoto = trim((string) ($user['photo'] ?? ''));
 $adminGroupName = trim((string) ($user['group_name'] ?? $user['group'] ?? ''));
@@ -62,8 +62,8 @@ $adminGroupName = trim((string) ($user['group_name'] ?? $user['group'] ?? ''));
       <div class="page-main-header">
         <div class="main-header-right row m-0">
           <div class="main-header-left">
-            <div class="logo-wrapper"><a href="/dashboard"><img class="img-fluid" src="<?= htmlspecialchars($adminAssetBase, ENT_QUOTES, 'UTF-8') ?>/images/logo/logo.png" alt=""></a></div>
-            <div class="dark-logo-wrapper"><a href="/dashboard"><img class="img-fluid" src="<?= htmlspecialchars($adminAssetBase, ENT_QUOTES, 'UTF-8') ?>/images/logo/dark-logo.png" alt=""></a></div>
+            <div class="logo-wrapper"><a href="<?= htmlspecialchars(\Core\Url::to('/dashboard'), ENT_QUOTES, 'UTF-8') ?>"><img class="img-fluid" src="<?= htmlspecialchars($adminAssetBase, ENT_QUOTES, 'UTF-8') ?>/images/logo/logo.png" alt=""></a></div>
+            <div class="dark-logo-wrapper"><a href="<?= htmlspecialchars(\Core\Url::to('/dashboard'), ENT_QUOTES, 'UTF-8') ?>"><img class="img-fluid" src="<?= htmlspecialchars($adminAssetBase, ENT_QUOTES, 'UTF-8') ?>/images/logo/dark-logo.png" alt=""></a></div>
             <div class="toggle-sidebar"><i class="status_toggle middle" data-feather="align-center" id="sidebar-toggle"></i></div>
           </div>
           
@@ -76,7 +76,7 @@ $adminGroupName = trim((string) ($user['group_name'] ?? $user['group'] ?? ''));
               </li>
               
               <li class="onhover-dropdown p-0">
-                <form method="post" action="/logout" class="m-0 p-0">
+                <form method="post" action="<?= htmlspecialchars(\Core\Url::to('/logout'), ENT_QUOTES, 'UTF-8') ?>" class="m-0 p-0">
                   <?= \Core\Csrf::field() ?>
                   <button class="btn btn-primary-light" type="submit"><i data-feather="log-out"></i>Cerrar Sesión</button>
                 </form>
@@ -95,7 +95,7 @@ $adminGroupName = trim((string) ($user['group_name'] ?? $user['group'] ?? ''));
             <a class="setting-primary" href="javascript:void(0)"><i data-feather="settings"></i></a>
             <?php if ($adminUserPhoto !== ''): ?>
               <img class="img-70 rounded-circle"
-                   src="/<?= htmlspecialchars($adminUserPhoto, ENT_QUOTES, 'UTF-8') ?>"
+                   src="<?= htmlspecialchars(\Core\Url::to('/' . ltrim((string) $adminUserPhoto, '/')), ENT_QUOTES, 'UTF-8') ?>"
                    alt="<?= htmlspecialchars($adminUserName, ENT_QUOTES, 'UTF-8') ?>"
                    style="object-fit:cover;">
             <?php else: ?>

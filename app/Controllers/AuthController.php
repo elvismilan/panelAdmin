@@ -8,6 +8,7 @@ use Core\Auth;
 use Core\Controller;
 use Core\Mailer;
 use Core\RateLimiter;
+use Core\Url;
 use PHPMailer\PHPMailer\Exception as MailerException;
 use Throwable;
 
@@ -163,8 +164,7 @@ class AuthController extends Controller
 
             if ($user !== null) {
                 $token    = $model->createToken($email);
-                $siteRoot = rtrim((string) ($_ENV['SITE_ROOT'] ?? ''), '/');
-                $resetUrl = $siteRoot . '/reset-password/' . $token;
+                $resetUrl = Url::to('/reset-password/' . $token);
 
                 $emailHtml = $this->renderEmailView('emails/password-reset', [
                     'resetUrl'      => $resetUrl,

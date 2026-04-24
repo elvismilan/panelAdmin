@@ -396,6 +396,7 @@ Auth::logout();      // Destruye sesión
 ```ini
 # App
 APP_DEBUG=false
+APP_URL=https://dominio.com/panel
 SITE_ROOT=https://dominio.com
 SITE_TITLE=Mi Panel
 LOGO=/assets/images/logo.png

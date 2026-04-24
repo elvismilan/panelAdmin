@@ -11,7 +11,7 @@ if (is_file($headerFile)) {
             <div class="row">
                 <div class="col-12">
                     <div class="login-card">
-                        <form class="theme-form login-form" method="post" action="/login">
+                        <form class="theme-form login-form" method="post" action="<?= htmlspecialchars(\Core\Url::to('/login'), ENT_QUOTES, 'UTF-8') ?>">
                             <?= $csrfField ?>
                             <h4 class="text-center">Iniciar Sesión</h4>
                             <h6 class="text-center">¡Bienvenido de nuevo! Inicia sesión en tu cuenta.</h6>
@@ -39,7 +39,7 @@ if (is_file($headerFile)) {
                                 <button class="btn btn-primary btn-block" type="submit">Ingresar</button>
                             </div>
                             <p class="mt-2 mb-0">
-                                <a class="ms-2" href="/forgot-password">¿Olvidaste tu contraseña?</a>
+                                <a class="ms-2" href="<?= htmlspecialchars(\Core\Url::to('/forgot-password'), ENT_QUOTES, 'UTF-8') ?>">¿Olvidaste tu contraseña?</a>
                             </p>
                         </form>
                     </div>
