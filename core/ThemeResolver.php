@@ -19,6 +19,9 @@ class ThemeResolver
         $defaultPack = $this->defaultPackForArea($area);
         $pack = $this->resolvePackForArea($area, $defaultPack);
         $option = trim((string) ($_ENV[strtoupper($area) . '_THEME_OPTION'] ?? '1'));
+        if (in_array($area, ['login', 'admin'], true)) {
+            $option = '1';
+        }
         $mappedOptionView = $this->shouldUseOptionMap($area, $defaultView)
             ? $this->optionViewForArea($area, $option)
             : null;
@@ -89,11 +92,9 @@ class ThemeResolver
         $optionMap = [
             'login' => [
                 '1' => 'login-form-default',
-                '2' => 'login-form-theme-two',
             ],
             'admin' => [
                 '1' => 'dashboard-default',
-                '2' => 'dashboard-compact',
             ],
         ];
 

@@ -220,7 +220,7 @@ resources/themes/{pack}/
 ├── admin/
 │   ├── layout.php              # Layout principal del admin
 │   ├── dashboard-default.php   # Opción 1 del dashboard
-│   └── dashboard-compact.php   # Opción 2 del dashboard
+│   └── (solo opción default)
 ├── login/
 │   ├── login-form-default.php
 │   ├── forgot-password.php
