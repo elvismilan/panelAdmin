@@ -312,7 +312,6 @@ class UsuarioController extends Controller
     public function eliminar(string $id): void
     {
         $this->requireAuth();
-        $this->requireCsrf();
 
         $model   = new UsuarioModel();
         $usuario = $model->findById($id);

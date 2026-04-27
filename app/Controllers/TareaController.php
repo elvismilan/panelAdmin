@@ -194,7 +194,6 @@ class TareaController extends Controller
     public function eliminar(string $id): void
     {
         $this->requireAuth();
-        $this->requireCsrf();
 
         $model = new TareaModel();
         $tarea = $model->findById($id);
