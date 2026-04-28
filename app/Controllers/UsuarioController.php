@@ -6,6 +6,7 @@ use App\Models\PasswordResetModel;
 use App\Models\UsuarioModel;
 use Core\Auth;
 use Core\Controller;
+use Core\EmailMessages;
 use Core\FlashMessages;
 use Core\LogMessages;
 use Core\Mailer;
@@ -181,10 +182,12 @@ class UsuarioController extends Controller
                 $token      = $resetModel->createToken($normalizedEmail);
                 $resetUrl   = Url::to('/reset-password/' . $token);
 
-                $emailHtml = $this->emailTemplatesRenderer->render('emails/password-reset', [
+                $siteTitle = EmailMessages::siteTitle();
+
+                $emailHtml = $this->emailTemplatesRenderer->render(EmailMessages::TEMPLATE_PASSWORD_RESET, [
                     'resetUrl'      => $resetUrl,
                     'userName'      => $userName !== '' ? $userName : $usuId,
-                    'siteTitle'     => (string) ($_ENV['SITE_TITLE'] ?? 'Web Revolution'),
+                    'siteTitle'     => $siteTitle,
                     'address'       => (string) ($_ENV['ADDRESS']    ?? ''),
                     'country'       => (string) ($_ENV['COUNTRY']    ?? ''),
                     'expiryMinutes' => 60,
@@ -193,7 +196,7 @@ class UsuarioController extends Controller
                 $mailer = new Mailer();
                 $mailer->send(
                     $normalizedEmail,
-                    'Configura tu contraseña — ' . ($_ENV['SITE_TITLE'] ?? 'Web Revolution'),
+                    EmailMessages::setupPasswordSubject($siteTitle),
                     $emailHtml
                 );
                 $resetLinkSent = true;
