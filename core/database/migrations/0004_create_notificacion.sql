@@ -1,6 +1,6 @@
 -- Migration: 0004_create_notificacion
 -- Description: Tabla de notificaciones del sistema (solo lectura, generadas automaticamente)
-CREATE TABLE IF NOT EXISTS `wr_notificacion` (
+CREATE TABLE IF NOT EXISTS `notificacion` (
     `noti_id`            INT UNSIGNED  NOT NULL AUTO_INCREMENT,
     `noti_titulo`        VARCHAR(255)  NOT NULL,
     `noti_mensaje`       TEXT          NOT NULL,

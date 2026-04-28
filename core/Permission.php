@@ -12,11 +12,10 @@ class Permission
 
     public function __construct()
     {
-        $prefix = (string) ($_ENV['DB_PREFIX'] ?? 'wr_');
-        $this->tablePermiso = $prefix . 'permiso';
-        $this->tableElemento = $prefix . 'elemento';
-        $this->tableGrupo = $prefix . 'grupo';
-        $this->tableTarea = $prefix . 'tarea';
+        $this->tablePermiso = 'permiso';
+        $this->tableElemento = 'elemento';
+        $this->tableGrupo = 'grupo';
+        $this->tableTarea = 'tarea';
 
         $this->db = Database::fromEnv();
     }

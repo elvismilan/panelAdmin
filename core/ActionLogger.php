@@ -11,8 +11,7 @@ class ActionLogger
 
     public function __construct()
     {
-        $prefix = (string) ($_ENV['DB_PREFIX'] ?? 'wr_');
-        $this->logsTable = $prefix . 'logs';
+        $this->logsTable = 'logs';
         $this->db = Database::fromEnv();
     }
 

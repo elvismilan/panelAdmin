@@ -11,8 +11,7 @@ class RateLimiter
 
     public function __construct()
     {
-        $prefix             = (string) ($_ENV['DB_PREFIX'] ?? 'wr_');
-        $this->table        = $prefix . 'login_attempts';
+        $this->table        = 'login_attempts';
         $this->maxAttempts  = max(1, (int) ($_ENV['LOGIN_MAX_ATTEMPTS']  ?? 5));
         $this->windowMinutes = max(1, (int) ($_ENV['LOGIN_LOCKOUT_MINUTES'] ?? 15));
 

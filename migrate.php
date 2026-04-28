@@ -65,27 +65,24 @@ function getConnection(): PDO
 
 function ensureMigrationsTable(PDO $pdo): void
 {
-    $prefix = $_ENV['DB_PREFIX'] ?? 'wr_';
-    $pdo->exec("CREATE TABLE IF NOT EXISTS `{$prefix}migrations` (
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `migrations` (
         `id`         INT UNSIGNED NOT NULL AUTO_INCREMENT,
         `migration`  VARCHAR(255) NOT NULL,
         `run_at`     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (`id`),
         UNIQUE KEY `uq_migration` (`migration`)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
 }
 
 function getApplied(PDO $pdo): array
 {
-    $prefix = $_ENV['DB_PREFIX'] ?? 'wr_';
-    return $pdo->query("SELECT migration FROM `{$prefix}migrations` ORDER BY id ASC")
+    return $pdo->query("SELECT migration FROM `migrations` ORDER BY id ASC")
                ->fetchAll(PDO::FETCH_COLUMN);
 }
 
 function markApplied(PDO $pdo, string $migration): void
 {
-    $prefix = $_ENV['DB_PREFIX'] ?? 'wr_';
-    $stmt   = $pdo->prepare("INSERT INTO `{$prefix}migrations` (migration) VALUES (:m)");
+    $stmt   = $pdo->prepare("INSERT INTO `migrations` (migration) VALUES (:m)");
     $stmt->execute(['m' => $migration]);
 }
 
@@ -194,8 +191,7 @@ if ($command === 'rollback') {
     echo "  Revirtiendo: $last ... ";
     $pdo->exec($sql);
 
-    $prefix = $_ENV['DB_PREFIX'] ?? 'wr_';
-    $stmt   = $pdo->prepare("DELETE FROM `{$prefix}migrations` WHERE migration = :m");
+    $stmt   = $pdo->prepare("DELETE FROM `migrations` WHERE migration = :m");
     $stmt->execute(['m' => $last]);
 
     echo "OK\n";

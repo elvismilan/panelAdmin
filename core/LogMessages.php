@@ -112,7 +112,7 @@ class LogMessages
             $json = '{}';
         }
 
-        return '[wr_logs_fallback] ' . $json;
+        return '[logs_fallback] ' . $json;
     }
 
     public static function maskIdentifier(string $value): string
