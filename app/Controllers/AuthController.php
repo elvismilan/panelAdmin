@@ -11,6 +11,7 @@ use Core\FlashMessages;
 use Core\LogMessages;
 use Core\Mailer;
 use Core\RateLimiter;
+use Core\UiMessages;
 use Core\Url;
 use Core\ValidationMessages;
 use PHPMailer\PHPMailer\Exception as MailerException;
@@ -29,7 +30,7 @@ class AuthController extends Controller
         $loginView = $this->resolveTemplate('login', 'auth/login');
 
         $this->render($loginView, [
-            'title' => 'Iniciar Sesion',
+            'title' => UiMessages::AUTH_LOGIN_TITLE,
             'error' => null,
         ]);
     }
@@ -51,7 +52,7 @@ class AuthController extends Controller
         if ($rateLimiter !== null && $rateLimiter->tooManyAttempts($ip)) {
             $this->logAction('Login bloqueado por rate limit: ' . $ip, 'AUTH_BLOCK');
             $this->render($loginView, [
-                'title' => 'Iniciar Sesion',
+                'title' => UiMessages::AUTH_LOGIN_TITLE,
                 'error' => ValidationMessages::authLoginRateLimit($rateLimiter->lockoutMinutes()),
             ]);
             return;
@@ -64,7 +65,7 @@ class AuthController extends Controller
         if ($username === '' || $password === '') {
             $this->logAction('Intento login sin usuario/password', 'AUTH_FAIL');
             $this->render($loginView, [
-                'title' => 'Iniciar Sesion',
+                'title' => UiMessages::AUTH_LOGIN_TITLE,
                 'error' => ValidationMessages::AUTH_REQUIRED_CREDENTIALS,
             ]);
             return;
@@ -94,7 +95,7 @@ class AuthController extends Controller
         $error = ValidationMessages::authInvalidCredentialsWithRemaining($remaining);
 
         $this->render($loginView, [
-            'title' => 'Iniciar Sesion',
+            'title' => UiMessages::AUTH_LOGIN_TITLE,
             'error' => $error,
         ]);
     }
@@ -118,7 +119,7 @@ class AuthController extends Controller
         }
 
         $this->render($this->resolveTemplate('login', 'forgot-password'), [
-            'title' => 'Recuperar Contraseña',
+            'title' => UiMessages::AUTH_FORGOT_PASSWORD_TITLE,
         ]);
     }
 
@@ -138,7 +139,7 @@ class AuthController extends Controller
 
         if ($rateLimiter !== null && $rateLimiter->tooManyAttempts($ip)) {
             $this->render($view, [
-                'title' => 'Recuperar Contraseña',
+                'title' => UiMessages::AUTH_FORGOT_PASSWORD_TITLE,
                 'error' => ValidationMessages::forgotRateLimit($rateLimiter->lockoutMinutes()),
             ]);
             return;
@@ -149,7 +150,7 @@ class AuthController extends Controller
 
         if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $this->render($view, [
-                'title' => 'Recuperar Contraseña',
+                'title' => UiMessages::AUTH_FORGOT_PASSWORD_TITLE,
                 'error' => ValidationMessages::FORGOT_EMAIL_INVALID,
                 'email' => htmlspecialchars($email, ENT_QUOTES, 'UTF-8'),
             ]);
@@ -197,7 +198,7 @@ class AuthController extends Controller
         $rateLimiter?->hit($ip);
 
         $this->render($view, [
-            'title'   => 'Recuperar Contraseña',
+            'title'   => UiMessages::AUTH_FORGOT_PASSWORD_TITLE,
             'success' => $successMsg,
         ]);
     }
@@ -209,7 +210,7 @@ class AuthController extends Controller
         }
 
         $view = $this->resolveTemplate('login', 'reset-password');
-        $data = ['title' => 'Nueva Contraseña', 'token' => $token];
+        $data = ['title' => UiMessages::AUTH_RESET_PASSWORD_TITLE, 'token' => $token];
 
         try {
             $model = new PasswordResetModel();
@@ -233,7 +234,7 @@ class AuthController extends Controller
 
         $renderError = function (string $msg) use ($view, $token): void {
             $this->render($view, [
-                'title' => 'Nueva Contraseña',
+                'title' => UiMessages::AUTH_RESET_PASSWORD_TITLE,
                 'token' => $token,
                 'error' => $msg,
             ]);
@@ -259,7 +260,7 @@ class AuthController extends Controller
             $tokenEmail = $model->consumeTokenAndUpdatePassword($token, $password);
             if ($tokenEmail === null) {
                 $this->render($view, [
-                    'title'        => 'Nueva Contraseña',
+                    'title'        => UiMessages::AUTH_RESET_PASSWORD_TITLE,
                     'token'        => $token,
                     'tokenInvalid' => ValidationMessages::RESET_TOKEN_INVALID_USED_OR_EXPIRED,
                 ]);

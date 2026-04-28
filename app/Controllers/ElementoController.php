@@ -7,6 +7,7 @@ use Core\Helpers\IconHelper;
 use Core\Auth;
 use Core\Controller;
 use Core\FlashMessages;
+use Core\UiMessages;
 use Core\ValidationMessages;
 use Core\Validator;
 use Throwable;
@@ -35,7 +36,7 @@ class ElementoController extends Controller
         }
 
         $this->renderAdminModule('elemento/index', [
-            'title' => 'Modulos',
+            'title' => UiMessages::MODULO_INDEX_TITLE,
             'user' => $user,
             'elementos' => $elementos,
             'pagination' => $pagination,
@@ -66,7 +67,7 @@ class ElementoController extends Controller
         $model = new ElementoModel();
 
         $this->renderAdminModule('elemento/agregar', [
-            'title' => 'Nuevo modulo',
+            'title' => UiMessages::MODULO_CREATE_TITLE,
             'user' => Auth::user(),
             'error' => null,
             'padres' => $model->allForDropdown(),
@@ -120,7 +121,7 @@ class ElementoController extends Controller
 
         if (!$passes) {
             $this->renderAdminModule('elemento/agregar', [
-                'title' => 'Nuevo modulo',
+                'title' => UiMessages::MODULO_CREATE_TITLE,
                 'user' => Auth::user(),
                 'error' => $validator->first(),
                 'errors' => $validator->errors(),
@@ -136,7 +137,7 @@ class ElementoController extends Controller
         $iconClass = trim((string) ($params['ele_icono'] ?? ''));
         if ($iconClass !== '' && !IconHelper::isAllowed($iconClass)) {
             $this->renderAdminModule('elemento/agregar', [
-                'title' => 'Nuevo modulo',
+                'title' => UiMessages::MODULO_CREATE_TITLE,
                 'user' => Auth::user(),
                 'error' => ValidationMessages::MODULO_ICON_INVALID,
                 'padres' => $model->allForDropdown(),
@@ -150,7 +151,7 @@ class ElementoController extends Controller
 
         if ($model->existsByNombre($nombre)) {
             $this->renderAdminModule('elemento/agregar', [
-                'title' => 'Nuevo modulo',
+                'title' => UiMessages::MODULO_CREATE_TITLE,
                 'user' => Auth::user(),
                 'error' => ValidationMessages::MODULO_ALREADY_EXISTS,
                 'padres' => $model->allForDropdown(),
@@ -181,7 +182,7 @@ class ElementoController extends Controller
         }
 
         $this->renderAdminModule('elemento/editar', [
-            'title' => 'Editar modulo',
+            'title' => UiMessages::MODULO_EDIT_TITLE,
             'user' => Auth::user(),
             'error' => null,
             'form' => $elemento,
@@ -233,7 +234,7 @@ class ElementoController extends Controller
 
         if (!$passes) {
             $this->renderAdminModule('elemento/editar', [
-                'title' => 'Editar modulo',
+                'title' => UiMessages::MODULO_EDIT_TITLE,
                 'user' => Auth::user(),
                 'error' => $validator->first(),
                 'errors' => $validator->errors(),
@@ -250,7 +251,7 @@ class ElementoController extends Controller
         $iconClass = trim((string) ($params['ele_icono'] ?? ''));
         if ($iconClass !== '' && !IconHelper::isAllowed($iconClass)) {
             $this->renderAdminModule('elemento/editar', [
-                'title' => 'Editar modulo',
+                'title' => UiMessages::MODULO_EDIT_TITLE,
                 'user' => Auth::user(),
                 'error' => ValidationMessages::MODULO_ICON_INVALID,
                 'form' => $params,
@@ -265,7 +266,7 @@ class ElementoController extends Controller
 
         if ($model->existsByNombre($nombre, $id)) {
             $this->renderAdminModule('elemento/editar', [
-                'title' => 'Editar modulo',
+                'title' => UiMessages::MODULO_EDIT_TITLE,
                 'user' => Auth::user(),
                 'error' => ValidationMessages::MODULO_ALREADY_EXISTS,
                 'form' => $params,
@@ -297,7 +298,7 @@ class ElementoController extends Controller
         }
 
         $this->renderAdminModule('elemento/eliminar', [
-            'title'             => 'Eliminar modulo',
+            'title'             => UiMessages::MODULO_DELETE_TITLE,
             'user'              => Auth::user(),
             'form'              => $elemento,
             'elementoId'        => $id,

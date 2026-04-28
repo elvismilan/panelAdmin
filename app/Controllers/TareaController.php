@@ -6,6 +6,7 @@ use App\Models\TareaModel;
 use Core\Auth;
 use Core\Controller;
 use Core\FlashMessages;
+use Core\UiMessages;
 use Core\ValidationMessages;
 use Core\Validator;
 use Throwable;
@@ -34,7 +35,7 @@ class TareaController extends Controller
         }
 
         $this->renderAdminModule('tarea/index', [
-            'title' => 'Tareas',
+            'title' => UiMessages::TAREA_INDEX_TITLE,
             'user' => $user,
             'tareas' => $tareas,
             'pagination' => $pagination,
@@ -63,7 +64,7 @@ class TareaController extends Controller
         $this->requireAuth();
 
         $this->renderAdminModule('tarea/agregar', [
-            'title' => 'Nueva tarea',
+            'title' => UiMessages::TAREA_CREATE_TITLE,
             'user' => Auth::user(),
             'error' => null,
             'form' => [
@@ -89,7 +90,7 @@ class TareaController extends Controller
 
         if (!$passes) {
             $this->renderAdminModule('tarea/agregar', [
-                'title' => 'Nueva tarea',
+                'title' => UiMessages::TAREA_CREATE_TITLE,
                 'user' => Auth::user(),
                 'error' => $validator->first(),
                 'errors' => $validator->errors(),
@@ -102,7 +103,7 @@ class TareaController extends Controller
 
         if ($model->existsByName($nombre)) {
             $this->renderAdminModule('tarea/agregar', [
-                'title' => 'Nueva tarea',
+                'title' => UiMessages::TAREA_CREATE_TITLE,
                 'user' => Auth::user(),
                 'error' => ValidationMessages::TAREA_ALREADY_EXISTS,
                 'form' => [
@@ -133,7 +134,7 @@ class TareaController extends Controller
         }
 
         $this->renderAdminModule('tarea/editar', [
-            'title' => 'Editar tarea',
+            'title' => UiMessages::TAREA_EDIT_TITLE,
             'user' => Auth::user(),
             'error' => null,
             'form' => $tarea,
@@ -158,7 +159,7 @@ class TareaController extends Controller
 
         if (!$passes) {
             $this->renderAdminModule('tarea/editar', [
-                'title' => 'Editar tarea',
+                'title' => UiMessages::TAREA_EDIT_TITLE,
                 'user' => Auth::user(),
                 'error' => $validator->first(),
                 'errors' => $validator->errors(),
@@ -172,7 +173,7 @@ class TareaController extends Controller
 
         if ($model->existsByName($nombre, $id)) {
             $this->renderAdminModule('tarea/editar', [
-                'title' => 'Editar tarea',
+                'title' => UiMessages::TAREA_EDIT_TITLE,
                 'user' => Auth::user(),
                 'error' => ValidationMessages::TAREA_ALREADY_EXISTS,
                 'form' => [
@@ -205,7 +206,7 @@ class TareaController extends Controller
         }
 
         $this->renderAdminModule('tarea/eliminar', [
-            'title'          => 'Eliminar tarea',
+            'title'          => UiMessages::TAREA_DELETE_TITLE,
             'user'           => Auth::user(),
             'form'           => $tarea,
             'tareaId'        => $id,

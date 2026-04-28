@@ -7,6 +7,7 @@ use Core\Auth;
 use Core\Controller;
 use Core\FlashMessages;
 use Core\LogMessages;
+use Core\UiMessages;
 use Core\ValidationMessages;
 use Core\Validator;
 use Throwable;
@@ -38,7 +39,7 @@ class GrupoController extends Controller
         }
 
         $this->renderAdminModule('grupo/index', [
-            'title'        => 'Grupos',
+            'title'        => UiMessages::GRUPO_INDEX_TITLE,
             'user'         => Auth::user(),
             'grupos'       => $grupos,
             'pagination'   => $pagination,
@@ -73,7 +74,7 @@ class GrupoController extends Controller
         $model = new GrupoModel();
 
         $this->renderAdminModule('grupo/agregar', [
-            'title'     => 'Nuevo grupo',
+            'title'     => UiMessages::GRUPO_CREATE_TITLE,
             'user'      => Auth::user(),
             'error'     => null,
             'elementos' => $model->getAllElementos(),
@@ -105,7 +106,7 @@ class GrupoController extends Controller
         ]);
         if (!$validator->passes()) {
             $this->renderAdminModule('grupo/agregar', [
-                'title'     => 'Nuevo grupo',
+                'title'     => UiMessages::GRUPO_CREATE_TITLE,
                 'user'      => Auth::user(),
                 'error'     => $validator->first(),
                 'errors'    => $validator->errors(),
@@ -121,7 +122,7 @@ class GrupoController extends Controller
         // Verificar unicidad del ID
         if ($model->existsById($gruId)) {
             $this->renderAdminModule('grupo/agregar', [
-                'title'     => 'Nuevo grupo',
+                'title'     => UiMessages::GRUPO_CREATE_TITLE,
                 'user'      => Auth::user(),
                 'error'     => ValidationMessages::GRUPO_ID_ALREADY_EXISTS,
                 'errors'    => [],
@@ -136,7 +137,7 @@ class GrupoController extends Controller
         $descripcion = trim((string) ($params['gru_descripcion'] ?? ''));
         if ($model->existsByDescripcion($descripcion)) {
             $this->renderAdminModule('grupo/agregar', [
-                'title'     => 'Nuevo grupo',
+                'title'     => UiMessages::GRUPO_CREATE_TITLE,
                 'user'      => Auth::user(),
                 'error'     => ValidationMessages::GRUPO_DESC_ALREADY_EXISTS,
                 'errors'    => [],
@@ -162,7 +163,7 @@ class GrupoController extends Controller
         } catch (Throwable $e) {
             error_log(LogMessages::grupoGuardarError($e));
             $this->renderAdminModule('grupo/agregar', [
-                'title'     => 'Nuevo grupo',
+                'title'     => UiMessages::GRUPO_CREATE_TITLE,
                 'user'      => Auth::user(),
                 'error'     => ValidationMessages::GRUPO_SAVE_ERROR,
                 'errors'    => [],
@@ -194,7 +195,7 @@ class GrupoController extends Controller
         }
 
         $this->renderAdminModule('grupo/editar', [
-            'title'    => 'Editar grupo',
+            'title'    => UiMessages::GRUPO_EDIT_TITLE,
             'user'     => Auth::user(),
             'error'    => null,
             'elementos' => $model->getAllElementos(),
@@ -227,7 +228,7 @@ class GrupoController extends Controller
         ]);
         if (!$validator->passes()) {
             $this->renderAdminModule('grupo/editar', [
-                'title'    => 'Editar grupo',
+                'title'    => UiMessages::GRUPO_EDIT_TITLE,
                 'user'     => Auth::user(),
                 'error'    => $validator->first(),
                 'errors'   => $validator->errors(),
@@ -243,7 +244,7 @@ class GrupoController extends Controller
         $descripcion = trim((string) ($params['gru_descripcion'] ?? ''));
         if ($model->existsByDescripcion($descripcion, $id)) {
             $this->renderAdminModule('grupo/editar', [
-                'title'    => 'Editar grupo',
+                'title'    => UiMessages::GRUPO_EDIT_TITLE,
                 'user'     => Auth::user(),
                 'error'    => ValidationMessages::GRUPO_DESC_ALREADY_EXISTS_OTHER,
                 'errors'   => [],
@@ -270,7 +271,7 @@ class GrupoController extends Controller
         } catch (Throwable $e) {
             error_log(LogMessages::grupoActualizarError($e));
             $this->renderAdminModule('grupo/editar', [
-                'title'    => 'Editar grupo',
+                'title'    => UiMessages::GRUPO_EDIT_TITLE,
                 'user'     => Auth::user(),
                 'error'    => ValidationMessages::GRUPO_UPDATE_ERROR,
                 'errors'   => [],
@@ -306,7 +307,7 @@ class GrupoController extends Controller
         $permisos    = $model->getPermisos($id);
 
         $this->renderAdminModule('grupo/eliminar', [
-            'title'       => 'Eliminar grupo',
+            'title'       => UiMessages::GRUPO_DELETE_TITLE,
             'user'        => Auth::user(),
             'form'        => $grupo,
             'grupoId'     => $id,

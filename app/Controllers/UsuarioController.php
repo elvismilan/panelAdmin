@@ -11,6 +11,7 @@ use Core\FlashMessages;
 use Core\LogMessages;
 use Core\Mailer;
 use Core\NotificacionService;
+use Core\UiMessages;
 use Core\Url;
 use Core\ValidationMessages;
 use Core\Validator;
@@ -44,7 +45,7 @@ class UsuarioController extends Controller
         }
 
         $this->renderAdminModule('usuario/index', [
-            'title'        => 'Usuarios',
+            'title'        => UiMessages::USUARIO_INDEX_TITLE,
             'user'         => Auth::user(),
             'usuarios'     => $usuarios,
             'pagination'   => $pagination,
@@ -80,7 +81,7 @@ class UsuarioController extends Controller
         $model = new UsuarioModel();
 
         $this->renderAdminModule('usuario/agregar', [
-            'title'    => 'Nuevo usuario',
+            'title'    => UiMessages::USUARIO_CREATE_TITLE,
             'user'     => Auth::user(),
             'error'    => null,
             'grupos'   => $model->getAllGrupos(),
@@ -117,7 +118,7 @@ class UsuarioController extends Controller
         ]);
         if (!$validator->passes()) {
             $this->renderAdminModule('usuario/agregar', [
-                'title'    => 'Nuevo usuario',
+                'title'    => UiMessages::USUARIO_CREATE_TITLE,
                 'user'     => Auth::user(),
                 'error'    => $validator->first(),
                 'errors'   => $validator->errors(),
@@ -133,7 +134,7 @@ class UsuarioController extends Controller
         $confirmPassword = trim((string) ($params['confirm_password'] ?? ''));
         if ($password !== $confirmPassword) {
             $this->renderAdminModule('usuario/agregar', [
-                'title'    => 'Nuevo usuario',
+                'title'    => UiMessages::USUARIO_CREATE_TITLE,
                 'user'     => Auth::user(),
                 'error'    => ValidationMessages::USUARIO_PASSWORDS_DO_NOT_MATCH,
                 'errors'   => [],
@@ -148,7 +149,7 @@ class UsuarioController extends Controller
         $usuId = trim((string) ($params['usu_id'] ?? ''));
         if ($model->existsById($usuId)) {
             $this->renderAdminModule('usuario/agregar', [
-                'title'    => 'Nuevo usuario',
+                'title'    => UiMessages::USUARIO_CREATE_TITLE,
                 'user'     => Auth::user(),
                 'error'    => ValidationMessages::USUARIO_ALREADY_EXISTS,
                 'errors'   => [],
@@ -239,7 +240,7 @@ class UsuarioController extends Controller
         $currentPerID = ($usuario['usu_per_id'] ?? '') !== '' ? (int) $usuario['usu_per_id'] : null;
 
         $this->renderAdminModule('usuario/editar', [
-            'title'     => 'Editar usuario',
+            'title'     => UiMessages::USUARIO_EDIT_TITLE,
             'user'      => Auth::user(),
             'error'     => null,
             'grupos'    => $model->getAllGrupos(),
@@ -277,7 +278,7 @@ class UsuarioController extends Controller
         ]);
         if (!$validator->passes()) {
             $this->renderAdminModule('usuario/editar', [
-                'title'     => 'Editar usuario',
+                'title'     => UiMessages::USUARIO_EDIT_TITLE,
                 'user'      => Auth::user(),
                 'error'     => $validator->first(),
                 'errors'    => $validator->errors(),
@@ -294,7 +295,7 @@ class UsuarioController extends Controller
         if ($newPassword !== '') {
             if (strlen($newPassword) < 6) {
                 $this->renderAdminModule('usuario/editar', [
-                    'title'     => 'Editar usuario',
+                    'title'     => UiMessages::USUARIO_EDIT_TITLE,
                     'user'      => Auth::user(),
                     'error'     => ValidationMessages::USUARIO_PASSWORD_MIN_6,
                     'errors'    => [],
@@ -309,7 +310,7 @@ class UsuarioController extends Controller
             $confirmPassword = trim((string) ($params['confirm_password'] ?? ''));
             if ($newPassword !== $confirmPassword) {
                 $this->renderAdminModule('usuario/editar', [
-                    'title'     => 'Editar usuario',
+                    'title'     => UiMessages::USUARIO_EDIT_TITLE,
                     'user'      => Auth::user(),
                     'error'     => ValidationMessages::USUARIO_PASSWORDS_DO_NOT_MATCH,
                     'errors'    => [],
@@ -349,7 +350,7 @@ class UsuarioController extends Controller
         $hasLogs     = $model->hasLogs($id);
 
         $this->renderAdminModule('usuario/eliminar', [
-            'title'     => 'Eliminar usuario',
+            'title'     => UiMessages::USUARIO_DELETE_TITLE,
             'user'      => $currentUser,
             'form'      => $usuario,
             'usuarioId' => $id,

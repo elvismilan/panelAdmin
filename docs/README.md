@@ -484,4 +484,42 @@ CREATE TABLE IF NOT EXISTS `{prefix}producto` (
 
 ---
 
+## 13. Catalogos de mensajes
+
+Para reducir duplicacion de textos, el proyecto centraliza mensajes en clases dentro de `core/`:
+
+- `FlashMessages.php`: mensajes de feedback (success, warning, error).
+- `ValidationMessages.php`: mensajes de validacion y errores de formulario.
+- `LogMessages.php`: mensajes/prefijos para `error_log`.
+- `EmailMessages.php`: asuntos y rutas de templates de correo.
+- `UiMessages.php`: titulos de pantalla reutilizables.
+
+Recomendacion: antes de agregar un texto nuevo en un controlador, revisar si corresponde ubicarlo en alguno de estos catalogos.
+
+---
+
+## 14. Smoke test de reset de contraseña
+
+Se agrego un test minimo ejecutable para validar el flujo critico de restablecimiento:
+
+`tests/reset_password_flow_smoke.php`
+
+Casos verificados:
+
+1. Consumo exitoso de token valido.
+2. Bloqueo de reutilizacion del mismo token.
+3. Rechazo de token expirado.
+
+Variable requerida en `.env`:
+
+`TEST_RESET_EMAIL=correo_existente_en_wr_persona`
+
+Ejecucion:
+
+```bash
+php tests/reset_password_flow_smoke.php
+```
+
+---
+
 *Generado automáticamente — ver [MODULE_TEMPLATE.md](MODULE_TEMPLATE.md) para crear nuevos módulos.*
