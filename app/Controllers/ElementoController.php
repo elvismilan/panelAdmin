@@ -6,6 +6,9 @@ use App\Models\ElementoModel;
 use Core\Helpers\IconHelper;
 use Core\Auth;
 use Core\Controller;
+use Core\FlashMessages;
+use Core\UiMessages;
+use Core\ValidationMessages;
 use Core\Validator;
 use Throwable;
 
@@ -33,7 +36,7 @@ class ElementoController extends Controller
         }
 
         $this->renderAdminModule('elemento/index', [
-            'title' => 'Modulos',
+            'title' => UiMessages::MODULO_INDEX_TITLE,
             'user' => $user,
             'elementos' => $elementos,
             'pagination' => $pagination,
@@ -64,7 +67,7 @@ class ElementoController extends Controller
         $model = new ElementoModel();
 
         $this->renderAdminModule('elemento/agregar', [
-            'title' => 'Nuevo modulo',
+            'title' => UiMessages::MODULO_CREATE_TITLE,
             'user' => Auth::user(),
             'error' => null,
             'padres' => $model->allForDropdown(),
@@ -118,7 +121,7 @@ class ElementoController extends Controller
 
         if (!$passes) {
             $this->renderAdminModule('elemento/agregar', [
-                'title' => 'Nuevo modulo',
+                'title' => UiMessages::MODULO_CREATE_TITLE,
                 'user' => Auth::user(),
                 'error' => $validator->first(),
                 'errors' => $validator->errors(),
@@ -134,9 +137,9 @@ class ElementoController extends Controller
         $iconClass = trim((string) ($params['ele_icono'] ?? ''));
         if ($iconClass !== '' && !IconHelper::isAllowed($iconClass)) {
             $this->renderAdminModule('elemento/agregar', [
-                'title' => 'Nuevo modulo',
+                'title' => UiMessages::MODULO_CREATE_TITLE,
                 'user' => Auth::user(),
-                'error' => 'El icono seleccionado no es valido.',
+                'error' => ValidationMessages::MODULO_ICON_INVALID,
                 'padres' => $model->allForDropdown(),
                 'iconOptions' => IconHelper::optionsWithSelected($iconClass),
                 'todasTareas' => $model->allTareas(),
@@ -148,9 +151,9 @@ class ElementoController extends Controller
 
         if ($model->existsByNombre($nombre)) {
             $this->renderAdminModule('elemento/agregar', [
-                'title' => 'Nuevo modulo',
+                'title' => UiMessages::MODULO_CREATE_TITLE,
                 'user' => Auth::user(),
-                'error' => 'Ya existe un modulo con ese nombre.',
+                'error' => ValidationMessages::MODULO_ALREADY_EXISTS,
                 'padres' => $model->allForDropdown(),
                 'iconOptions' => IconHelper::optionsWithSelected((string) ($params['ele_icono'] ?? '')),
                 'todasTareas' => $model->allTareas(),
@@ -163,7 +166,7 @@ class ElementoController extends Controller
         $eleId = $model->createElemento($params, $tareaIds);
         $this->logAction($model->getLastActionLog(), 'CREATE');
 
-        $this->flashSuccess('Modulo creado correctamente.');
+        $this->flashSuccess(FlashMessages::MODULO_CREATED);
         $this->redirect('/modulos');
     }
 
@@ -179,7 +182,7 @@ class ElementoController extends Controller
         }
 
         $this->renderAdminModule('elemento/editar', [
-            'title' => 'Editar modulo',
+            'title' => UiMessages::MODULO_EDIT_TITLE,
             'user' => Auth::user(),
             'error' => null,
             'form' => $elemento,
@@ -231,7 +234,7 @@ class ElementoController extends Controller
 
         if (!$passes) {
             $this->renderAdminModule('elemento/editar', [
-                'title' => 'Editar modulo',
+                'title' => UiMessages::MODULO_EDIT_TITLE,
                 'user' => Auth::user(),
                 'error' => $validator->first(),
                 'errors' => $validator->errors(),
@@ -248,9 +251,9 @@ class ElementoController extends Controller
         $iconClass = trim((string) ($params['ele_icono'] ?? ''));
         if ($iconClass !== '' && !IconHelper::isAllowed($iconClass)) {
             $this->renderAdminModule('elemento/editar', [
-                'title' => 'Editar modulo',
+                'title' => UiMessages::MODULO_EDIT_TITLE,
                 'user' => Auth::user(),
-                'error' => 'El icono seleccionado no es valido.',
+                'error' => ValidationMessages::MODULO_ICON_INVALID,
                 'form' => $params,
                 'elementoId' => $id,
                 'padres' => $model->allForDropdown(),
@@ -263,9 +266,9 @@ class ElementoController extends Controller
 
         if ($model->existsByNombre($nombre, $id)) {
             $this->renderAdminModule('elemento/editar', [
-                'title' => 'Editar modulo',
+                'title' => UiMessages::MODULO_EDIT_TITLE,
                 'user' => Auth::user(),
-                'error' => 'Ya existe un modulo con ese nombre.',
+                'error' => ValidationMessages::MODULO_ALREADY_EXISTS,
                 'form' => $params,
                 'elementoId' => $id,
                 'padres' => $model->allForDropdown(),
@@ -279,7 +282,7 @@ class ElementoController extends Controller
         $model->updateElemento($id, $params, $tareaIds);
         $this->logAction($model->getLastActionLog(), 'UPDATE');
 
-        $this->flashSuccess('Modulo actualizado correctamente.');
+        $this->flashSuccess(FlashMessages::MODULO_UPDATED);
         $this->redirect('/modulos');
     }
 
@@ -295,7 +298,7 @@ class ElementoController extends Controller
         }
 
         $this->renderAdminModule('elemento/eliminar', [
-            'title'             => 'Eliminar modulo',
+            'title'             => UiMessages::MODULO_DELETE_TITLE,
             'user'              => Auth::user(),
             'form'              => $elemento,
             'elementoId'        => $id,
@@ -316,7 +319,7 @@ class ElementoController extends Controller
         }
 
         if ($model->isLinkedToPermiso($id)) {
-            $this->flashError('No se puede eliminar el modulo porque tiene permisos asignados. Elimine primero los permisos asociados.');
+            $this->flashError(FlashMessages::MODULO_DELETE_LINKED_FORBIDDEN);
             $this->redirect('/modulos/' . urlencode($id) . '/eliminar');
             return;
         }
@@ -325,7 +328,7 @@ class ElementoController extends Controller
         $model->deleteElemento($id);
         $this->logAction($model->getLastActionLog(), 'DELETE');
 
-        $this->flashSuccess('Modulo eliminado correctamente.');
+        $this->flashSuccess(FlashMessages::MODULO_DELETED);
         $this->redirect('/modulos');
     }
 }

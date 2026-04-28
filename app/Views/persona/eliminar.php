@@ -36,10 +36,10 @@
                     </div>
                     <?php endif; ?>
 
-                    <form method="post" action="/personas/<?= urlencode((string) ($personaId ?? '')) ?>/borrar">
+                    <form method="post" action="<?= htmlspecialchars(\Core\Url::to('/personas/' . urlencode((string) ($personaId ?? '')) . '/borrar'), ENT_QUOTES, 'UTF-8') ?>">
                         <?= $csrfField ?>
                         <button type="submit" class="btn btn-danger" <?= !empty($linkedToUsuario) ? 'disabled' : '' ?>>Eliminar</button>
-                        <a href="/personas" class="btn btn-light">Cancelar</a>
+                        <a href="<?= htmlspecialchars(\Core\Url::to('/personas'), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-light">Cancelar</a>
                     </form>
                 </div>
             </div>

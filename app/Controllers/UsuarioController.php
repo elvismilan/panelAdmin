@@ -2,11 +2,18 @@
 
 namespace App\Controllers;
 
+use App\Models\PasswordResetModel;
 use App\Models\UsuarioModel;
 use Core\Auth;
 use Core\Controller;
+use Core\EmailMessages;
+use Core\FlashMessages;
+use Core\LogMessages;
 use Core\Mailer;
 use Core\NotificacionService;
+use Core\UiMessages;
+use Core\Url;
+use Core\ValidationMessages;
 use Core\Validator;
 use PHPMailer\PHPMailer\Exception as MailerException;
 use Throwable;
@@ -38,7 +45,7 @@ class UsuarioController extends Controller
         }
 
         $this->renderAdminModule('usuario/index', [
-            'title'        => 'Usuarios',
+            'title'        => UiMessages::USUARIO_INDEX_TITLE,
             'user'         => Auth::user(),
             'usuarios'     => $usuarios,
             'pagination'   => $pagination,
@@ -74,7 +81,7 @@ class UsuarioController extends Controller
         $model = new UsuarioModel();
 
         $this->renderAdminModule('usuario/agregar', [
-            'title'    => 'Nuevo usuario',
+            'title'    => UiMessages::USUARIO_CREATE_TITLE,
             'user'     => Auth::user(),
             'error'    => null,
             'grupos'   => $model->getAllGrupos(),
@@ -111,7 +118,7 @@ class UsuarioController extends Controller
         ]);
         if (!$validator->passes()) {
             $this->renderAdminModule('usuario/agregar', [
-                'title'    => 'Nuevo usuario',
+                'title'    => UiMessages::USUARIO_CREATE_TITLE,
                 'user'     => Auth::user(),
                 'error'    => $validator->first(),
                 'errors'   => $validator->errors(),
@@ -127,9 +134,9 @@ class UsuarioController extends Controller
         $confirmPassword = trim((string) ($params['confirm_password'] ?? ''));
         if ($password !== $confirmPassword) {
             $this->renderAdminModule('usuario/agregar', [
-                'title'    => 'Nuevo usuario',
+                'title'    => UiMessages::USUARIO_CREATE_TITLE,
                 'user'     => Auth::user(),
-                'error'    => 'Las contrasenas no coinciden.',
+                'error'    => ValidationMessages::USUARIO_PASSWORDS_DO_NOT_MATCH,
                 'errors'   => [],
                 'grupos'   => $model->getAllGrupos(),
                 'personas' => $model->getPersonasDisponibles(),
@@ -142,9 +149,9 @@ class UsuarioController extends Controller
         $usuId = trim((string) ($params['usu_id'] ?? ''));
         if ($model->existsById($usuId)) {
             $this->renderAdminModule('usuario/agregar', [
-                'title'    => 'Nuevo usuario',
+                'title'    => UiMessages::USUARIO_CREATE_TITLE,
                 'user'     => Auth::user(),
-                'error'    => 'Ya existe un usuario con ese nombre de usuario.',
+                'error'    => ValidationMessages::USUARIO_ALREADY_EXISTS,
                 'errors'   => [],
                 'grupos'   => $model->getAllGrupos(),
                 'personas' => $model->getPersonasDisponibles(),
@@ -157,9 +164,11 @@ class UsuarioController extends Controller
         $this->logAction($model->getLastActionLog(), 'CREATE');
         NotificacionService::registrar('usuarios', 'CREATE', (string) (Auth::user()['id'] ?? 'ANON'), $usuId);
 
-        // Enviar credenciales por email si la persona vinculada tiene correo
+        // Enviar enlace seguro de configuracion de contrasena si hay correo vinculado
         $usuId = trim((string) ($params['usu_id'] ?? ''));
-        $email = ($params['usu_per_id'] ?? '') !== '' ? $model->getPersonaEmail($usuId) : null;
+        $hasPersonaLinked = trim((string) ($params['usu_per_id'] ?? '')) !== '';
+        $email            = $hasPersonaLinked ? $model->getPersonaEmail($usuId) : null;
+        $resetLinkSent    = false;
 
         if ($email !== null) {
             try {
@@ -168,31 +177,47 @@ class UsuarioController extends Controller
                     ((string) ($persona['per_nombre'] ?? '')) . ' ' .
                     ((string) ($persona['per_apellido'] ?? ''))
                 );
-                $siteRoot  = rtrim((string) ($_ENV['SITE_ROOT'] ?? ''), '/');
-                $emailHtml = $this->renderEmailView('emails/usuario-credenciales', [
-                    'userName'  => $userName !== '' ? $userName : $usuId,
-                    'usuId'     => $usuId,
-                    'password'  => trim((string) ($params['usu_password'] ?? '')),
-                    'loginUrl'  => $siteRoot . '/login',
-                    'siteTitle' => (string) ($_ENV['SITE_TITLE'] ?? 'Web Revolution'),
-                    'address'   => (string) ($_ENV['ADDRESS']    ?? ''),
-                    'country'   => (string) ($_ENV['COUNTRY']    ?? ''),
+                $normalizedEmail = strtolower(trim((string) $email));
+
+                $resetModel = new PasswordResetModel();
+                $token      = $resetModel->createToken($normalizedEmail);
+                $resetUrl   = Url::to('/reset-password/' . $token);
+
+                $siteTitle = EmailMessages::siteTitle();
+
+                $emailHtml = $this->emailTemplatesRenderer->render(EmailMessages::TEMPLATE_PASSWORD_RESET, [
+                    'resetUrl'      => $resetUrl,
+                    'userName'      => $userName !== '' ? $userName : $usuId,
+                    'siteTitle'     => $siteTitle,
+                    'address'       => (string) ($_ENV['ADDRESS']    ?? ''),
+                    'country'       => (string) ($_ENV['COUNTRY']    ?? ''),
+                    'expiryMinutes' => 60,
                 ]);
 
                 $mailer = new Mailer();
                 $mailer->send(
-                    $email,
-                    'Tus credenciales de acceso — ' . ($_ENV['SITE_TITLE'] ?? 'Web Revolution'),
+                    $normalizedEmail,
+                    EmailMessages::setupPasswordSubject($siteTitle),
                     $emailHtml
                 );
+                $resetLinkSent = true;
             } catch (MailerException $e) {
-                error_log('[UsuarioController::guardar] Mailer error: ' . $e->getMessage());
+                error_log(LogMessages::usuarioGuardarMailerError($e));
             } catch (Throwable $e) {
-                error_log('[UsuarioController::guardar] Error al enviar credenciales: ' . $e->getMessage());
+                error_log(LogMessages::usuarioGuardarError($e));
             }
         }
 
-        $this->flashSuccess('Usuario registrado correctamente.');
+        $this->flashSuccess(FlashMessages::USUARIO_CREATED);
+
+        if (!$hasPersonaLinked) {
+            $this->flash('warning', FlashMessages::USUARIO_CREATED_NO_PERSONA);
+        } elseif ($email === null) {
+            $this->flash('warning', FlashMessages::USUARIO_CREATED_NO_EMAIL);
+        } elseif (!$resetLinkSent) {
+            $this->flash('warning', FlashMessages::USUARIO_CREATED_EMAIL_SEND_FAILED);
+        }
+
         $this->redirect('/usuarios');
     }
 
@@ -215,7 +240,7 @@ class UsuarioController extends Controller
         $currentPerID = ($usuario['usu_per_id'] ?? '') !== '' ? (int) $usuario['usu_per_id'] : null;
 
         $this->renderAdminModule('usuario/editar', [
-            'title'     => 'Editar usuario',
+            'title'     => UiMessages::USUARIO_EDIT_TITLE,
             'user'      => Auth::user(),
             'error'     => null,
             'grupos'    => $model->getAllGrupos(),
@@ -253,7 +278,7 @@ class UsuarioController extends Controller
         ]);
         if (!$validator->passes()) {
             $this->renderAdminModule('usuario/editar', [
-                'title'     => 'Editar usuario',
+                'title'     => UiMessages::USUARIO_EDIT_TITLE,
                 'user'      => Auth::user(),
                 'error'     => $validator->first(),
                 'errors'    => $validator->errors(),
@@ -270,9 +295,9 @@ class UsuarioController extends Controller
         if ($newPassword !== '') {
             if (strlen($newPassword) < 6) {
                 $this->renderAdminModule('usuario/editar', [
-                    'title'     => 'Editar usuario',
+                    'title'     => UiMessages::USUARIO_EDIT_TITLE,
                     'user'      => Auth::user(),
-                    'error'     => 'La contrasena debe tener al menos 6 caracteres.',
+                    'error'     => ValidationMessages::USUARIO_PASSWORD_MIN_6,
                     'errors'    => [],
                     'grupos'    => $model->getAllGrupos(),
                     'personas'  => $model->getPersonasDisponibles($currentPerID),
@@ -285,9 +310,9 @@ class UsuarioController extends Controller
             $confirmPassword = trim((string) ($params['confirm_password'] ?? ''));
             if ($newPassword !== $confirmPassword) {
                 $this->renderAdminModule('usuario/editar', [
-                    'title'     => 'Editar usuario',
+                    'title'     => UiMessages::USUARIO_EDIT_TITLE,
                     'user'      => Auth::user(),
-                    'error'     => 'Las contrasenas no coinciden.',
+                    'error'     => ValidationMessages::USUARIO_PASSWORDS_DO_NOT_MATCH,
                     'errors'    => [],
                     'grupos'    => $model->getAllGrupos(),
                     'personas'  => $model->getPersonasDisponibles($currentPerID),
@@ -301,7 +326,7 @@ class UsuarioController extends Controller
         $model->updateUsuario($id, $params);
         $this->logAction($model->getLastActionLog(), 'UPDATE');
 
-        $this->flashSuccess('Usuario actualizado correctamente.');
+        $this->flashSuccess(FlashMessages::USUARIO_UPDATED);
         $this->redirect('/usuarios');
     }
 
@@ -312,7 +337,6 @@ class UsuarioController extends Controller
     public function eliminar(string $id): void
     {
         $this->requireAuth();
-        $this->requireCsrf();
 
         $model   = new UsuarioModel();
         $usuario = $model->findById($id);
@@ -326,7 +350,7 @@ class UsuarioController extends Controller
         $hasLogs     = $model->hasLogs($id);
 
         $this->renderAdminModule('usuario/eliminar', [
-            'title'     => 'Eliminar usuario',
+            'title'     => UiMessages::USUARIO_DELETE_TITLE,
             'user'      => $currentUser,
             'form'      => $usuario,
             'usuarioId' => $id,
@@ -349,13 +373,13 @@ class UsuarioController extends Controller
 
         $currentUser = Auth::user();
         if (($currentUser['id'] ?? '') === $id) {
-            $this->flashError('No puedes eliminar tu propio usuario.');
+            $this->flashError(FlashMessages::USUARIO_DELETE_SELF_FORBIDDEN);
             $this->redirect('/usuarios/' . urlencode($id) . '/eliminar');
             return;
         }
 
         if ($model->hasLogs($id)) {
-            $this->flashError('No se puede eliminar el usuario porque tiene acciones registradas en el sistema.');
+            $this->flashError(FlashMessages::USUARIO_DELETE_HAS_LOGS_FORBIDDEN);
             $this->redirect('/usuarios/' . urlencode($id) . '/eliminar');
             return;
         }
@@ -363,7 +387,8 @@ class UsuarioController extends Controller
         $model->deleteUsuario($id);
         $this->logAction($model->getLastActionLog(), 'DELETE');
 
-        $this->flashSuccess('Usuario eliminado correctamente.');
+        $this->flashSuccess(FlashMessages::USUARIO_DELETED);
         $this->redirect('/usuarios');
     }
+
 }

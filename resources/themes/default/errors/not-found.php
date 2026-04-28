@@ -1,9 +1,9 @@
 <?php
 $title = $title ?? 'Pagina no encontrada';
-$assetBase = rtrim((string) ($_ENV['LOGIN_OPTION1_ASSET_BASE'] ?? $_ENV['LOGIN_ASSET_BASE'] ?? '/assets/theme-one'), '/');
+$assetBase = \Core\Url::to(rtrim((string) ($_ENV['LOGIN_OPTION1_ASSET_BASE'] ?? $_ENV['LOGIN_ASSET_BASE'] ?? '/assets/theme-one'), '/'));
 $heading = $heading ?? 'Modulo o ruta no encontrada';
 $message = $message ?? 'La pagina solicitada no existe o fue movida.';
-$homeUrl = $homeUrl ?? '/';
+$homeUrl = $homeUrl ?? \Core\Url::to('/');
 $code = (int) ($code ?? 404);
 
 $headerFile = dirname(__DIR__) . '/auth-layout-header.php';

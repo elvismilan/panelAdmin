@@ -220,7 +220,7 @@ resources/themes/{pack}/
 ├── admin/
 │   ├── layout.php              # Layout principal del admin
 │   ├── dashboard-default.php   # Opción 1 del dashboard
-│   └── dashboard-compact.php   # Opción 2 del dashboard
+│   └── (solo opción default)
 ├── login/
 │   ├── login-form-default.php
 │   ├── forgot-password.php
@@ -396,6 +396,7 @@ Auth::logout();      // Destruye sesión
 ```ini
 # App
 APP_DEBUG=false
+APP_URL=https://dominio.com/panel
 SITE_ROOT=https://dominio.com
 SITE_TITLE=Mi Panel
 LOGO=/assets/images/logo.png
@@ -479,6 +480,44 @@ CREATE TABLE IF NOT EXISTS `{prefix}producto` (
     `pro_created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`pro_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+```
+
+---
+
+## 13. Catalogos de mensajes
+
+Para reducir duplicacion de textos, el proyecto centraliza mensajes en clases dentro de `core/`:
+
+- `FlashMessages.php`: mensajes de feedback (success, warning, error).
+- `ValidationMessages.php`: mensajes de validacion y errores de formulario.
+- `LogMessages.php`: mensajes/prefijos para `error_log`.
+- `EmailMessages.php`: asuntos y rutas de templates de correo.
+- `UiMessages.php`: titulos de pantalla reutilizables.
+
+Recomendacion: antes de agregar un texto nuevo en un controlador, revisar si corresponde ubicarlo en alguno de estos catalogos.
+
+---
+
+## 14. Smoke test de reset de contraseña
+
+Se agrego un test minimo ejecutable para validar el flujo critico de restablecimiento:
+
+`tests/reset_password_flow_smoke.php`
+
+Casos verificados:
+
+1. Consumo exitoso de token valido.
+2. Bloqueo de reutilizacion del mismo token.
+3. Rechazo de token expirado.
+
+Variable requerida en `.env`:
+
+`TEST_RESET_EMAIL=correo_existente_en_wr_persona`
+
+Ejecucion:
+
+```bash
+php tests/reset_password_flow_smoke.php
 ```
 
 ---

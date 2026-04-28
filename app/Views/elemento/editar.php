@@ -12,7 +12,7 @@
                         include $errorView;
                     }
                     ?>
-                    <form method="post" action="/modulos/<?= urlencode((string) ($elementoId ?? '')) ?>/actualizar">
+                    <form method="post" action="<?= htmlspecialchars(\Core\Url::to('/modulos/' . urlencode((string) ($elementoId ?? '')) . '/actualizar'), ENT_QUOTES, 'UTF-8') ?>">
                         <?= $csrfField ?>
                         <div class="row g-3">
                             <div class="col-md-7">
@@ -167,7 +167,7 @@
                         </div>
                         <div class="mt-3">
                             <button type="submit" class="btn btn-primary">Actualizar</button>
-                            <a href="/modulos" class="btn btn-light">Cancelar</a>
+                            <a href="<?= htmlspecialchars(\Core\Url::to('/modulos'), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-light">Cancelar</a>
                         </div>
                     </form>
                     <script>

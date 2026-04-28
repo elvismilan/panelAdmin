@@ -1,13 +1,17 @@
 <?php
 /**
- * Email view: credenciales de acceso para nuevo usuario
- * Variables esperadas: $userName, $usuId, $password, $loginUrl, $siteTitle, $address, $country
+ * Email view: acceso para nuevo usuario
+ * Variables esperadas: $userName, $usuId, $loginUrl, $resetUrl, $expiryMinutes, $siteTitle, $address, $country
  */
 $siteTitle = htmlspecialchars((string) ($siteTitle ?? 'Web Revolution'), ENT_QUOTES, 'UTF-8');
 $userName  = htmlspecialchars((string) ($userName  ?? 'Usuario'),        ENT_QUOTES, 'UTF-8');
+$siteRoot  = rtrim((string) ($_ENV['SITE_ROOT'] ?? ''), '/');
+$logoRaw   = ltrim(preg_replace('#^public/#', '', (string) ($_ENV['LOGO'] ?? 'assets/theme-one/images/logo/logo-h.png')), '/');
+$logoUrl   = htmlspecialchars($siteRoot . '/' . $logoRaw, ENT_QUOTES, 'UTF-8');
 $usuId     = htmlspecialchars((string) ($usuId     ?? ''),               ENT_QUOTES, 'UTF-8');
-$password  = htmlspecialchars((string) ($password  ?? ''),               ENT_QUOTES, 'UTF-8');
 $loginUrl  = htmlspecialchars((string) ($loginUrl  ?? '#'),              ENT_QUOTES, 'UTF-8');
+$resetUrl  = htmlspecialchars((string) ($resetUrl  ?? ''),               ENT_QUOTES, 'UTF-8');
+$expiryMinutes = (int) ($expiryMinutes ?? 60);
 $address   = (string) ($address ?? '');
 $country   = htmlspecialchars((string) ($country ?? ''), ENT_QUOTES, 'UTF-8');
 ?>
@@ -50,7 +54,7 @@ $country   = htmlspecialchars((string) ($country ?? ''), ENT_QUOTES, 'UTF-8');
                   <table style="width:650px; margin:0 auto 30px auto">
                     <tbody>
                       <tr>
-                        <td style="font-size:20px; font-weight:700; color:#24695c;"><?= $siteTitle ?></td>
+                        <td><img src="<?= $logoUrl ?>" alt="<?= $siteTitle ?>" style="height:40px; width:auto; display:block;"></td>
                         <td style="text-align:right; color:#999"><span style="font-size:14px">Acceso al Sistema</span></td>
                       </tr>
                     </tbody>
@@ -67,24 +71,31 @@ $country   = htmlspecialchars((string) ($country ?? ''), ENT_QUOTES, 'UTF-8');
                 <td style="padding:30px">
                   <h6 style="font-weight:600">Bienvenido al sistema</h6>
                   <p>Hola <strong><?= $userName ?></strong>,</p>
-                  <p>Se ha creado una cuenta de acceso para ti en <strong><?= $siteTitle ?></strong>. A continuación encontrarás tus credenciales de ingreso:</p>
+                  <p>Se ha creado una cuenta de acceso para ti en <strong><?= $siteTitle ?></strong>.</p>
 
                   <div class="credential-box">
                     <p class="credential-label">Usuario</p>
                     <p class="credential-value"><?= $usuId ?></p>
-                    <p class="credential-label">Contraseña</p>
-                    <p class="credential-value"><?= $password ?></p>
                   </div>
 
-                  <p style="text-align:center; margin-top:24px;">
-                    <a href="<?= $loginUrl ?>"
-                       style="padding:12px 28px; background-color:#24695c; color:#fff; display:inline-block; border-radius:4px; font-weight:600; font-size:14px;">
-                      Iniciar sesión
-                    </a>
-                  </p>
+                  <?php if ($resetUrl !== ''): ?>
+                    <p>Para definir tu contraseña de forma segura, usa este enlace (válido por <?= htmlspecialchars((string) $expiryMinutes, ENT_QUOTES, 'UTF-8') ?> minutos):</p>
+                    <p style="text-align:center; margin-top:24px;">
+                      <a href="<?= $resetUrl ?>"
+                         style="padding:12px 28px; background-color:#24695c; color:#fff; display:inline-block; border-radius:4px; font-weight:600; font-size:14px;">
+                        Definir contraseña
+                      </a>
+                    </p>
+                  <?php else: ?>
+                    <p>Por seguridad no enviamos contraseñas por correo. Usa la opción <strong>"¿Olvidaste tu contraseña?"</strong> para generar una nueva clave.</p>
+                  <?php endif; ?>
 
                   <p style="font-size:12px; color:#999; text-align:center; margin-top:16px;">
-                    Por seguridad, te recomendamos cambiar tu contraseña al ingresar por primera vez.
+                    Una vez definida tu contraseña, podrás iniciar sesión normalmente.
+                  </p>
+
+                  <p style="text-align:center; margin-top:8px;">
+                    <a href="<?= $loginUrl ?>" style="font-size:12px; color:#24695c;">Ir al inicio de sesión</a>
                   </p>
 
                   <p style="margin-bottom:0">

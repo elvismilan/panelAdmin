@@ -21,13 +21,13 @@ $token = htmlspecialchars((string) ($token ?? ''), ENT_QUOTES, 'UTF-8');
                                     <div class="alert alert-danger" role="alert">
                                         <?= htmlspecialchars($tokenInvalid, ENT_QUOTES, 'UTF-8') ?>
                                     </div>
-                                    <a href="/forgot-password" class="btn btn-primary btn-block mt-2">
+                                    <a href="<?= htmlspecialchars(\Core\Url::to('/forgot-password'), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-primary btn-block mt-2">
                                         Solicitar nuevo enlace
                                     </a>
                                 </div>
 
                             <?php else: ?>
-                                <form class="theme-form login-form" method="post" action="/reset-password/<?= $token ?>">
+                                <form class="theme-form login-form" method="post" action="<?= htmlspecialchars(\Core\Url::to('/reset-password/' . $token), ENT_QUOTES, 'UTF-8') ?>">
                                     <?= $csrfField ?>
                                     <h4 class="mb-3">Nueva contraseña</h4>
                                     <p class="mb-3" style="font-size:13px; color:#6c757d;">
@@ -76,7 +76,7 @@ $token = htmlspecialchars((string) ($token ?? ''), ENT_QUOTES, 'UTF-8');
                                     </div>
 
                                     <p class="mt-2 mb-0">
-                                        <a class="ms-2" href="/login">Volver al inicio de sesión</a>
+                                        <a class="ms-2" href="<?= htmlspecialchars(\Core\Url::to('/login'), ENT_QUOTES, 'UTF-8') ?>">Volver al inicio de sesión</a>
                                     </p>
                                 </form>
                             <?php endif; ?>

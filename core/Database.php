@@ -25,6 +25,26 @@ class Database
         return self::$instances[$key];
     }
 
+    public static function fromEnv(): self
+    {
+        $dsn = (string) ($_ENV['DB_DSN'] ?? $_ENV['DB_NAME'] ?? '');
+        if ($dsn === '') {
+            throw new \RuntimeException('Missing DB_DSN/DB_NAME in environment configuration.');
+        }
+
+        if (strpos($dsn, ':') === false) {
+            $host = (string) ($_ENV['DB_HOST'] ?? 'localhost');
+            $charset = (string) ($_ENV['DB_CHARSET'] ?? 'utf8mb4');
+            $dsn = sprintf('mysql:host=%s;dbname=%s;charset=%s', $host, $dsn, $charset);
+        }
+
+        return self::getInstance(
+            $dsn,
+            (string) ($_ENV['DB_USER'] ?? ''),
+            (string) ($_ENV['DB_PASS'] ?? '')
+        );
+    }
+
     public function __construct(string $dsn, string $username, string $password) {
 
         $this->dsn = $dsn;

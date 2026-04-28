@@ -31,7 +31,7 @@ $esLeida = (int) ($item['noti_leida'] ?? 0) === 1;
                         <h5>Detalle de notificacion</h5>
                         <span>Registro #<?= htmlspecialchars((string) ($item['noti_id'] ?? ''), ENT_QUOTES, 'UTF-8') ?></span>
                     </div>
-                    <a href="/notificaciones" class="btn btn-light btn-sm">
+                    <a href="<?= htmlspecialchars(\Core\Url::to('/notificaciones'), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-light btn-sm">
                         <i class="fa fa-arrow-left me-1" aria-hidden="true"></i>
                         Volver
                     </a>
@@ -130,7 +130,7 @@ $esLeida = (int) ($item['noti_leida'] ?? 0) === 1;
                     </dl>
                 </div>
                 <div class="card-footer bg-transparent d-flex gap-2">
-                    <a href="/notificaciones" class="btn btn-light btn-sm">
+                    <a href="<?= htmlspecialchars(\Core\Url::to('/notificaciones'), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-light btn-sm">
                         <i class="fa fa-arrow-left me-1" aria-hidden="true"></i>
                         Volver al listado
                     </a>

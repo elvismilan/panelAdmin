@@ -35,7 +35,7 @@ class Auth
             return;
         }
 
-        header('Location: ' . $redirectTo);
+        header('Location: ' . Url::to($redirectTo));
         exit;
     }
 }

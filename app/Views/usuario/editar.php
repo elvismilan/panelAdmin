@@ -13,7 +13,7 @@
                     }
                     ?>
                     <form method="post"
-                          action="/usuarios/<?= urlencode((string) ($usuarioId ?? '')) ?>/actualizar"
+                          action="<?= htmlspecialchars(\Core\Url::to('/usuarios/' . urlencode((string) ($usuarioId ?? '')) . '/actualizar'), ENT_QUOTES, 'UTF-8') ?>"
                           autocomplete="off">
                         <?= $csrfField ?>
                         <div class="row">
@@ -98,7 +98,7 @@
                         </div>
 
                         <button type="submit" class="btn btn-primary">Actualizar</button>
-                        <a href="/usuarios" class="btn btn-light">Cancelar</a>
+                        <a href="<?= htmlspecialchars(\Core\Url::to('/usuarios'), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-light">Cancelar</a>
                     </form>
                 </div>
             </div>

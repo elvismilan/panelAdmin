@@ -12,7 +12,7 @@
                         include $errorView;
                     }
                     ?>
-                    <form method="post" action="/usuarios/guardar" autocomplete="off">
+                    <form method="post" action="<?= htmlspecialchars(\Core\Url::to('/usuarios/guardar'), ENT_QUOTES, 'UTF-8') ?>" autocomplete="off">
                         <?= $csrfField ?>
                         <div class="row">
                             <!-- Usuario -->
@@ -100,7 +100,7 @@
                         </div>
 
                         <button type="submit" class="btn btn-primary">Guardar</button>
-                        <a href="/usuarios" class="btn btn-light">Cancelar</a>
+                        <a href="<?= htmlspecialchars(\Core\Url::to('/usuarios'), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-light">Cancelar</a>
                     </form>
                 </div>
             </div>

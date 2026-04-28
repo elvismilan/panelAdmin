@@ -1,7 +1,7 @@
     <?php
     $adminAssetBase = isset($adminAssetBase)
       ? (string) $adminAssetBase
-      : rtrim((string) ($_ENV['ADMIN_ASSET_BASE'] ?? ($_ENV['LOGIN_OPTION1_ASSET_BASE'] ?? '/assets/theme-one')), '/');
+      : \Core\Url::to(rtrim((string) ($_ENV['ADMIN_ASSET_BASE'] ?? ($_ENV['LOGIN_OPTION1_ASSET_BASE'] ?? '/assets/theme-one')), '/'));
     ?>
         </div>
         <!-- footer start-->

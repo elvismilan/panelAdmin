@@ -12,7 +12,7 @@ if (is_file($headerFile)) {
                 <div class="col-12 p-0">
                     <div class="login-card">
                         <div class="login-main">
-                            <form class="theme-form login-form" method="post" action="/forgot-password">
+                            <form class="theme-form login-form" method="post" action="<?= htmlspecialchars(\Core\Url::to('/forgot-password'), ENT_QUOTES, 'UTF-8') ?>">
                                 <?= $csrfField ?>
                                 <h4 class="mb-3">¿Olvidaste tu contraseña?</h4>
                                 <p class="mb-3" style="font-size:13px; color:#6c757d;">
@@ -53,7 +53,7 @@ if (is_file($headerFile)) {
                                 <?php endif; ?>
 
                                 <p class="mt-2 mb-0">
-                                    <a class="ms-2" href="/login">Volver al inicio de sesión</a>
+                                    <a class="ms-2" href="<?= htmlspecialchars(\Core\Url::to('/login'), ENT_QUOTES, 'UTF-8') ?>">Volver al inicio de sesión</a>
                                 </p>
                             </form>
                         </div>

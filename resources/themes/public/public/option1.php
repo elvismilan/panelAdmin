@@ -24,7 +24,7 @@ $jsAssets = is_array($pageAssets['js'] ?? null) ? $pageAssets['js'] : [];
 <section>
     <h1><?= htmlspecialchars($title ?? 'Sitio publico', ENT_QUOTES, 'UTF-8') ?></h1>
     <p>Template publico - opcion 1.</p>
-    <p><a href="/login">Acceso administrador</a></p>
+    <p><a href="<?= htmlspecialchars(\Core\Url::to('/login'), ENT_QUOTES, 'UTF-8') ?>">Acceso administrador</a></p>
 </section>
 <?php if (is_file($sharedFooter)) { include $sharedFooter; } ?>
 <?php if ($useStandaloneLayout): ?>

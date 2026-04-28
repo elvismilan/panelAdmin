@@ -23,10 +23,10 @@
                         </div>
                     </div>
                     <?php endif; ?>
-                    <form method="post" action="/tareas/<?= urlencode((string) ($tareaId ?? '')) ?>/borrar">
+                    <form method="post" action="<?= htmlspecialchars(\Core\Url::to('/tareas/' . urlencode((string) ($tareaId ?? '')) . '/borrar'), ENT_QUOTES, 'UTF-8') ?>">
                         <?= $csrfField ?>
                         <button type="submit" class="btn btn-danger" <?= !empty($linkedToModulo) ? 'disabled' : '' ?>>Eliminar</button>
-                        <a href="/tareas" class="btn btn-light">Cancelar</a>
+                        <a href="<?= htmlspecialchars(\Core\Url::to('/tareas'), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-light">Cancelar</a>
                     </form>
                 </div>
             </div>

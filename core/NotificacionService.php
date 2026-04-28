@@ -88,7 +88,7 @@ class NotificacionService
                 'noti_referencia_id' => $referenciaId,
             ]);
         } catch (Throwable $e) {
-            error_log('[NotificacionService::registrar] ' . $e->getMessage());
+            error_log(LogMessages::notificacionRegistrarError($e));
         }
     }
 }

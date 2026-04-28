@@ -5,6 +5,9 @@ namespace App\Controllers;
 use App\Models\TareaModel;
 use Core\Auth;
 use Core\Controller;
+use Core\FlashMessages;
+use Core\UiMessages;
+use Core\ValidationMessages;
 use Core\Validator;
 use Throwable;
 
@@ -32,7 +35,7 @@ class TareaController extends Controller
         }
 
         $this->renderAdminModule('tarea/index', [
-            'title' => 'Tareas',
+            'title' => UiMessages::TAREA_INDEX_TITLE,
             'user' => $user,
             'tareas' => $tareas,
             'pagination' => $pagination,
@@ -61,7 +64,7 @@ class TareaController extends Controller
         $this->requireAuth();
 
         $this->renderAdminModule('tarea/agregar', [
-            'title' => 'Nueva tarea',
+            'title' => UiMessages::TAREA_CREATE_TITLE,
             'user' => Auth::user(),
             'error' => null,
             'form' => [
@@ -87,7 +90,7 @@ class TareaController extends Controller
 
         if (!$passes) {
             $this->renderAdminModule('tarea/agregar', [
-                'title' => 'Nueva tarea',
+                'title' => UiMessages::TAREA_CREATE_TITLE,
                 'user' => Auth::user(),
                 'error' => $validator->first(),
                 'errors' => $validator->errors(),
@@ -100,9 +103,9 @@ class TareaController extends Controller
 
         if ($model->existsByName($nombre)) {
             $this->renderAdminModule('tarea/agregar', [
-                'title' => 'Nueva tarea',
+                'title' => UiMessages::TAREA_CREATE_TITLE,
                 'user' => Auth::user(),
-                'error' => 'Ya existe una tarea con ese nombre.',
+                'error' => ValidationMessages::TAREA_ALREADY_EXISTS,
                 'form' => [
                     'tar_nombre' => $nombre,
                 ],
@@ -115,7 +118,7 @@ class TareaController extends Controller
         ]);
         $this->logAction($model->getLastActionLog(), 'CREATE');
 
-        $this->flashSuccess('Tarea creada correctamente.');
+        $this->flashSuccess(FlashMessages::TAREA_CREATED);
 
         $this->redirect('/tareas');
     }
@@ -131,7 +134,7 @@ class TareaController extends Controller
         }
 
         $this->renderAdminModule('tarea/editar', [
-            'title' => 'Editar tarea',
+            'title' => UiMessages::TAREA_EDIT_TITLE,
             'user' => Auth::user(),
             'error' => null,
             'form' => $tarea,
@@ -156,7 +159,7 @@ class TareaController extends Controller
 
         if (!$passes) {
             $this->renderAdminModule('tarea/editar', [
-                'title' => 'Editar tarea',
+                'title' => UiMessages::TAREA_EDIT_TITLE,
                 'user' => Auth::user(),
                 'error' => $validator->first(),
                 'errors' => $validator->errors(),
@@ -170,9 +173,9 @@ class TareaController extends Controller
 
         if ($model->existsByName($nombre, $id)) {
             $this->renderAdminModule('tarea/editar', [
-                'title' => 'Editar tarea',
+                'title' => UiMessages::TAREA_EDIT_TITLE,
                 'user' => Auth::user(),
-                'error' => 'Ya existe una tarea con ese nombre.',
+                'error' => ValidationMessages::TAREA_ALREADY_EXISTS,
                 'form' => [
                     'tar_nombre' => $nombre,
                 ],
@@ -186,7 +189,7 @@ class TareaController extends Controller
         ]);
         $this->logAction($model->getLastActionLog(), 'UPDATE');
 
-        $this->flashSuccess('Tarea actualizada correctamente.');
+        $this->flashSuccess(FlashMessages::TAREA_UPDATED);
 
         $this->redirect('/tareas');
     }
@@ -194,7 +197,6 @@ class TareaController extends Controller
     public function eliminar(string $id): void
     {
         $this->requireAuth();
-        $this->requireCsrf();
 
         $model = new TareaModel();
         $tarea = $model->findById($id);
@@ -204,7 +206,7 @@ class TareaController extends Controller
         }
 
         $this->renderAdminModule('tarea/eliminar', [
-            'title'          => 'Eliminar tarea',
+            'title'          => UiMessages::TAREA_DELETE_TITLE,
             'user'           => Auth::user(),
             'form'           => $tarea,
             'tareaId'        => $id,
@@ -225,7 +227,7 @@ class TareaController extends Controller
         }
 
         if ($model->isLinkedToModulo($id)) {
-            $this->flashError('No se puede eliminar la tarea porque esta asociada a uno o mas modulos. Desvincule la tarea de los modulos antes de continuar.');
+            $this->flashError(FlashMessages::TAREA_DELETE_LINKED_FORBIDDEN);
             $this->redirect('/tareas/' . urlencode($id) . '/eliminar');
             return;
         }
@@ -234,7 +236,7 @@ class TareaController extends Controller
         $model->deleteTask($id);
         $this->logAction($model->getLastActionLog(), 'DELETE');
 
-        $this->flashSuccess('Tarea eliminada correctamente.');
+        $this->flashSuccess(FlashMessages::TAREA_DELETED);
         $this->redirect('/tareas');
     }
 }

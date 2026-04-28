@@ -23,7 +23,9 @@ class Template {
         extract($data);
         ob_start();
         include $template;
-        return ob_get_clean();
+        $output = (string) ob_get_clean();
+
+        return Url::absolutizeHtmlAttributes($output);
     }
 
     public function setTemplatePath(string $templatePath): void {

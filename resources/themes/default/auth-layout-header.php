@@ -1,6 +1,6 @@
 <?php
 $title = $title ?? 'Web Revolution';
-$assetBase = rtrim((string) ($_ENV['LOGIN_OPTION1_ASSET_BASE'] ?? $_ENV['LOGIN_ASSET_BASE'] ?? '/assets/theme-one'), '/');
+$assetBase = \Core\Url::to(rtrim((string) ($_ENV['LOGIN_OPTION1_ASSET_BASE'] ?? $_ENV['LOGIN_ASSET_BASE'] ?? '/assets/theme-one'), '/'));
 $pageAssets = $pageAssets ?? ['css' => [], 'js' => []];
 $cssAssets = is_array($pageAssets['css'] ?? null) ? $pageAssets['css'] : [];
 ?>

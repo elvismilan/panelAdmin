@@ -19,6 +19,20 @@ class Request
         $uri = (string) ($_SERVER['REQUEST_URI'] ?? '/');
         $path = parse_url($uri, PHP_URL_PATH) ?: '/';
 
+        $basePath = Url::basePath();
+        if ($basePath !== '' && str_starts_with($path, $basePath)) {
+            $path = (string) substr($path, strlen($basePath));
+            if ($path === '') {
+                $path = '/';
+            }
+        }
+
+        if (str_starts_with($path, '/index.php/')) {
+            $path = (string) substr($path, strlen('/index.php'));
+        } elseif ($path === '/index.php') {
+            $path = '/';
+        }
+
         $this->method = $method;
         $this->path = $path;
         $this->params = $_REQUEST;

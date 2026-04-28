@@ -42,11 +42,11 @@
                     </div>
                     <?php endif; ?>
 
-                    <form method="post" action="/usuarios/<?= urlencode((string) ($usuarioId ?? '')) ?>/borrar">
+                    <form method="post" action="<?= htmlspecialchars(\Core\Url::to('/usuarios/' . urlencode((string) ($usuarioId ?? '')) . '/borrar'), ENT_QUOTES, 'UTF-8') ?>">
                         <?= $csrfField ?>
                         <button type="submit" class="btn btn-danger"
                             <?= (!empty($isSelf) || !empty($hasLogs)) ? 'disabled' : '' ?>>Eliminar</button>
-                        <a href="/usuarios" class="btn btn-light">Cancelar</a>
+                        <a href="<?= htmlspecialchars(\Core\Url::to('/usuarios'), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-light">Cancelar</a>
                     </form>
                 </div>
             </div>

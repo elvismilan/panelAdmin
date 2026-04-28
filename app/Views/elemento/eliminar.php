@@ -33,10 +33,10 @@
                         </div>
                     </div>
                     <?php endif; ?>
-                    <form method="post" action="/modulos/<?= urlencode((string) ($elementoId ?? '')) ?>/borrar">
+                    <form method="post" action="<?= htmlspecialchars(\Core\Url::to('/modulos/' . urlencode((string) ($elementoId ?? '')) . '/borrar'), ENT_QUOTES, 'UTF-8') ?>">
                         <?= $csrfField ?>
                         <button type="submit" class="btn btn-danger" <?= !empty($linkedToPermiso) ? 'disabled' : '' ?>>Eliminar</button>
-                        <a href="/modulos" class="btn btn-light">Cancelar</a>
+                        <a href="<?= htmlspecialchars(\Core\Url::to('/modulos'), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-light">Cancelar</a>
                     </form>
                 </div>
             </div>

@@ -17,7 +17,7 @@ $useStandaloneLayout = !is_file($sharedHeader) && !is_file($sharedFooter);
 <?php if (is_file($sharedHeader)) { include $sharedHeader; } ?>
     <h1><?= htmlspecialchars($title ?? 'Public', ENT_QUOTES, 'UTF-8') ?></h1>
     <p>Template publico default - opcion 1.</p>
-    <p><a href="/login">Ingresar al panel</a></p>
+    <p><a href="<?= htmlspecialchars(\Core\Url::to('/login'), ENT_QUOTES, 'UTF-8') ?>">Ingresar al panel</a></p>
 <?php if (is_file($sharedFooter)) { include $sharedFooter; } ?>
 <?php if ($useStandaloneLayout): ?>
 </body>

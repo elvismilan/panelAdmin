@@ -27,7 +27,7 @@ class NotificationHelper
         $html .= '<ul class="notification-dropdown onhover-show-div">';
         $html .= self::renderHeader($noLeidas);
         $html .= $items !== [] ? self::renderItems($items) : self::renderEmpty();
-        $html .= '<li class="text-center"><a class="f-w-700" href="/notificaciones">Ver todas</a></li>';
+        $html .= '<li class="text-center"><a class="f-w-700" href="' . htmlspecialchars(\Core\Url::to('/notificaciones'), ENT_QUOTES, 'UTF-8') . '">Ver todas</a></li>';
         $html .= '</ul>';
 
         return '<li class="onhover-dropdown">' . $html . '</li>';
@@ -79,7 +79,7 @@ class NotificationHelper
             $fecha  = htmlspecialchars((string) ($noti['noti_fecha']  ?? ''), ENT_QUOTES, 'UTF-8');
 
             $html .= '<li class="' . $meta['li'] . '">'
-                . '<a href="/notificaciones/' . $id . '/ver" style="text-decoration:none;color:inherit;">'
+                . '<a href="' . htmlspecialchars(\Core\Url::to('/notificaciones/' . $id . '/ver'), ENT_QUOTES, 'UTF-8') . '" style="text-decoration:none;color:inherit;">'
                 . '<div class="media">'
                 . '<span class="notification-bg ' . $meta['bg'] . '">'
                 . '<i data-feather="' . $meta['icon'] . '"></i>'

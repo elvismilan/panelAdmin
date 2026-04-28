@@ -87,7 +87,7 @@
                                         </td>
                                         <td class="text-center">
                                             <?php if ($canVer): ?>
-                                                <a href="/logs/<?= $itemId ?>/ver"
+                                                                <a href="<?= htmlspecialchars(\Core\Url::to('/logs/' . $itemId . '/ver'), ENT_QUOTES, 'UTF-8') ?>"
                                                    class="btn btn-info btn-sm px-2 py-1"
                                                    title="Ver detalle"
                                                    aria-label="Ver detalle">

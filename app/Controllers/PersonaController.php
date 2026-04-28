@@ -5,7 +5,10 @@ namespace App\Controllers;
 use App\Models\PersonaModel;
 use Core\Auth;
 use Core\Controller;
+use Core\FlashMessages;
 use Core\ImageUploader;
+use Core\UiMessages;
+use Core\ValidationMessages;
 use Core\Validator;
 use Throwable;
 
@@ -45,7 +48,7 @@ class PersonaController extends Controller
         }
 
         $this->renderAdminModule('persona/index', [
-            'title'      => 'Personas',
+            'title'      => UiMessages::PERSONA_INDEX_TITLE,
             'user'       => Auth::user(),
             'personas'   => $personas,
             'pagination' => $pagination,
@@ -79,7 +82,7 @@ class PersonaController extends Controller
         $this->pageAssets['js'][] = '/assets/js/image-upload.js';
 
         $this->renderAdminModule('persona/agregar', [
-            'title' => 'Nueva persona',
+            'title' => UiMessages::PERSONA_CREATE_TITLE,
             'user'  => Auth::user(),
             'error' => null,
             'form'  => [
@@ -128,7 +131,7 @@ class PersonaController extends Controller
         ]);
         if (!$validator->passes()) {
             $this->renderAdminModule('persona/agregar', [
-                'title'  => 'Nueva persona',
+                'title'  => UiMessages::PERSONA_CREATE_TITLE,
                 'user'   => Auth::user(),
                 'error'  => $validator->first(),
                 'errors' => $validator->errors(),
@@ -141,9 +144,9 @@ class PersonaController extends Controller
         $email = trim((string) ($params['per_email'] ?? ''));
         if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $this->renderAdminModule('persona/agregar', [
-                'title'  => 'Nueva persona',
+                'title'  => UiMessages::PERSONA_CREATE_TITLE,
                 'user'   => Auth::user(),
-                'error'  => 'El formato del email no es valido.',
+                'error'  => ValidationMessages::PERSONA_EMAIL_INVALID,
                 'errors' => [],
                 'form'   => $params,
             ]);
@@ -154,9 +157,9 @@ class PersonaController extends Controller
         $ci = trim((string) ($params['per_ci'] ?? ''));
         if ($ci !== '' && $model->existsByCi($ci)) {
             $this->renderAdminModule('persona/agregar', [
-                'title'  => 'Nueva persona',
+                'title'  => UiMessages::PERSONA_CREATE_TITLE,
                 'user'   => Auth::user(),
-                'error'  => 'Ya existe una persona con ese numero de CI.',
+                'error'  => ValidationMessages::PERSONA_CI_ALREADY_EXISTS,
                 'errors' => [],
                 'form'   => $params,
             ]);
@@ -168,7 +171,7 @@ class PersonaController extends Controller
         $upload = $this->makeUploader()->handle('per_foto');
         if ($upload->hasError()) {
             $this->renderAdminModule('persona/agregar', [
-                'title'  => 'Nueva persona',
+                'title'  => UiMessages::PERSONA_CREATE_TITLE,
                 'user'   => Auth::user(),
                 'error'  => $upload->getError(),
                 'errors' => [],
@@ -182,7 +185,7 @@ class PersonaController extends Controller
         $perId = $model->createPersona($params);
         $this->logAction($model->getLastActionLog(), 'CREATE');
 
-        $this->flashSuccess('Persona registrada correctamente.');
+        $this->flashSuccess(FlashMessages::PERSONA_CREATED);
         $this->redirect('/personas');
     }
 
@@ -203,7 +206,7 @@ class PersonaController extends Controller
         }
 
         $this->renderAdminModule('persona/editar', [
-            'title'     => 'Editar persona',
+            'title'     => UiMessages::PERSONA_EDIT_TITLE,
             'user'      => Auth::user(),
             'error'     => null,
             'form'      => $persona,
@@ -249,7 +252,7 @@ class PersonaController extends Controller
         ]);
         if (!$validator->passes()) {
             $this->renderAdminModule('persona/editar', [
-                'title'     => 'Editar persona',
+                'title'     => UiMessages::PERSONA_EDIT_TITLE,
                 'user'      => Auth::user(),
                 'error'     => $validator->first(),
                 'errors'    => $validator->errors(),
@@ -263,9 +266,9 @@ class PersonaController extends Controller
         $email = trim((string) ($params['per_email'] ?? ''));
         if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $this->renderAdminModule('persona/editar', [
-                'title'     => 'Editar persona',
+                'title'     => UiMessages::PERSONA_EDIT_TITLE,
                 'user'      => Auth::user(),
-                'error'     => 'El formato del email no es valido.',
+                'error'     => ValidationMessages::PERSONA_EMAIL_INVALID,
                 'errors'    => [],
                 'form'      => $params,
                 'personaId' => $id,
@@ -277,9 +280,9 @@ class PersonaController extends Controller
         $ci = trim((string) ($params['per_ci'] ?? ''));
         if ($ci !== '' && $model->existsByCi($ci, $id)) {
             $this->renderAdminModule('persona/editar', [
-                'title'     => 'Editar persona',
+                'title'     => UiMessages::PERSONA_EDIT_TITLE,
                 'user'      => Auth::user(),
-                'error'     => 'Ya existe una persona con ese numero de CI.',
+                'error'     => ValidationMessages::PERSONA_CI_ALREADY_EXISTS,
                 'errors'    => [],
                 'form'      => $params,
                 'personaId' => $id,
@@ -292,7 +295,7 @@ class PersonaController extends Controller
         $upload   = $this->makeUploader()->handle('per_foto');
         if ($upload->hasError()) {
             $this->renderAdminModule('persona/editar', [
-                'title'     => 'Editar persona',
+                'title'     => UiMessages::PERSONA_EDIT_TITLE,
                 'user'      => Auth::user(),
                 'error'     => $upload->getError(),
                 'errors'    => [],
@@ -309,7 +312,7 @@ class PersonaController extends Controller
         $model->updatePersona($id, $params);
         $this->logAction($model->getLastActionLog(), 'UPDATE');
 
-        $this->flashSuccess('Persona actualizada correctamente.');
+        $this->flashSuccess(FlashMessages::PERSONA_UPDATED);
         $this->redirect('/personas');
     }
 
@@ -329,7 +332,7 @@ class PersonaController extends Controller
         }
 
         $this->renderAdminModule('persona/eliminar', [
-            'title'             => 'Eliminar persona',
+            'title'             => UiMessages::PERSONA_DELETE_TITLE,
             'user'              => Auth::user(),
             'form'              => $persona,
             'personaId'         => $id,
@@ -350,7 +353,7 @@ class PersonaController extends Controller
         }
 
         if ($model->isLinkedToUsuario($id)) {
-            $this->flashError('No se puede eliminar la persona porque tiene un usuario asociado. Elimine primero el usuario.');
+            $this->flashError(FlashMessages::PERSONA_DELETE_LINKED_FORBIDDEN);
             $this->redirect('/personas/' . urlencode($id) . '/eliminar');
             return;
         }
@@ -358,7 +361,7 @@ class PersonaController extends Controller
         $model->deletePersona($id);
         $this->logAction($model->getLastActionLog(), 'DELETE');
 
-        $this->flashSuccess('Persona eliminada correctamente.');
+        $this->flashSuccess(FlashMessages::PERSONA_DELETED);
         $this->redirect('/personas');
     }
 

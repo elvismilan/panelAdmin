@@ -60,7 +60,7 @@ class LogModel extends Model
         return is_array($row) ? $row : null;
     }
 
-    /** @return array{string[], string[]} [whereClause, params] */
+    /** @return array{string, array<string, string>} [whereClause, params] */
     private function buildWhere(string $search, string $tipo): array
     {
         $conditions = [];
