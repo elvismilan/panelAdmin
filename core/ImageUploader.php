@@ -71,6 +71,10 @@ class ImageUploader
     private string $module;
     private array  $allowedTypes;
     private int    $maxSize;
+    private int    $maxWidth;
+    private int    $maxHeight;
+    private int    $maxPixels;
+    private bool   $stripMetadata;
     private array  $thumbs;
     private string $publicBase;
 
@@ -79,6 +83,10 @@ class ImageUploader
         $this->module       = trim((string) ($config['module'] ?? 'uploads'), '/');
         $this->allowedTypes = (array) ($config['allowedTypes'] ?? ['image/jpeg', 'image/png', 'image/gif', 'image/webp']);
         $this->maxSize      = (int)   ($config['maxSize']      ?? 2097152);
+        $this->maxWidth     = max(1, (int) ($config['maxWidth'] ?? 5000));
+        $this->maxHeight    = max(1, (int) ($config['maxHeight'] ?? 5000));
+        $this->maxPixels    = max(1, (int) ($config['maxPixels'] ?? 25000000));
+        $this->stripMetadata = (bool) ($config['stripMetadata'] ?? true);
         $this->thumbs       = (array) ($config['thumbs']       ?? []);
         $this->publicBase   = rtrim((string) ($config['publicBase'] ?? (dirname(__DIR__) . '/public')), '/');
     }
@@ -123,6 +131,33 @@ class ImageUploader
             return $this->fail("Tipo de archivo no permitido. Use: {$allowed}.");
         }
 
+        // --- Dimensions check (mitigates oversized image/pixel bombs) ---
+        $imageInfo = @\getimagesize($tmpName);
+        if ($imageInfo === false) {
+            return $this->fail('El archivo no es una imagen valida.');
+        }
+
+        $width  = (int) ($imageInfo[0] ?? 0);
+        $height = (int) ($imageInfo[1] ?? 0);
+        $infoMime = strtolower((string) ($imageInfo['mime'] ?? ''));
+
+        if ($width < 1 || $height < 1) {
+            return $this->fail('No se pudieron leer las dimensiones de la imagen.');
+        }
+
+        if ($infoMime !== '' && $infoMime !== strtolower($mime)) {
+            return $this->fail('El contenido de la imagen no coincide con su tipo declarado.');
+        }
+
+        if ($width > $this->maxWidth || $height > $this->maxHeight) {
+            return $this->fail("La imagen excede las dimensiones maximas permitidas ({$this->maxWidth}x{$this->maxHeight}px).");
+        }
+
+        $pixels = $width * $height;
+        if ($pixels > $this->maxPixels) {
+            return $this->fail('La imagen contiene demasiados pixeles para ser procesada.');
+        }
+
         // --- Prepare destination ---
         $ext      = strtolower((string) pathinfo($origName, PATHINFO_EXTENSION));
         $baseName = \bin2hex(\random_bytes(8)) . '_' . time();
@@ -134,8 +169,14 @@ class ImageUploader
         }
 
         $destPath = $uploadDir . '/' . $fileName;
-        if (!\move_uploaded_file($tmpName, $destPath)) {
-            return $this->fail('No se pudo guardar el archivo.');
+        if ($this->stripMetadata && $this->canReencodeMime($mime)) {
+            if (!$this->reencodeUploadedImage($tmpName, $destPath, $mime)) {
+                return $this->fail('No se pudo procesar la imagen subida.');
+            }
+        } else {
+            if (!\move_uploaded_file($tmpName, $destPath)) {
+                return $this->fail('No se pudo guardar el archivo.');
+            }
         }
 
         $relativePath = 'uploads/' . $this->module . '/' . $fileName;
@@ -171,6 +212,45 @@ class ImageUploader
     private function fail(string $msg): ImageUploadResult
     {
         return new ImageUploadResult(true, true, $msg, '', []);
+    }
+
+    private function canReencodeMime(string $mime): bool
+    {
+        return in_array($mime, ['image/jpeg', 'image/png', 'image/webp'], true);
+    }
+
+    private function reencodeUploadedImage(string $tmpName, string $destPath, string $mime): bool
+    {
+        if (!\extension_loaded('gd') || !\is_uploaded_file($tmpName)) {
+            return false;
+        }
+
+        $srcImg = match ($mime) {
+            'image/jpeg' => @\imagecreatefromjpeg($tmpName),
+            'image/png'  => @\imagecreatefrompng($tmpName),
+            'image/webp' => function_exists('imagecreatefromwebp') ? @\imagecreatefromwebp($tmpName) : false,
+            default      => false,
+        };
+
+        if ($srcImg === false) {
+            return false;
+        }
+
+        if ($mime === 'image/png' || $mime === 'image/webp') {
+            \imagealphablend($srcImg, false);
+            \imagesavealpha($srcImg, true);
+        }
+
+        $ok = match ($mime) {
+            'image/jpeg' => \imagejpeg($srcImg, $destPath, 88),
+            'image/png'  => \imagepng($srcImg, $destPath, 6),
+            'image/webp' => function_exists('imagewebp') ? \imagewebp($srcImg, $destPath, 85) : false,
+            default      => false,
+        };
+
+        \imagedestroy($srcImg);
+
+        return (bool) $ok;
     }
 
     private function generateThumb(string $src, string $dest, string $mime, int $dstW, int $dstH, string $mode): bool

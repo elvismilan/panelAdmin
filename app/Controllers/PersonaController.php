@@ -18,6 +18,9 @@ class PersonaController extends Controller
     private const UPLOAD_MODULE  = 'personas';
     private const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
     private const MAX_FILE_SIZE = 2097152; // 2 MB
+    private const MAX_IMAGE_WIDTH = 5000;
+    private const MAX_IMAGE_HEIGHT = 5000;
+    private const MAX_IMAGE_PIXELS = 25000000;
     private const THUMB_SIZES   = [
         ['w' => 130, 'h' => 130, 'mode' => 'crop'], // avatar (exact square)
         ['w' => 300, 'h' => 300, 'mode' => 'fit'],  // medium (proportional)
@@ -376,6 +379,10 @@ class PersonaController extends Controller
             'module'       => self::UPLOAD_MODULE,
             'allowedTypes' => self::ALLOWED_TYPES,
             'maxSize'      => self::MAX_FILE_SIZE,
+            'maxWidth'     => self::MAX_IMAGE_WIDTH,
+            'maxHeight'    => self::MAX_IMAGE_HEIGHT,
+            'maxPixels'    => self::MAX_IMAGE_PIXELS,
+            'stripMetadata' => true,
             'thumbs'       => self::THUMB_SIZES,
         ]);
     }

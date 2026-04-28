@@ -202,9 +202,9 @@ class UsuarioController extends Controller
                 );
                 $resetLinkSent = true;
             } catch (MailerException $e) {
-                error_log(LogMessages::usuarioGuardarMailerError($e));
+                error_log(LogMessages::usuarioGuardarMailerErrorForRecipient($e, $normalizedEmail));
             } catch (Throwable $e) {
-                error_log(LogMessages::usuarioGuardarError($e));
+                error_log(LogMessages::usuarioGuardarErrorForRecipient($e, $normalizedEmail));
             }
         }
 
