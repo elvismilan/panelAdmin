@@ -11,6 +11,7 @@ use Core\FlashMessages;
 use Core\LogMessages;
 use Core\Mailer;
 use Core\RateLimiter;
+use Core\Csrf;
 use Core\UiMessages;
 use Core\Url;
 use Core\ValidationMessages;
@@ -82,6 +83,7 @@ class AuthController extends Controller
         if (is_array($user)) {
             $rateLimiter?->clear($ip);
             Auth::login($user);
+            Csrf::regenerate();
             $this->logAction('Ingreso al Sistema', 'AUTH_OK');
             $this->redirect('/dashboard');
             return;
@@ -104,6 +106,7 @@ class AuthController extends Controller
     {
         $this->requireCsrf('/dashboard');
         $this->logAction('Salir del Sistema', 'AUTH');
+        Csrf::regenerate();
         Auth::logout();
         $this->redirect('/login');
     }

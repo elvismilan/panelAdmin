@@ -59,7 +59,8 @@ Variables de entorno recomendadas:
 ## Seguridad y logs
 
 - Login principal con `wr_usuario` y `wr_persona`
-- Fallback opcional por variables `AUTH_USERNAME` y `AUTH_PASSWORD`
+- Autenticacion solo contra base de datos (sin fallback por credenciales en `.env`)
+- Compatibilidad opcional con hash legacy via `AUTH_LEGACY_ALGO` y `AUTH_LEGACY_SALT`
 - Permisos por grupo/elemento desde `wr_permiso`
 - Log de acciones en `wr_logs` mediante `logAction()` del controlador base
 
