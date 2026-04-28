@@ -35,10 +35,11 @@ class PersonaModel extends Model
 
         $stmt = $this->db->getConnection()->prepare($sql);
         if ($search !== '') {
-            $stmt->bindValue(':search1', '%' . $search . '%', \PDO::PARAM_STR);
-            $stmt->bindValue(':search2', '%' . $search . '%', \PDO::PARAM_STR);
-            $stmt->bindValue(':search3', '%' . $search . '%', \PDO::PARAM_STR);
-            $stmt->bindValue(':search4', '%' . $search . '%', \PDO::PARAM_STR);
+            $pattern = $this->likePattern($search);
+            $stmt->bindValue(':search1', $pattern, \PDO::PARAM_STR);
+            $stmt->bindValue(':search2', $pattern, \PDO::PARAM_STR);
+            $stmt->bindValue(':search3', $pattern, \PDO::PARAM_STR);
+            $stmt->bindValue(':search4', $pattern, \PDO::PARAM_STR);
         }
         $stmt->bindValue(':limit', max(1, $limit), \PDO::PARAM_INT);
         $stmt->bindValue(':offset', max(0, $offset), \PDO::PARAM_INT);
@@ -57,10 +58,11 @@ class PersonaModel extends Model
                          OR per_apellido LIKE :search2
                          OR per_ci LIKE :search3
                          OR per_email LIKE :search4";
-            $params['search1'] = '%' . $search . '%';
-            $params['search2'] = '%' . $search . '%';
-            $params['search3'] = '%' . $search . '%';
-            $params['search4'] = '%' . $search . '%';
+            $pattern = $this->likePattern($search);
+            $params['search1'] = $pattern;
+            $params['search2'] = $pattern;
+            $params['search3'] = $pattern;
+            $params['search4'] = $pattern;
         }
 
         $row = $this->db->query($sql, $params)->fetch();

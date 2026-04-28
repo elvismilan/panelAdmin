@@ -183,15 +183,22 @@ class ImageUploader
 
         // --- Generate thumbnails ---
         $thumbResults = [];
+        $generatedThumbPaths = [];
         foreach ($this->thumbs as $thumb) {
             $w    = (int)    ($thumb['w']    ?? 100);
             $h    = (int)    ($thumb['h']    ?? 100);
             $mode = (string) ($thumb['mode'] ?? 'crop');
             $key  = "{$w}x{$h}";
 
+            if ($w <= 0 || $h <= 0) {
+                $this->cleanupFiles(array_merge([$destPath], $generatedThumbPaths));
+                return $this->fail('La configuracion de miniaturas es invalida.');
+            }
+
             $thumbDir = $uploadDir . '/thumbs';
             if (!\is_dir($thumbDir) && !\mkdir($thumbDir, 0755, true)) {
-                continue;
+                $this->cleanupFiles(array_merge([$destPath], $generatedThumbPaths));
+                return $this->fail('No se pudo crear el directorio de miniaturas.');
             }
 
             $thumbFile = $baseName . "_{$key}." . $ext;
@@ -199,7 +206,12 @@ class ImageUploader
 
             if ($this->generateThumb($destPath, $thumbDest, $mime, $w, $h, $mode)) {
                 $thumbResults[$key] = 'uploads/' . $this->module . '/thumbs/' . $thumbFile;
+                $generatedThumbPaths[] = $thumbDest;
+                continue;
             }
+
+            $this->cleanupFiles(array_merge([$destPath], $generatedThumbPaths));
+            return $this->fail('No se pudieron generar las miniaturas de la imagen.');
         }
 
         return new ImageUploadResult(true, false, '', $relativePath, $thumbResults);
@@ -212,6 +224,24 @@ class ImageUploader
     private function fail(string $msg): ImageUploadResult
     {
         return new ImageUploadResult(true, true, $msg, '', []);
+    }
+
+    /**
+     * Remove uploaded artifacts when processing fails to avoid orphaned files.
+     *
+     * @param string[] $paths
+     */
+    private function cleanupFiles(array $paths): void
+    {
+        foreach ($paths as $path) {
+            if (!is_string($path) || $path === '') {
+                continue;
+            }
+
+            if (\is_file($path)) {
+                @\unlink($path);
+            }
+        }
     }
 
     private function canReencodeMime(string $mime): bool

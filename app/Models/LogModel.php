@@ -68,9 +68,10 @@ class LogModel extends Model
 
         if ($search !== '') {
             $conditions[] = "(log_accion LIKE :search OR log_usu_id LIKE :search2 OR log_ip LIKE :search3)";
-            $params['search']  = '%' . $search . '%';
-            $params['search2'] = '%' . $search . '%';
-            $params['search3'] = '%' . $search . '%';
+            $pattern = $this->likePattern($search);
+            $params['search']  = $pattern;
+            $params['search2'] = $pattern;
+            $params['search3'] = $pattern;
         }
 
         if ($tipo !== '') {

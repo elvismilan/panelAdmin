@@ -192,4 +192,19 @@ class Model
         $row = $this->db->query($sql, ['value' => $value])->fetch();
         return (int) ($row['total'] ?? 0) > 0;
     }
+
+    /**
+     * Build a safe pattern for SQL LIKE by escaping wildcard tokens.
+     */
+    protected function likePattern(string $value): string
+    {
+        $trimmed = trim($value);
+        $escaped = str_replace(
+            ['\\', '%', '_'],
+            ['\\\\', '\\%', '\\_'],
+            $trimmed
+        );
+
+        return '%' . $escaped . '%';
+    }
 }
