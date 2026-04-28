@@ -7,6 +7,7 @@ use Core\Auth;
 use Core\Controller;
 use Core\FlashMessages;
 use Core\ImageUploader;
+use Core\NotificacionService;
 use Core\UiMessages;
 use Core\ValidationMessages;
 use Core\Validator;
@@ -187,6 +188,7 @@ class PersonaController extends Controller
         $params['per_foto'] = $fotoPath;
         $perId = $model->createPersona($params);
         $this->logAction($model->getLastActionLog(), 'CREATE');
+        NotificacionService::registrar('personas', 'CREATE', (string) (Auth::user()['id'] ?? 'ANON'), $perId);
 
         $this->flashSuccess(FlashMessages::PERSONA_CREATED);
         $this->redirect('/personas');
@@ -314,6 +316,7 @@ class PersonaController extends Controller
         $params['per_foto'] = $fotoPath;
         $model->updatePersona($id, $params);
         $this->logAction($model->getLastActionLog(), 'UPDATE');
+        NotificacionService::registrar('personas', 'UPDATE', (string) (Auth::user()['id'] ?? 'ANON'), $id);
 
         $this->flashSuccess(FlashMessages::PERSONA_UPDATED);
         $this->redirect('/personas');
@@ -363,6 +366,7 @@ class PersonaController extends Controller
 
         $model->deletePersona($id);
         $this->logAction($model->getLastActionLog(), 'DELETE');
+        NotificacionService::registrar('personas', 'DELETE', (string) (Auth::user()['id'] ?? 'ANON'), $id);
 
         $this->flashSuccess(FlashMessages::PERSONA_DELETED);
         $this->redirect('/personas');
