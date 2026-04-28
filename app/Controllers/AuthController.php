@@ -6,9 +6,12 @@ use App\Models\PasswordResetModel;
 use App\Models\UserModel;
 use Core\Auth;
 use Core\Controller;
+use Core\FlashMessages;
+use Core\LogMessages;
 use Core\Mailer;
 use Core\RateLimiter;
 use Core\Url;
+use Core\ValidationMessages;
 use PHPMailer\PHPMailer\Exception as MailerException;
 use Throwable;
 
@@ -48,7 +51,7 @@ class AuthController extends Controller
             $this->logAction('Login bloqueado por rate limit: ' . $ip, 'AUTH_BLOCK');
             $this->render($loginView, [
                 'title' => 'Iniciar Sesion',
-                'error' => 'Demasiados intentos fallidos. Espera ' . $rateLimiter->lockoutMinutes() . ' minutos e intenta de nuevo.',
+                'error' => ValidationMessages::authLoginRateLimit($rateLimiter->lockoutMinutes()),
             ]);
             return;
         }
@@ -61,7 +64,7 @@ class AuthController extends Controller
             $this->logAction('Intento login sin usuario/password', 'AUTH_FAIL');
             $this->render($loginView, [
                 'title' => 'Iniciar Sesion',
-                'error' => 'Usuario y password son obligatorios.',
+                'error' => ValidationMessages::AUTH_REQUIRED_CREDENTIALS,
             ]);
             return;
         }
@@ -87,10 +90,7 @@ class AuthController extends Controller
 
         $this->logAction('Login fallido: ' . $username, 'AUTH_FAIL');
 
-        $error = 'Credenciales invalidas.';
-        if ($remaining !== null && $remaining <= 2 && $remaining > 0) {
-            $error .= ' Te queda' . ($remaining === 1 ? '' : 'n') . ' ' . $remaining . ' intento' . ($remaining === 1 ? '' : 's') . '.';
-        }
+        $error = ValidationMessages::authInvalidCredentialsWithRemaining($remaining);
 
         $this->render($loginView, [
             'title' => 'Iniciar Sesion',
@@ -138,7 +138,7 @@ class AuthController extends Controller
         if ($rateLimiter !== null && $rateLimiter->tooManyAttempts($ip)) {
             $this->render($view, [
                 'title' => 'Recuperar Contraseña',
-                'error' => 'Demasiadas solicitudes. Espera ' . $rateLimiter->lockoutMinutes() . ' minutos e intenta de nuevo.',
+                'error' => ValidationMessages::forgotRateLimit($rateLimiter->lockoutMinutes()),
             ]);
             return;
         }
@@ -149,14 +149,14 @@ class AuthController extends Controller
         if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $this->render($view, [
                 'title' => 'Recuperar Contraseña',
-                'error' => 'Ingresa un correo electrónico válido.',
+                'error' => ValidationMessages::FORGOT_EMAIL_INVALID,
                 'email' => htmlspecialchars($email, ENT_QUOTES, 'UTF-8'),
             ]);
             return;
         }
 
         // Mensaje neutral: no revelar si el email existe o no
-        $successMsg = 'Si ese correo está registrado, recibirás un enlace en los próximos minutos.';
+        $successMsg = ValidationMessages::FORGOT_SUCCESS_NEUTRAL;
 
         try {
             $model = new PasswordResetModel();
@@ -166,7 +166,7 @@ class AuthController extends Controller
                 $token    = $model->createToken($email);
                 $resetUrl = Url::to('/reset-password/' . $token);
 
-                $emailHtml = $this->renderEmailView('emails/password-reset', [
+                $emailHtml = $this->emailTemplatesRenderer->render('emails/password-reset', [
                     'resetUrl'      => $resetUrl,
                     'userName'      => (string) ($user['per_nombre'] ?? 'Usuario'),
                     'siteTitle'     => (string) ($_ENV['SITE_TITLE'] ?? 'Web Revolution'),
@@ -185,10 +185,10 @@ class AuthController extends Controller
                 $this->logAction('Solicitud recuperacion contrasena: ' . $email, 'AUTH_RESET');
             }
         } catch (MailerException $e) {
-            error_log('[AuthController::processForgotPassword] Mailer error: ' . $e->getMessage());
+            error_log(LogMessages::authForgotMailerError($e));
             // Mostramos exito igual para no revelar info, pero logueamos el fallo
         } catch (Throwable $e) {
-            error_log('[AuthController::processForgotPassword] Error: ' . $e->getMessage());
+            error_log(LogMessages::authForgotError($e));
         }
 
         $rateLimiter?->hit($ip);
@@ -213,10 +213,10 @@ class AuthController extends Controller
             $row   = $model->findValidToken($token);
 
             if ($row === null) {
-                $data['tokenInvalid'] = 'Este enlace no es válido o ya expiró. Solicita uno nuevo.';
+                $data['tokenInvalid'] = ValidationMessages::RESET_TOKEN_INVALID;
             }
         } catch (Throwable) {
-            $data['tokenInvalid'] = 'Ocurrió un error al verificar el enlace. Intenta de nuevo.';
+            $data['tokenInvalid'] = ValidationMessages::RESET_TOKEN_CHECK_ERROR;
         }
 
         $this->render($view, $data);
@@ -244,12 +244,12 @@ class AuthController extends Controller
             $passwordConfirm = (string) ($params['password_confirm'] ?? '');
 
             if (strlen($password) < 8) {
-                $renderError('La contraseña debe tener al menos 8 caracteres.');
+                $renderError(ValidationMessages::RESET_PASSWORD_MIN_8);
                 return;
             }
 
             if ($password !== $passwordConfirm) {
-                $renderError('Las contraseñas no coinciden.');
+                $renderError(ValidationMessages::RESET_PASSWORDS_DO_NOT_MATCH);
                 return;
             }
 
@@ -258,19 +258,19 @@ class AuthController extends Controller
                 $this->render($view, [
                     'title'        => 'Nueva Contraseña',
                     'token'        => $token,
-                    'tokenInvalid' => 'Este enlace no es válido, ya fue utilizado o expiró. Solicita uno nuevo.',
+                    'tokenInvalid' => ValidationMessages::RESET_TOKEN_INVALID_USED_OR_EXPIRED,
                 ]);
                 return;
             }
 
             $this->logAction('Contrasena restablecida para: ' . $tokenEmail, 'AUTH_RESET_OK');
         } catch (Throwable $e) {
-            error_log('[AuthController::processResetPassword] Error: ' . $e->getMessage());
-            $renderError('Ocurrió un error al guardar la contraseña. Intenta de nuevo.');
+            error_log(LogMessages::authResetError($e));
+            $renderError(ValidationMessages::RESET_SAVE_ERROR);
             return;
         }
 
-        $this->flashSuccess('Contraseña actualizada correctamente. Ya puedes iniciar sesión.');
+        $this->flashSuccess(FlashMessages::AUTH_PASSWORD_UPDATED);
         $this->redirect('/login');
     }
 

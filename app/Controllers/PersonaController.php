@@ -5,7 +5,9 @@ namespace App\Controllers;
 use App\Models\PersonaModel;
 use Core\Auth;
 use Core\Controller;
+use Core\FlashMessages;
 use Core\ImageUploader;
+use Core\ValidationMessages;
 use Core\Validator;
 use Throwable;
 
@@ -143,7 +145,7 @@ class PersonaController extends Controller
             $this->renderAdminModule('persona/agregar', [
                 'title'  => 'Nueva persona',
                 'user'   => Auth::user(),
-                'error'  => 'El formato del email no es valido.',
+                'error'  => ValidationMessages::PERSONA_EMAIL_INVALID,
                 'errors' => [],
                 'form'   => $params,
             ]);
@@ -156,7 +158,7 @@ class PersonaController extends Controller
             $this->renderAdminModule('persona/agregar', [
                 'title'  => 'Nueva persona',
                 'user'   => Auth::user(),
-                'error'  => 'Ya existe una persona con ese numero de CI.',
+                'error'  => ValidationMessages::PERSONA_CI_ALREADY_EXISTS,
                 'errors' => [],
                 'form'   => $params,
             ]);
@@ -182,7 +184,7 @@ class PersonaController extends Controller
         $perId = $model->createPersona($params);
         $this->logAction($model->getLastActionLog(), 'CREATE');
 
-        $this->flashSuccess('Persona registrada correctamente.');
+        $this->flashSuccess(FlashMessages::PERSONA_CREATED);
         $this->redirect('/personas');
     }
 
@@ -265,7 +267,7 @@ class PersonaController extends Controller
             $this->renderAdminModule('persona/editar', [
                 'title'     => 'Editar persona',
                 'user'      => Auth::user(),
-                'error'     => 'El formato del email no es valido.',
+                'error'     => ValidationMessages::PERSONA_EMAIL_INVALID,
                 'errors'    => [],
                 'form'      => $params,
                 'personaId' => $id,
@@ -279,7 +281,7 @@ class PersonaController extends Controller
             $this->renderAdminModule('persona/editar', [
                 'title'     => 'Editar persona',
                 'user'      => Auth::user(),
-                'error'     => 'Ya existe una persona con ese numero de CI.',
+                'error'     => ValidationMessages::PERSONA_CI_ALREADY_EXISTS,
                 'errors'    => [],
                 'form'      => $params,
                 'personaId' => $id,
@@ -309,7 +311,7 @@ class PersonaController extends Controller
         $model->updatePersona($id, $params);
         $this->logAction($model->getLastActionLog(), 'UPDATE');
 
-        $this->flashSuccess('Persona actualizada correctamente.');
+        $this->flashSuccess(FlashMessages::PERSONA_UPDATED);
         $this->redirect('/personas');
     }
 
@@ -350,7 +352,7 @@ class PersonaController extends Controller
         }
 
         if ($model->isLinkedToUsuario($id)) {
-            $this->flashError('No se puede eliminar la persona porque tiene un usuario asociado. Elimine primero el usuario.');
+            $this->flashError(FlashMessages::PERSONA_DELETE_LINKED_FORBIDDEN);
             $this->redirect('/personas/' . urlencode($id) . '/eliminar');
             return;
         }
@@ -358,7 +360,7 @@ class PersonaController extends Controller
         $model->deletePersona($id);
         $this->logAction($model->getLastActionLog(), 'DELETE');
 
-        $this->flashSuccess('Persona eliminada correctamente.');
+        $this->flashSuccess(FlashMessages::PERSONA_DELETED);
         $this->redirect('/personas');
     }
 

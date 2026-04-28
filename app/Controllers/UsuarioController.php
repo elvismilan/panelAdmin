@@ -6,9 +6,12 @@ use App\Models\PasswordResetModel;
 use App\Models\UsuarioModel;
 use Core\Auth;
 use Core\Controller;
+use Core\FlashMessages;
+use Core\LogMessages;
 use Core\Mailer;
 use Core\NotificacionService;
 use Core\Url;
+use Core\ValidationMessages;
 use Core\Validator;
 use PHPMailer\PHPMailer\Exception as MailerException;
 use Throwable;
@@ -131,7 +134,7 @@ class UsuarioController extends Controller
             $this->renderAdminModule('usuario/agregar', [
                 'title'    => 'Nuevo usuario',
                 'user'     => Auth::user(),
-                'error'    => 'Las contrasenas no coinciden.',
+                'error'    => ValidationMessages::USUARIO_PASSWORDS_DO_NOT_MATCH,
                 'errors'   => [],
                 'grupos'   => $model->getAllGrupos(),
                 'personas' => $model->getPersonasDisponibles(),
@@ -146,7 +149,7 @@ class UsuarioController extends Controller
             $this->renderAdminModule('usuario/agregar', [
                 'title'    => 'Nuevo usuario',
                 'user'     => Auth::user(),
-                'error'    => 'Ya existe un usuario con ese nombre de usuario.',
+                'error'    => ValidationMessages::USUARIO_ALREADY_EXISTS,
                 'errors'   => [],
                 'grupos'   => $model->getAllGrupos(),
                 'personas' => $model->getPersonasDisponibles(),
@@ -178,7 +181,7 @@ class UsuarioController extends Controller
                 $token      = $resetModel->createToken($normalizedEmail);
                 $resetUrl   = Url::to('/reset-password/' . $token);
 
-                $emailHtml = $this->renderEmailView('emails/password-reset', [
+                $emailHtml = $this->emailTemplatesRenderer->render('emails/password-reset', [
                     'resetUrl'      => $resetUrl,
                     'userName'      => $userName !== '' ? $userName : $usuId,
                     'siteTitle'     => (string) ($_ENV['SITE_TITLE'] ?? 'Web Revolution'),
@@ -195,20 +198,20 @@ class UsuarioController extends Controller
                 );
                 $resetLinkSent = true;
             } catch (MailerException $e) {
-                error_log('[UsuarioController::guardar] Error de mail al enviar enlace de configuracion: ' . $e->getMessage());
+                error_log(LogMessages::usuarioGuardarMailerError($e));
             } catch (Throwable $e) {
-                error_log('[UsuarioController::guardar] Error al enviar enlace de configuracion: ' . $e->getMessage());
+                error_log(LogMessages::usuarioGuardarError($e));
             }
         }
 
-        $this->flashSuccess('Usuario registrado correctamente.');
+        $this->flashSuccess(FlashMessages::USUARIO_CREATED);
 
         if (!$hasPersonaLinked) {
-            $this->flash('warning', 'Usuario creado sin persona vinculada. Configura una persona con email para enviar enlace de restablecimiento.');
+            $this->flash('warning', FlashMessages::USUARIO_CREATED_NO_PERSONA);
         } elseif ($email === null) {
-            $this->flash('warning', 'Usuario creado, pero la persona vinculada no tiene email. No se pudo enviar enlace de configuración de contraseña.');
+            $this->flash('warning', FlashMessages::USUARIO_CREATED_NO_EMAIL);
         } elseif (!$resetLinkSent) {
-            $this->flash('warning', 'Usuario creado, pero no fue posible enviar el enlace de configuración de contraseña. Intenta reenviar desde recuperación de contraseña.');
+            $this->flash('warning', FlashMessages::USUARIO_CREATED_EMAIL_SEND_FAILED);
         }
 
         $this->redirect('/usuarios');
@@ -290,7 +293,7 @@ class UsuarioController extends Controller
                 $this->renderAdminModule('usuario/editar', [
                     'title'     => 'Editar usuario',
                     'user'      => Auth::user(),
-                    'error'     => 'La contrasena debe tener al menos 6 caracteres.',
+                    'error'     => ValidationMessages::USUARIO_PASSWORD_MIN_6,
                     'errors'    => [],
                     'grupos'    => $model->getAllGrupos(),
                     'personas'  => $model->getPersonasDisponibles($currentPerID),
@@ -305,7 +308,7 @@ class UsuarioController extends Controller
                 $this->renderAdminModule('usuario/editar', [
                     'title'     => 'Editar usuario',
                     'user'      => Auth::user(),
-                    'error'     => 'Las contrasenas no coinciden.',
+                    'error'     => ValidationMessages::USUARIO_PASSWORDS_DO_NOT_MATCH,
                     'errors'    => [],
                     'grupos'    => $model->getAllGrupos(),
                     'personas'  => $model->getPersonasDisponibles($currentPerID),
@@ -319,7 +322,7 @@ class UsuarioController extends Controller
         $model->updateUsuario($id, $params);
         $this->logAction($model->getLastActionLog(), 'UPDATE');
 
-        $this->flashSuccess('Usuario actualizado correctamente.');
+        $this->flashSuccess(FlashMessages::USUARIO_UPDATED);
         $this->redirect('/usuarios');
     }
 
@@ -366,13 +369,13 @@ class UsuarioController extends Controller
 
         $currentUser = Auth::user();
         if (($currentUser['id'] ?? '') === $id) {
-            $this->flashError('No puedes eliminar tu propio usuario.');
+            $this->flashError(FlashMessages::USUARIO_DELETE_SELF_FORBIDDEN);
             $this->redirect('/usuarios/' . urlencode($id) . '/eliminar');
             return;
         }
 
         if ($model->hasLogs($id)) {
-            $this->flashError('No se puede eliminar el usuario porque tiene acciones registradas en el sistema.');
+            $this->flashError(FlashMessages::USUARIO_DELETE_HAS_LOGS_FORBIDDEN);
             $this->redirect('/usuarios/' . urlencode($id) . '/eliminar');
             return;
         }
@@ -380,7 +383,7 @@ class UsuarioController extends Controller
         $model->deleteUsuario($id);
         $this->logAction($model->getLastActionLog(), 'DELETE');
 
-        $this->flashSuccess('Usuario eliminado correctamente.');
+        $this->flashSuccess(FlashMessages::USUARIO_DELETED);
         $this->redirect('/usuarios');
     }
 

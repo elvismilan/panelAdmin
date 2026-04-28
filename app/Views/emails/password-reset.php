@@ -5,6 +5,9 @@
  */
 $siteTitle     = htmlspecialchars((string) ($siteTitle     ?? 'Web Revolution'),  ENT_QUOTES, 'UTF-8');
 $userName      = htmlspecialchars((string) ($userName      ?? 'Usuario'),          ENT_QUOTES, 'UTF-8');
+$siteRoot      = rtrim((string) ($_ENV['SITE_ROOT'] ?? ''), '/');
+$logoRaw       = ltrim(preg_replace('#^public/#', '', (string) ($_ENV['LOGO'] ?? 'assets/theme-one/images/logo/logo-h.png')), '/');
+$logoUrl       = htmlspecialchars($siteRoot . '/' . $logoRaw, ENT_QUOTES, 'UTF-8');
 $resetUrl      = htmlspecialchars((string) ($resetUrl      ?? '#'),                ENT_QUOTES, 'UTF-8');
 $address       = (string) ($address  ?? '');
 $country       = htmlspecialchars((string) ($country       ?? ''),                 ENT_QUOTES, 'UTF-8');
@@ -40,7 +43,7 @@ $expiryMinutes = (int)    ($expiryMinutes ?? 60);
                   <table style="width:650px; margin:0 auto 30px auto">
                     <tbody>
                       <tr>
-                        <td style="font-size:20px; font-weight:700; color:#24695c;"><?= $siteTitle ?></td>
+                        <td><img src="<?= $logoUrl ?>" alt="<?= $siteTitle ?>" style="height:40px; width:auto; display:block;"></td>
                         <td style="text-align:right; color:#999"><span style="font-size:14px">Recuperación de Contraseña</span></td>
                       </tr>
                     </tbody>

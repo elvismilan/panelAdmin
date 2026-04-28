@@ -8,6 +8,8 @@ use Core\Auth;
 use Core\ActionLogger;
 use Core\Permission;
 use Core\ThemeResolver;
+use Core\EmailTemplatesRenderer;
+use Core\LogMessages;
 use Throwable;
 
 class Controller
@@ -17,6 +19,7 @@ class Controller
     protected Request $request;
     protected ?ActionLogger $logger = null;
     protected ThemeResolver $themeResolver;
+    protected EmailTemplatesRenderer $emailTemplatesRenderer;
     protected array $pageAssets = [
         'css' => [],
         'js' => [],
@@ -27,6 +30,7 @@ class Controller
         $this->view = new View();
         $this->request = new Request();
         $this->themeResolver = new ThemeResolver();
+        $this->emailTemplatesRenderer = new EmailTemplatesRenderer();
         try {
             $this->logger = new ActionLogger();
         } catch (Throwable) {
@@ -150,13 +154,13 @@ class Controller
         }
 
         if ($this->logger === null) {
-            error_log('[wr_logs_fallback] ' . json_encode($payload));
+            error_log(LogMessages::logsFallback($payload));
             return $payload;
         }
 
         $ok = $this->logger->record($payload);
         if (!$ok) {
-            error_log('[wr_logs_fallback] ' . json_encode($payload));
+            error_log(LogMessages::logsFallback($payload));
         }
 
         return $payload;
@@ -225,19 +229,6 @@ class Controller
     {
         $data['moduleView'] = $moduleView;
         $this->render($this->resolveTemplate('admin', 'layout'), $data);
-    }
-
-    protected function renderEmailView(string $viewPath, array $data = []): string
-    {
-        $fullPath = dirname(__DIR__) . '/app/Views/' . ltrim($viewPath, '/') . '.php';
-        if (!is_file($fullPath)) {
-            throw new \RuntimeException("Email view not found: {$fullPath}");
-        }
-
-        extract($data, EXTR_SKIP);
-        ob_start();
-        include $fullPath;
-        return (string) ob_get_clean();
     }
 
     protected function resolveTemplate(string $area, string $defaultView): string

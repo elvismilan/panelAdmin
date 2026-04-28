@@ -5,6 +5,9 @@ namespace App\Controllers;
 use App\Models\GrupoModel;
 use Core\Auth;
 use Core\Controller;
+use Core\FlashMessages;
+use Core\LogMessages;
+use Core\ValidationMessages;
 use Core\Validator;
 use Throwable;
 
@@ -120,7 +123,7 @@ class GrupoController extends Controller
             $this->renderAdminModule('grupo/agregar', [
                 'title'     => 'Nuevo grupo',
                 'user'      => Auth::user(),
-                'error'     => 'Ya existe un grupo con ese ID.',
+                'error'     => ValidationMessages::GRUPO_ID_ALREADY_EXISTS,
                 'errors'    => [],
                 'elementos' => $model->getAllElementos(),
                 'permisos'  => $this->parsePermisos($params),
@@ -135,7 +138,7 @@ class GrupoController extends Controller
             $this->renderAdminModule('grupo/agregar', [
                 'title'     => 'Nuevo grupo',
                 'user'      => Auth::user(),
-                'error'     => 'Ya existe un grupo con esa descripcion.',
+                'error'     => ValidationMessages::GRUPO_DESC_ALREADY_EXISTS,
                 'errors'    => [],
                 'elementos' => $model->getAllElementos(),
                 'permisos'  => $this->parsePermisos($params),
@@ -157,11 +160,11 @@ class GrupoController extends Controller
                 'CREATE'
             );
         } catch (Throwable $e) {
-            error_log('[GrupoController::guardar] ' . $e->getMessage());
+            error_log(LogMessages::grupoGuardarError($e));
             $this->renderAdminModule('grupo/agregar', [
                 'title'     => 'Nuevo grupo',
                 'user'      => Auth::user(),
-                'error'     => 'Ocurrio un error al guardar el grupo. Intente nuevamente.',
+                'error'     => ValidationMessages::GRUPO_SAVE_ERROR,
                 'errors'    => [],
                 'elementos' => $model->getAllElementos(),
                 'permisos'  => $this->parsePermisos($params),
@@ -171,7 +174,7 @@ class GrupoController extends Controller
         }
 
         $this->invalidateMenuCache();
-        $this->flashSuccess('Grupo registrado correctamente.');
+        $this->flashSuccess(FlashMessages::GRUPO_CREATED);
         $this->redirect('/grupos');
     }
 
@@ -242,7 +245,7 @@ class GrupoController extends Controller
             $this->renderAdminModule('grupo/editar', [
                 'title'    => 'Editar grupo',
                 'user'     => Auth::user(),
-                'error'    => 'Ya existe otro grupo con esa descripcion.',
+                'error'    => ValidationMessages::GRUPO_DESC_ALREADY_EXISTS_OTHER,
                 'errors'   => [],
                 'elementos' => $model->getAllElementos(),
                 'permisos' => $this->parsePermisos($params),
@@ -265,11 +268,11 @@ class GrupoController extends Controller
                 'UPDATE'
             );
         } catch (Throwable $e) {
-            error_log('[GrupoController::actualizar] ' . $e->getMessage());
+            error_log(LogMessages::grupoActualizarError($e));
             $this->renderAdminModule('grupo/editar', [
                 'title'    => 'Editar grupo',
                 'user'     => Auth::user(),
-                'error'    => 'Ocurrio un error al actualizar el grupo. Intente nuevamente.',
+                'error'    => ValidationMessages::GRUPO_UPDATE_ERROR,
                 'errors'   => [],
                 'elementos' => $model->getAllElementos(),
                 'permisos' => $this->parsePermisos($params),
@@ -280,7 +283,7 @@ class GrupoController extends Controller
         }
 
         $this->invalidateMenuCache();
-        $this->flashSuccess('Grupo actualizado correctamente.');
+        $this->flashSuccess(FlashMessages::GRUPO_UPDATED);
         $this->redirect('/grupos');
     }
 
@@ -326,7 +329,7 @@ class GrupoController extends Controller
 
         // Bloquear si tiene usuarios asignados
         if ($model->hasUsuarios($id)) {
-            $this->flashError('No se puede eliminar el grupo porque tiene usuarios asignados.');
+            $this->flashError(FlashMessages::GRUPO_DELETE_HAS_USERS_FORBIDDEN);
             $this->redirect('/grupos/' . urlencode($id) . '/eliminar');
             return;
         }
@@ -339,14 +342,14 @@ class GrupoController extends Controller
             $model->deleteGrupo($id);
             $this->logAction($model->getLastActionLog(), 'DELETE');
         } catch (Throwable $e) {
-            error_log('[GrupoController::borrar] ' . $e->getMessage());
-            $this->flashError('Ocurrio un error al eliminar el grupo. Intente nuevamente.');
+            error_log(LogMessages::grupoBorrarError($e));
+            $this->flashError(FlashMessages::GRUPO_DELETE_ERROR);
             $this->redirect('/grupos/' . urlencode($id) . '/eliminar');
             return;
         }
 
         $this->invalidateMenuCache();
-        $this->flashSuccess('Grupo eliminado correctamente.');
+        $this->flashSuccess(FlashMessages::GRUPO_DELETED);
         $this->redirect('/grupos');
     }
 

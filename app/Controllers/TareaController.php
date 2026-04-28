@@ -5,6 +5,8 @@ namespace App\Controllers;
 use App\Models\TareaModel;
 use Core\Auth;
 use Core\Controller;
+use Core\FlashMessages;
+use Core\ValidationMessages;
 use Core\Validator;
 use Throwable;
 
@@ -102,7 +104,7 @@ class TareaController extends Controller
             $this->renderAdminModule('tarea/agregar', [
                 'title' => 'Nueva tarea',
                 'user' => Auth::user(),
-                'error' => 'Ya existe una tarea con ese nombre.',
+                'error' => ValidationMessages::TAREA_ALREADY_EXISTS,
                 'form' => [
                     'tar_nombre' => $nombre,
                 ],
@@ -115,7 +117,7 @@ class TareaController extends Controller
         ]);
         $this->logAction($model->getLastActionLog(), 'CREATE');
 
-        $this->flashSuccess('Tarea creada correctamente.');
+        $this->flashSuccess(FlashMessages::TAREA_CREATED);
 
         $this->redirect('/tareas');
     }
@@ -172,7 +174,7 @@ class TareaController extends Controller
             $this->renderAdminModule('tarea/editar', [
                 'title' => 'Editar tarea',
                 'user' => Auth::user(),
-                'error' => 'Ya existe una tarea con ese nombre.',
+                'error' => ValidationMessages::TAREA_ALREADY_EXISTS,
                 'form' => [
                     'tar_nombre' => $nombre,
                 ],
@@ -186,7 +188,7 @@ class TareaController extends Controller
         ]);
         $this->logAction($model->getLastActionLog(), 'UPDATE');
 
-        $this->flashSuccess('Tarea actualizada correctamente.');
+        $this->flashSuccess(FlashMessages::TAREA_UPDATED);
 
         $this->redirect('/tareas');
     }
@@ -224,7 +226,7 @@ class TareaController extends Controller
         }
 
         if ($model->isLinkedToModulo($id)) {
-            $this->flashError('No se puede eliminar la tarea porque esta asociada a uno o mas modulos. Desvincule la tarea de los modulos antes de continuar.');
+            $this->flashError(FlashMessages::TAREA_DELETE_LINKED_FORBIDDEN);
             $this->redirect('/tareas/' . urlencode($id) . '/eliminar');
             return;
         }
@@ -233,7 +235,7 @@ class TareaController extends Controller
         $model->deleteTask($id);
         $this->logAction($model->getLastActionLog(), 'DELETE');
 
-        $this->flashSuccess('Tarea eliminada correctamente.');
+        $this->flashSuccess(FlashMessages::TAREA_DELETED);
         $this->redirect('/tareas');
     }
 }
