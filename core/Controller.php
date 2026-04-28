@@ -227,6 +227,19 @@ class Controller
         $this->render($this->resolveTemplate('admin', 'layout'), $data);
     }
 
+    protected function renderEmailView(string $viewPath, array $data = []): string
+    {
+        $fullPath = dirname(__DIR__) . '/app/Views/' . ltrim($viewPath, '/') . '.php';
+        if (!is_file($fullPath)) {
+            throw new \RuntimeException("Email view not found: {$fullPath}");
+        }
+
+        extract($data, EXTR_SKIP);
+        ob_start();
+        include $fullPath;
+        return (string) ob_get_clean();
+    }
+
     protected function resolveTemplate(string $area, string $defaultView): string
     {
         return $this->themeResolver->resolve($area, $defaultView);

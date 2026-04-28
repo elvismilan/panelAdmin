@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Models\PasswordResetModel;
 use App\Models\UsuarioModel;
 use Core\Auth;
 use Core\Controller;
@@ -158,9 +159,11 @@ class UsuarioController extends Controller
         $this->logAction($model->getLastActionLog(), 'CREATE');
         NotificacionService::registrar('usuarios', 'CREATE', (string) (Auth::user()['id'] ?? 'ANON'), $usuId);
 
-        // Enviar credenciales por email si la persona vinculada tiene correo
+        // Enviar enlace seguro de configuracion de contrasena si hay correo vinculado
         $usuId = trim((string) ($params['usu_id'] ?? ''));
-        $email = ($params['usu_per_id'] ?? '') !== '' ? $model->getPersonaEmail($usuId) : null;
+        $hasPersonaLinked = trim((string) ($params['usu_per_id'] ?? '')) !== '';
+        $email            = $hasPersonaLinked ? $model->getPersonaEmail($usuId) : null;
+        $resetLinkSent    = false;
 
         if ($email !== null) {
             try {
@@ -169,30 +172,45 @@ class UsuarioController extends Controller
                     ((string) ($persona['per_nombre'] ?? '')) . ' ' .
                     ((string) ($persona['per_apellido'] ?? ''))
                 );
-                $emailHtml = $this->renderEmailView('emails/usuario-credenciales', [
-                    'userName'  => $userName !== '' ? $userName : $usuId,
-                    'usuId'     => $usuId,
-                    'password'  => trim((string) ($params['usu_password'] ?? '')),
-                    'loginUrl'  => Url::to('/login'),
-                    'siteTitle' => (string) ($_ENV['SITE_TITLE'] ?? 'Web Revolution'),
-                    'address'   => (string) ($_ENV['ADDRESS']    ?? ''),
-                    'country'   => (string) ($_ENV['COUNTRY']    ?? ''),
+                $normalizedEmail = strtolower(trim((string) $email));
+
+                $resetModel = new PasswordResetModel();
+                $token      = $resetModel->createToken($normalizedEmail);
+                $resetUrl   = Url::to('/reset-password/' . $token);
+
+                $emailHtml = $this->renderEmailView('emails/password-reset', [
+                    'resetUrl'      => $resetUrl,
+                    'userName'      => $userName !== '' ? $userName : $usuId,
+                    'siteTitle'     => (string) ($_ENV['SITE_TITLE'] ?? 'Web Revolution'),
+                    'address'       => (string) ($_ENV['ADDRESS']    ?? ''),
+                    'country'       => (string) ($_ENV['COUNTRY']    ?? ''),
+                    'expiryMinutes' => 60,
                 ]);
 
                 $mailer = new Mailer();
                 $mailer->send(
-                    $email,
-                    'Tus credenciales de acceso — ' . ($_ENV['SITE_TITLE'] ?? 'Web Revolution'),
+                    $normalizedEmail,
+                    'Configura tu contraseña — ' . ($_ENV['SITE_TITLE'] ?? 'Web Revolution'),
                     $emailHtml
                 );
+                $resetLinkSent = true;
             } catch (MailerException $e) {
-                error_log('[UsuarioController::guardar] Mailer error: ' . $e->getMessage());
+                error_log('[UsuarioController::guardar] Error de mail al enviar enlace de configuracion: ' . $e->getMessage());
             } catch (Throwable $e) {
-                error_log('[UsuarioController::guardar] Error al enviar credenciales: ' . $e->getMessage());
+                error_log('[UsuarioController::guardar] Error al enviar enlace de configuracion: ' . $e->getMessage());
             }
         }
 
         $this->flashSuccess('Usuario registrado correctamente.');
+
+        if (!$hasPersonaLinked) {
+            $this->flash('warning', 'Usuario creado sin persona vinculada. Configura una persona con email para enviar enlace de restablecimiento.');
+        } elseif ($email === null) {
+            $this->flash('warning', 'Usuario creado, pero la persona vinculada no tiene email. No se pudo enviar enlace de configuración de contraseña.');
+        } elseif (!$resetLinkSent) {
+            $this->flash('warning', 'Usuario creado, pero no fue posible enviar el enlace de configuración de contraseña. Intenta reenviar desde recuperación de contraseña.');
+        }
+
         $this->redirect('/usuarios');
     }
 
@@ -365,4 +383,5 @@ class UsuarioController extends Controller
         $this->flashSuccess('Usuario eliminado correctamente.');
         $this->redirect('/usuarios');
     }
+
 }

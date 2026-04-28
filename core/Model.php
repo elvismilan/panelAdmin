@@ -15,19 +15,7 @@ class Model
     private array $lastActionLog = [];
 
     public function __construct() {
-
-        $dsn = $_ENV['DB_DSN'] ?? $_ENV['DB_NAME'] ?? '';
-        if ($dsn === '') {
-            throw new \RuntimeException('Missing DB_DSN/DB_NAME in environment configuration.');
-        }
-
-        if (strpos($dsn, ':') === false) {
-            $host = $_ENV['DB_HOST'] ?? 'localhost';
-            $charset = $_ENV['DB_CHARSET'] ?? 'utf8mb4';
-            $dsn = sprintf('mysql:host=%s;dbname=%s;charset=%s', $host, $dsn, $charset);
-        }
-
-        $this->db = Database::getInstance($dsn, (string) ($_ENV['DB_USER'] ?? ''), (string) ($_ENV['DB_PASS'] ?? ''));
+        $this->db = Database::fromEnv();
         $this->tablePrefix = (string) ($_ENV['DB_PREFIX'] ?? 'wr_');
     }
 

@@ -120,4 +120,100 @@ class PasswordResetModel extends Model
 
         return true;
     }
+
+    /**
+     * Consume un token de reset y actualiza la contrasena de forma atomica.
+     * Retorna el email del token consumido o null si el token no era valido.
+     */
+    public function consumeTokenAndUpdatePassword(string $token, string $newPassword): ?string
+    {
+        if ($token === '') {
+            return null;
+        }
+
+        $pdo = $this->db->getConnection();
+        $activeStatus = (string) ($_ENV['AUTH_ACTIVE_STATUS'] ?? 'H');
+        $passwordHash = password_hash($newPassword, PASSWORD_BCRYPT);
+
+        $pdo->beginTransaction();
+
+        try {
+            $tokenStmt = $pdo->prepare(
+                "SELECT id, email
+                 FROM {$this->resetsTable}
+                 WHERE token = :token
+                   AND used = 0
+                   AND created_at >= DATE_SUB(NOW(), INTERVAL " . self::TOKEN_EXPIRY_MINUTES . " MINUTE)
+                 LIMIT 1
+                 FOR UPDATE"
+            );
+            $tokenStmt->execute(['token' => $token]);
+
+            $tokenRow = $tokenStmt->fetch();
+            if (!is_array($tokenRow)) {
+                $pdo->rollBack();
+                return null;
+            }
+
+            $email = strtolower(trim((string) ($tokenRow['email'] ?? '')));
+            if ($email === '') {
+                $pdo->rollBack();
+                return null;
+            }
+
+            $userStmt = $pdo->prepare(
+                "SELECT u.usu_id
+                 FROM {$this->personaTable} p
+                 INNER JOIN {$this->usuarioTable} u ON u.usu_per_id = p.per_id
+                 WHERE LOWER(p.per_email) = :email
+                   AND u.usu_estado = :estado
+                 LIMIT 1
+                 FOR UPDATE"
+            );
+            $userStmt->execute([
+                'email' => $email,
+                'estado' => $activeStatus,
+            ]);
+
+            $userRow = $userStmt->fetch();
+            if (!is_array($userRow) || !isset($userRow['usu_id'])) {
+                $pdo->rollBack();
+                return null;
+            }
+
+            $updatePasswordStmt = $pdo->prepare(
+                "UPDATE {$this->usuarioTable}
+                 SET usu_password = :password
+                 WHERE usu_id = :id"
+            );
+            $updatePasswordStmt->execute([
+                'password' => $passwordHash,
+                'id' => (string) $userRow['usu_id'],
+            ]);
+
+            $consumeStmt = $pdo->prepare(
+                "UPDATE {$this->resetsTable}
+                 SET used = 1
+                 WHERE id = :id
+                   AND used = 0"
+            );
+            $consumeStmt->execute([
+                'id' => (int) ($tokenRow['id'] ?? 0),
+            ]);
+
+            if ($consumeStmt->rowCount() !== 1) {
+                $pdo->rollBack();
+                return null;
+            }
+
+            $pdo->commit();
+            return $email;
+        } catch (\Throwable $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+
+            throw $e;
+        }
+    }
 }

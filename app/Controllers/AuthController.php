@@ -238,16 +238,6 @@ class AuthController extends Controller
 
         try {
             $model = new PasswordResetModel();
-            $row   = $model->findValidToken($token);
-
-            if ($row === null) {
-                $this->render($view, [
-                    'title'        => 'Nueva Contraseña',
-                    'token'        => $token,
-                    'tokenInvalid' => 'Este enlace no es válido o ya expiró. Solicita uno nuevo.',
-                ]);
-                return;
-            }
 
             $params          = $this->request->getParams();
             $password        = (string) ($params['password']         ?? '');
@@ -263,21 +253,17 @@ class AuthController extends Controller
                 return;
             }
 
-            $userId = (string) ($row['email'] ?? '');
-
-            // Obtener usu_id a partir del email almacenado en el token
-            $userModel = new PasswordResetModel();
-            $user      = $userModel->findUserByEmail((string) ($row['email'] ?? ''));
-
-            if ($user === null) {
-                $renderError('No se encontró la cuenta asociada. Contacta al administrador.');
+            $tokenEmail = $model->consumeTokenAndUpdatePassword($token, $password);
+            if ($tokenEmail === null) {
+                $this->render($view, [
+                    'title'        => 'Nueva Contraseña',
+                    'token'        => $token,
+                    'tokenInvalid' => 'Este enlace no es válido, ya fue utilizado o expiró. Solicita uno nuevo.',
+                ]);
                 return;
             }
 
-            $model->updatePassword((string) $user['usu_id'], $password);
-            $model->markTokenUsed((int) $row['id']);
-
-            $this->logAction('Contrasena restablecida para: ' . ($row['email'] ?? ''), 'AUTH_RESET_OK');
+            $this->logAction('Contrasena restablecida para: ' . $tokenEmail, 'AUTH_RESET_OK');
         } catch (Throwable $e) {
             error_log('[AuthController::processResetPassword] Error: ' . $e->getMessage());
             $renderError('Ocurrió un error al guardar la contraseña. Intenta de nuevo.');
@@ -288,23 +274,4 @@ class AuthController extends Controller
         $this->redirect('/login');
     }
 
-    // -------------------------------------------------------------------------
-    // Helpers privados
-    // -------------------------------------------------------------------------
-
-    /**
-     * Renderiza una vista de email y retorna el HTML como string.
-     */
-    private function renderEmailView(string $viewPath, array $data = []): string
-    {
-        $fullPath = dirname(__DIR__) . '/Views/' . ltrim($viewPath, '/') . '.php';
-        if (!is_file($fullPath)) {
-            throw new \RuntimeException("Email view not found: {$fullPath}");
-        }
-
-        extract($data, EXTR_SKIP);
-        ob_start();
-        include $fullPath;
-        return (string) ob_get_clean();
-    }
 }
