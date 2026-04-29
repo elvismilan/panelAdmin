@@ -160,7 +160,7 @@ $router->post('/recurso/{id}/actualizar', RecursoController::class, 'actualizar'
     'full_name'  => string,
     'email'      => string,
     'photo'      => string,    // Ruta de foto
-    'auth_driver'=> 'wr_usuario',
+    'auth_driver'=> 'usuario',
 ]
 ```
 
@@ -382,7 +382,7 @@ Auth::logout();      // Destruye sesión
 | Modelo | `{Modulo}Model.php` — PascalCase | `ProductoModel.php` |
 | Carpeta de vistas | minúsculas | `app/Views/producto/` |
 | Archivos de vista | minúsculas | `index.php`, `agregar.php` |
-| Tabla DB | `{prefijo}{modulo}` — minúsculas | `wr_producto` |
+| Tabla DB | `{modulo}` — minúsculas | `producto` |
 | Columnas DB | `{prefijo3}_{nombre}` — snake_case | `pro_nombre`, `pro_estado` |
 | Clave primaria | `{prefijo3}_id` | `pro_id` |
 | Rutas URL | plural minúsculas | `/productos` |
@@ -407,7 +407,6 @@ DB_NAME=nombre_db
 DB_USER=usuario
 DB_PASS=contraseña
 DB_CHARSET=utf8mb4
-DB_PREFIX=wr_
 
 # Auth
 AUTH_ACTIVE_STATUS=H
@@ -512,7 +511,7 @@ Casos verificados:
 
 Variable requerida en `.env`:
 
-`TEST_RESET_EMAIL=correo_existente_en_wr_persona`
+`TEST_RESET_EMAIL=correo_existente_en_persona`
 
 Ejecucion:
 

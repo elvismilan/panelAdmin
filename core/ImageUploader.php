@@ -103,7 +103,6 @@ class ImageUploader
 
         $file     = $_FILES[$field];
         $tmpName  = (string) ($file['tmp_name'] ?? '');
-        $origName = (string) ($file['name']     ?? '');
         $size     = (int)    ($file['size']     ?? 0);
         $error    = (int)    ($file['error']    ?? UPLOAD_ERR_NO_FILE);
 
@@ -131,15 +130,20 @@ class ImageUploader
             return $this->fail("Tipo de archivo no permitido. Use: {$allowed}.");
         }
 
+        $ext = $this->extensionForMime($mime);
+        if ($ext === null) {
+            return $this->fail('No se pudo determinar la extension segura del archivo.');
+        }
+
         // --- Dimensions check (mitigates oversized image/pixel bombs) ---
         $imageInfo = @\getimagesize($tmpName);
         if ($imageInfo === false) {
             return $this->fail('El archivo no es una imagen valida.');
         }
 
-        $width  = (int) ($imageInfo[0] ?? 0);
-        $height = (int) ($imageInfo[1] ?? 0);
-        $infoMime = strtolower((string) ($imageInfo['mime'] ?? ''));
+        $width    = (int) $imageInfo[0];
+        $height   = (int) $imageInfo[1];
+        $infoMime = strtolower((string) $imageInfo['mime']);
 
         if ($width < 1 || $height < 1) {
             return $this->fail('No se pudieron leer las dimensiones de la imagen.');
@@ -159,7 +163,6 @@ class ImageUploader
         }
 
         // --- Prepare destination ---
-        $ext      = strtolower((string) pathinfo($origName, PATHINFO_EXTENSION));
         $baseName = \bin2hex(\random_bytes(8)) . '_' . time();
         $fileName = $baseName . '.' . $ext;
 
@@ -247,6 +250,17 @@ class ImageUploader
     private function canReencodeMime(string $mime): bool
     {
         return in_array($mime, ['image/jpeg', 'image/png', 'image/webp'], true);
+    }
+
+    private function extensionForMime(string $mime): ?string
+    {
+        return match (strtolower(trim($mime))) {
+            'image/jpeg' => 'jpg',
+            'image/png'  => 'png',
+            'image/gif'  => 'gif',
+            'image/webp' => 'webp',
+            default      => null,
+        };
     }
 
     private function reencodeUploadedImage(string $tmpName, string $destPath, string $mime): bool

@@ -6,6 +6,8 @@ class Request
 {
     private string $method;
     private string $path;
+    private array $query;
+    private array $post;
     private array $params;
     private array $body;
 
@@ -35,7 +37,10 @@ class Request
 
         $this->method = $method;
         $this->path = $path;
-        $this->params = $_REQUEST;
+        $this->query = $_GET;
+        $this->post  = $_POST;
+        // Unifica solo query + post. Evita $_REQUEST para no mezclar cookies.
+        $this->params = array_merge($this->query, $this->post);
 
         $rawBody = (string) file_get_contents('php://input');
         $decoded = json_decode($rawBody, true);
@@ -55,6 +60,16 @@ class Request
     public function getParams(): array
     {
         return $this->params;
+    }
+
+    public function getQueryParams(): array
+    {
+        return $this->query;
+    }
+
+    public function getPostParams(): array
+    {
+        return $this->post;
     }
 
     public function getBody(): array

@@ -688,4 +688,3 @@ $router->post('/{recursos}/{id}/borrar',         {Modulo}Controller::class, 'bor
 | `{TituloSingular}` | Etiqueta singular capitalizada | `Producto` |
 | `{TituloPlural}` | Etiqueta plural capitalizada | `Productos` |
 | `{tituloPlural}` | Etiqueta plural minúscula | `productos` |
-| `{prefix}` | Prefijo DB del `.env` (DB_PREFIX) | `wr_` |
