@@ -11,11 +11,11 @@ class RateLimiter
 
     public function __construct()
     {
-        $this->table        = 'login_attempts';
         $this->maxAttempts  = max(1, (int) ($_ENV['LOGIN_MAX_ATTEMPTS']  ?? 5));
         $this->windowMinutes = max(1, (int) ($_ENV['LOGIN_LOCKOUT_MINUTES'] ?? 15));
 
         $this->db = Database::fromEnv();
+        $this->table = TableNameResolver::resolve($this->db, 'login_attempts');
     }
 
     /**

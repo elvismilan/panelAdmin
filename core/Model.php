@@ -29,7 +29,7 @@ class Model
 
     protected function tableName(string $table): string
     {
-        return trim($table);
+        return TableNameResolver::resolve($this->db, $table);
     }
 
     public function find(int|string $id): array|false {
@@ -197,4 +197,5 @@ class Model
 
         return '%' . $escaped . '%';
     }
+
 }

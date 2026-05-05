@@ -19195,6 +19195,8 @@ body.dark-only .page-wrapper.horizontal-wrapper .page-main-header .main-header-r
   background-color: #111727;
   -webkit-box-shadow: 0 0 18px 3px rgb(42, 50, 61);
           box-shadow: 0 0 18px 3px rgb(42, 50, 61);
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
 }
 body.dark-only .page-wrapper.horizontal-wrapper .page-main-header .main-header-right li i, body.dark-only .compact-wrapper .page-main-header .main-header-right li i {
   color: #e6edef;
@@ -19302,6 +19304,7 @@ body.dark-only .page-wrapper.horizontal-wrapper .page-main-header .main-header-r
 }
 body.dark-only .page-wrapper.horizontal-wrapper .page-main-header .main-header-left, body.dark-only .compact-wrapper .page-main-header .main-header-left {
   background-color: #111727;
+  border-top-left-radius: 20px;
 }
 body.dark-only .page-wrapper.horizontal-wrapper .page-main-header .main-header-left .logo-wrapper a .image-dark, body.dark-only .compact-wrapper .page-main-header .main-header-left .logo-wrapper a .image-dark {
   display: none;

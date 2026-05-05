@@ -73,7 +73,10 @@ class ElementoModel extends Model
     /** All elements for dropdowns (padre selector). */
     public function allForDropdown(): array
     {
-        $sql = "SELECT ele_id, ele_nombre FROM {$this->elementoTable} ORDER BY ele_nombre ASC";
+        $sql = "SELECT ele_id, ele_titulo, ele_padre
+                FROM {$this->elementoTable}
+                WHERE ele_padre IS NULL OR ele_padre = 0
+                ORDER BY ele_titulo ASC, ele_id ASC";
         return $this->db->query($sql)->fetchAll();
     }
 

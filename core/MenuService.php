@@ -12,12 +12,11 @@ class MenuService
 
     public function __construct()
     {
-        $this->tablePermiso = 'permiso';
-        $this->tableElemento = 'elemento';
-        $this->tableGrupo = 'grupo';
-        $this->tableTarea = 'tarea';
-
         $this->db = Database::fromEnv();
+        $this->tablePermiso = TableNameResolver::resolve($this->db, 'permiso');
+        $this->tableElemento = TableNameResolver::resolve($this->db, 'elemento');
+        $this->tableGrupo = TableNameResolver::resolve($this->db, 'grupo');
+        $this->tableTarea = TableNameResolver::resolve($this->db, 'tarea');
     }
 
     public function buildForGroup(string $groupId): array

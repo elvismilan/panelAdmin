@@ -11,8 +11,8 @@ class ActionLogger
 
     public function __construct()
     {
-        $this->logsTable = 'logs';
         $this->db = Database::fromEnv();
+        $this->logsTable = TableNameResolver::resolve($this->db, 'logs');
     }
 
     public function record(array $payload): bool
