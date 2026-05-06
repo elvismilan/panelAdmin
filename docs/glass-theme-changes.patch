@@ -1,0 +1,357 @@
+diff --git a/resources/themes/default/footer-admin.php b/resources/themes/default/footer-admin.php
+index 2f2215a..ef2ef9e 100644
+--- a/resources/themes/default/footer-admin.php
++++ b/resources/themes/default/footer-admin.php
+@@ -118,6 +118,41 @@
+           if ($best.length) {
+             openParents($best);
+           }
++
++          var glassStorageKey = 'admin_glass_theme';
++          var $pageWrapper = $('#pageWrapper');
++          var $glassToggle = $('#glass-theme-toggle');
++
++          function setGlassState(enabled) {
++            $pageWrapper.toggleClass('glass-theme', enabled);
++            $('body').toggleClass('glass-active', enabled);
++            $glassToggle.toggleClass('active', enabled);
++            $glassToggle.attr('title', enabled ? 'Desactivar glass theme' : 'Activar glass theme');
++            $glassToggle.attr('aria-pressed', enabled ? 'true' : 'false');
++          }
++
++          if ($pageWrapper.length && $glassToggle.length) {
++            var storedState = null;
++            try {
++              storedState = window.localStorage.getItem(glassStorageKey);
++            } catch (e) {
++              storedState = null;
++            }
++
++            var isEnabled = storedState !== 'off';
++            setGlassState(isEnabled);
++
++            $glassToggle.on('click', function (event) {
++              event.preventDefault();
++              isEnabled = !$pageWrapper.hasClass('glass-theme');
++              setGlassState(isEnabled);
++              try {
++                window.localStorage.setItem(glassStorageKey, isEnabled ? 'on' : 'off');
++              } catch (e) {
++                // Ignore storage errors (private mode/quota)
++              }
++            });
++          }
+         });
+       })(jQuery);
+     </script>
+diff --git a/resources/themes/default/header-admin.php b/resources/themes/default/header-admin.php
+index e2ffded..b19a42e 100644
+--- a/resources/themes/default/header-admin.php
++++ b/resources/themes/default/header-admin.php
+@@ -47,8 +47,9 @@ $adminGroupName = trim((string) ($user['group_name'] ?? $user['group'] ?? ''));
+     <link id="color" rel="stylesheet" href="<?= htmlspecialchars($adminAssetBase, ENT_QUOTES, 'UTF-8') ?>/css/color-1.css" media="screen">
+     <!-- Responsive css-->
+     <link rel="stylesheet" type="text/css" href="<?= htmlspecialchars($adminAssetBase, ENT_QUOTES, 'UTF-8') ?>/css/responsive.css">
++    <link rel="stylesheet" type="text/css" href="<?= htmlspecialchars($adminAssetBase, ENT_QUOTES, 'UTF-8') ?>/css/glass-admin.css">
+   </head>
+-  <body>
++  <body class="admin-theme">
+     <!-- Loader starts-->
+     <div class="loader-wrapper">
+       <div class="theme-loader">    
+@@ -70,6 +71,15 @@ $adminGroupName = trim((string) ($user['group_name'] ?? $user['group'] ?? ''));
+           <div class="nav-right col pull-right right-menu p-0 box-col-6">
+             <ul class="nav-menus">
+               <li><a class="text-dark" href="#!" onclick="javascript:toggleFullScreen()"><i data-feather="maximize"></i></a></li>
++              <li>
++                <a class="text-dark glass-toggle-btn"
++                   href="#!"
++                   id="glass-theme-toggle"
++                   aria-label="Activar o desactivar glass theme"
++                   title="Glass theme">
++                  <i data-feather="layers"></i>
++                </a>
++              </li>
+               <?= NotificationHelper::renderDropdown() ?>
+               <li>
+                 <div class="mode"><i class="fa fa-moon-o"></i></div>
+@@ -131,4 +141,4 @@ $adminGroupName = trim((string) ($user['group_name'] ?? $user['group'] ?? ''));
+           </nav>
+         </header>
+         <!-- Page Sidebar Ends-->
+-        <div class="page-body">
+\ No newline at end of file
++        <div class="page-body">
+diff --git a/public/assets/theme-one/css/glass-admin.css b/public/assets/theme-one/css/glass-admin.css
+new file mode 100644
+index 0000000..adebea3
+--- /dev/null
++++ b/public/assets/theme-one/css/glass-admin.css
+@@ -0,0 +1,267 @@
++:root {
++  --glass-blur: 16px;
++  --glass-radius: 14px;
++  --glass-border: rgba(255, 255, 255, 0.74);
++  --glass-surface: rgba(255, 255, 255, 0.24);
++  --glass-surface-strong: rgba(255, 255, 255, 0.3);
++  --glass-shadow: 0 14px 30px rgba(23, 43, 36, 0.1);
++  --glass-shadow-soft: 0 8px 20px rgba(23, 43, 36, 0.08);
++  --glass-text: #203233;
++  --glass-muted: #4e6365;
++  --glass-line: rgba(64, 98, 87, 0.16);
++}
++
++body.admin-theme:not(.dark-only) {
++  background: #f5f7fb;
++}
++
++body.admin-theme.dark-only {
++  background: #202938;
++}
++
++body.admin-theme.glass-active:not(.dark-only) {
++  background-image:
++    radial-gradient(circle at top left, rgba(169, 220, 196, 0.11) 0%, rgba(255, 255, 255, 0) 56%),
++    linear-gradient(160deg, rgba(244, 250, 247, 0.24) 0%, rgba(233, 243, 240, 0.12) 100%),
++    url("../images/backgrounds/bg-glass-two.png");
++  background-position: center;
++  background-repeat: no-repeat;
++  background-size: cover;
++  background-attachment: fixed;
++}
++
++body.admin-theme.dark-only.glass-active {
++  background-image:
++    linear-gradient(160deg, rgba(19, 27, 40, 0.72) 0%, rgba(14, 20, 32, 0.82) 100%),
++    url("../images/backgrounds/bg-glass-two.png");
++  background-position: center;
++  background-repeat: no-repeat;
++  background-size: cover;
++  background-attachment: fixed;
++}
++
++body.admin-theme.glass-active .page-wrapper,
++body.admin-theme.glass-active .page-wrapper .page-body-wrapper,
++body.admin-theme.glass-active .page-wrapper .page-body-wrapper .page-body {
++  background-color: transparent;
++}
++
++.glass-toggle-btn {
++  display: inline;
++}
++
++.glass-toggle-btn:hover,
++.glass-toggle-btn:focus {
++  background: transparent;
++}
++
++.glass-toggle-btn.active {
++  background: transparent;
++}
++
++.page-wrapper.glass-theme .page-main-header {
++  background: var(--glass-surface-strong);
++  border-bottom: 1px solid var(--glass-border);
++  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(145%);
++  backdrop-filter: blur(var(--glass-blur)) saturate(145%);
++  box-shadow: var(--glass-shadow-soft);
++}
++
++.page-wrapper.glass-theme .page-main-header .main-header-right .main-header-left {
++  border-right-color: var(--glass-line);
++}
++
++.page-wrapper.glass-theme .page-main-header .main-header-right .nav-right ul li svg path,
++.page-wrapper.glass-theme .page-main-header .main-header-right .toggle-sidebar svg,
++.page-wrapper.glass-theme .page-main-header .main-header-right .nav-right ul li .mode i,
++.page-wrapper.glass-theme .page-main-header .main-header-right .nav-menus > li > a.text-dark,
++.page-wrapper.glass-theme .page-main-header .main-header-right .nav-menus > li > a.text-dark:hover {
++  color: var(--glass-text) !important;
++}
++
++.page-wrapper.glass-theme.compact-wrapper .page-body-wrapper header.main-nav {
++  background: var(--glass-surface-strong);
++  border-right: 1px solid var(--glass-border);
++  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(145%);
++  backdrop-filter: blur(var(--glass-blur)) saturate(145%);
++  box-shadow: 8px 0 20px rgba(31, 63, 50, 0.08);
++}
++
++.page-wrapper.glass-theme.compact-wrapper .page-body-wrapper header.main-nav .sidebar-user,
++.page-wrapper.glass-theme.compact-wrapper .page-body-wrapper header.main-nav .sidebar-main-title > div {
++  border-bottom-color: var(--glass-line);
++}
++
++.page-wrapper.glass-theme.compact-wrapper .page-body-wrapper header.main-nav .sidebar-user h6,
++.page-wrapper.glass-theme.compact-wrapper .page-body-wrapper header.main-nav .sidebar-main-title > div h6,
++.page-wrapper.glass-theme.compact-wrapper .page-body-wrapper header.main-nav .main-navbar .nav-menu li a {
++  color: var(--glass-text);
++}
++
++.page-wrapper.glass-theme.compact-wrapper .page-body-wrapper header.main-nav .sidebar-user p,
++.page-wrapper.glass-theme.compact-wrapper .page-body-wrapper header.main-nav .sidebar-main-title > div p {
++  color: var(--glass-muted);
++}
++
++.page-wrapper.glass-theme .card {
++  background: linear-gradient(145deg, rgba(255, 255, 255, 0.26) 0%, rgba(248, 254, 251, 0.18) 100%);
++  border: 1px solid var(--glass-border);
++  border-radius: var(--glass-radius);
++  box-shadow: var(--glass-shadow);
++  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(145%);
++  backdrop-filter: blur(var(--glass-blur)) saturate(145%);
++}
++
++.page-wrapper.glass-theme .card .card-header {
++  background: transparent;
++}
++
++.page-wrapper.glass-theme .card .card-footer {
++  border-top-color: var(--glass-line);
++}
++
++.page-wrapper.glass-theme .page-header .row h3 {
++  color: var(--glass-text);
++}
++
++.page-wrapper.glass-theme .page-header .breadcrumb li,
++.page-wrapper.glass-theme .page-header .breadcrumb .breadcrumb-item a,
++.page-wrapper.glass-theme .card h1,
++.page-wrapper.glass-theme .card h2,
++.page-wrapper.glass-theme .card h3,
++.page-wrapper.glass-theme .card h4,
++.page-wrapper.glass-theme .card h5,
++.page-wrapper.glass-theme .card h6,
++.page-wrapper.glass-theme .card label,
++.page-wrapper.glass-theme .card .form-label,
++.page-wrapper.glass-theme .card .col-form-label,
++.page-wrapper.glass-theme .card .form-check-label {
++  color: var(--glass-text);
++}
++
++.page-wrapper.glass-theme .card p,
++.page-wrapper.glass-theme .card .text-muted,
++.page-wrapper.glass-theme .table,
++.page-wrapper.glass-theme .table th,
++.page-wrapper.glass-theme .table td {
++  color: var(--glass-muted);
++}
++
++.page-wrapper.glass-theme .page-body .btn:not([class*="btn-outline-"]) {
++  color: #fff;
++}
++
++.page-wrapper.glass-theme .page-body .btn span,
++.page-wrapper.glass-theme .page-body .btn i,
++.page-wrapper.glass-theme .page-body .btn svg {
++  color: inherit;
++}
++
++.page-wrapper.glass-theme .page-body .btn svg path {
++  color: inherit;
++}
++
++.page-wrapper.glass-theme .page-body .btn-light,
++.page-wrapper.glass-theme .page-body .btn-outline-light {
++  color: var(--glass-text);
++}
++
++.page-wrapper.glass-theme .page-body .btn-light {
++  background: rgba(255, 255, 255, 0.68) !important;
++  border: 1px solid rgba(64, 98, 87, 0.24) !important;
++  color: #2f4648 !important;
++}
++
++.page-wrapper.glass-theme .page-body .btn-light:hover,
++.page-wrapper.glass-theme .page-body .btn-light:focus {
++  background: rgba(255, 255, 255, 0.84) !important;
++  border-color: rgba(64, 98, 87, 0.36) !important;
++  color: #203233 !important;
++}
++
++.page-wrapper.glass-theme .page-body .btn[class*="btn-outline-"] {
++  background: rgba(255, 255, 255, 0.34);
++  color: var(--glass-text);
++  border-color: rgba(64, 98, 87, 0.34);
++}
++
++.page-wrapper.glass-theme .page-body .btn-outline-primary {
++  color: #1f5b50;
++  border-color: #2f7568;
++}
++
++.page-wrapper.glass-theme .page-body .btn-outline-secondary {
++  color: #8a6646;
++  border-color: #a47a54;
++}
++
++.page-wrapper.glass-theme .page-body .pagination .page-link {
++  background: rgba(255, 255, 255, 0.28);
++  border-color: rgba(64, 98, 87, 0.18);
++  color: var(--glass-text) !important;
++}
++
++.page-wrapper.glass-theme .page-body .pagination .page-item:hover .page-link {
++  background: rgba(255, 255, 255, 0.44);
++}
++
++.page-wrapper.glass-theme .page-body .pagination .page-item.disabled .page-link {
++  background: rgba(255, 255, 255, 0.18);
++  color: rgba(78, 99, 101, 0.72) !important;
++}
++
++.page-wrapper.glass-theme .page-body .pagination-primary .page-item.active .page-link,
++.page-wrapper.glass-theme .page-body .pagination-theme .page-item.active .page-link {
++  background-color: rgba(36, 105, 92, 0.78) !important;
++  border-color: rgba(36, 105, 92, 0.86) !important;
++  color: #fff !important;
++}
++
++.page-wrapper.glass-theme .table td,
++.page-wrapper.glass-theme .table th {
++  border-color: rgba(64, 98, 87, 0.14);
++}
++
++.page-wrapper.glass-theme .form-control,
++.page-wrapper.glass-theme .form-select,
++.page-wrapper.glass-theme .select2-selection,
++.page-wrapper.glass-theme .choices__inner {
++  background: rgba(255, 255, 255, 0.38);
++  border-color: rgba(64, 98, 87, 0.2);
++  color: var(--glass-text);
++}
++
++.page-wrapper.glass-theme .form-control::placeholder {
++  color: rgba(78, 99, 101, 0.88);
++}
++
++.page-wrapper.glass-theme .footer {
++  background: rgba(255, 255, 255, 0.24);
++  border-top: 1px solid var(--glass-border);
++  -webkit-backdrop-filter: blur(calc(var(--glass-blur) * 0.75)) saturate(140%);
++  backdrop-filter: blur(calc(var(--glass-blur) * 0.75)) saturate(140%);
++}
++
++.page-wrapper.glass-theme .footer p {
++  color: var(--glass-muted);
++}
++
++@supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
++  .page-wrapper.glass-theme .page-main-header,
++  .page-wrapper.glass-theme.compact-wrapper .page-body-wrapper header.main-nav,
++  .page-wrapper.glass-theme .card,
++  .page-wrapper.glass-theme .footer {
++    background: rgba(245, 250, 247, 0.94);
++  }
++}
++
++@media (max-width: 991px) {
++  body.admin-theme.glass-active:not(.dark-only),
++  body.admin-theme.dark-only.glass-active {
++    background-attachment: scroll;
++  }
++
++  .page-wrapper.glass-theme.compact-wrapper .page-body-wrapper header.main-nav {
++    top: 76px;
++  }
++}

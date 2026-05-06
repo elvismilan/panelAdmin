@@ -118,6 +118,41 @@
           if ($best.length) {
             openParents($best);
           }
+
+          var glassStorageKey = 'admin_glass_theme';
+          var $pageWrapper = $('#pageWrapper');
+          var $glassToggle = $('#glass-theme-toggle');
+
+          function setGlassState(enabled) {
+            $pageWrapper.toggleClass('glass-theme', enabled);
+            $('body').toggleClass('glass-active', enabled);
+            $glassToggle.toggleClass('active', enabled);
+            $glassToggle.attr('title', enabled ? 'Desactivar glass theme' : 'Activar glass theme');
+            $glassToggle.attr('aria-pressed', enabled ? 'true' : 'false');
+          }
+
+          if ($pageWrapper.length && $glassToggle.length) {
+            var storedState = null;
+            try {
+              storedState = window.localStorage.getItem(glassStorageKey);
+            } catch (e) {
+              storedState = null;
+            }
+
+            var isEnabled = storedState !== 'off';
+            setGlassState(isEnabled);
+
+            $glassToggle.on('click', function (event) {
+              event.preventDefault();
+              isEnabled = !$pageWrapper.hasClass('glass-theme');
+              setGlassState(isEnabled);
+              try {
+                window.localStorage.setItem(glassStorageKey, isEnabled ? 'on' : 'off');
+              } catch (e) {
+                // Ignore storage errors (private mode/quota)
+              }
+            });
+          }
         });
       })(jQuery);
     </script>
