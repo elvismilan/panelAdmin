@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Core\Model;
+use Throwable;
 
 class GrupoModel extends Model
 {
@@ -47,8 +48,9 @@ class GrupoModel extends Model
 
         $stmt = $this->db->getConnection()->prepare($sql);
         if ($search !== '') {
-            $stmt->bindValue(':search1', '%' . $search . '%', \PDO::PARAM_STR);
-            $stmt->bindValue(':search2', '%' . $search . '%', \PDO::PARAM_STR);
+            $pattern = $this->likePattern($search);
+            $stmt->bindValue(':search1', $pattern, \PDO::PARAM_STR);
+            $stmt->bindValue(':search2', $pattern, \PDO::PARAM_STR);
         }
         $stmt->bindValue(':limit', max(1, $limit), \PDO::PARAM_INT);
         $stmt->bindValue(':offset', max(0, $offset), \PDO::PARAM_INT);
@@ -64,8 +66,9 @@ class GrupoModel extends Model
 
         if ($search !== '') {
             $sql .= " WHERE gru_id LIKE :search1 OR gru_descripcion LIKE :search2";
-            $params['search1'] = '%' . $search . '%';
-            $params['search2'] = '%' . $search . '%';
+            $pattern = $this->likePattern($search);
+            $params['search1'] = $pattern;
+            $params['search2'] = $pattern;
         }
 
         $row = $this->db->query($sql, $params)->fetch();
@@ -99,6 +102,27 @@ class GrupoModel extends Model
         ]);
     }
 
+    /**
+     * Crea grupo y sincroniza permisos en una sola transaccion.
+     *
+     * @param string[] $permisos
+     */
+    public function createGrupoWithPermisos(array $data, array $permisos): string
+    {
+        $this->db->beginTransaction();
+
+        try {
+            $gruId = $this->createGrupo($data);
+            $this->syncPermisosInternal($gruId, $permisos);
+            $this->db->commit();
+
+            return $gruId;
+        } catch (Throwable $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
+    }
+
     public function updateGrupo(string $id, array $data): bool
     {
         return $this->update($id, [
@@ -107,9 +131,49 @@ class GrupoModel extends Model
         ]);
     }
 
+    /**
+     * Actualiza grupo y sincroniza permisos en una sola transaccion.
+     *
+     * @param string[] $permisos
+     */
+    public function updateGrupoWithPermisos(string $id, array $data, array $permisos): bool
+    {
+        $this->db->beginTransaction();
+
+        try {
+            $result = $this->updateGrupo($id, $data);
+            $this->syncPermisosInternal($id, $permisos);
+            $this->db->commit();
+
+            return $result;
+        } catch (Throwable $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
+    }
+
     public function deleteGrupo(string $id): bool
     {
         return $this->delete($id);
+    }
+
+    /**
+     * Elimina permisos y grupo en una sola transaccion.
+     */
+    public function deleteGrupoWithPermisos(string $id): bool
+    {
+        $this->db->beginTransaction();
+
+        try {
+            $this->syncPermisosInternal($id, []);
+            $result = $this->deleteGrupo($id);
+            $this->db->commit();
+
+            return $result;
+        } catch (Throwable $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -200,41 +264,48 @@ class GrupoModel extends Model
      */
     public function syncPermisos(string $grupoId, array $permisos): void
     {
-        $conn = $this->db->getConnection();
-        $conn->beginTransaction();
+        $this->db->beginTransaction();
 
         try {
-            $del = $conn->prepare("DELETE FROM {$this->permisoTable} WHERE pmo_gru_id = :gru_id");
-            $del->bindValue(':gru_id', $grupoId, \PDO::PARAM_STR);
-            $del->execute();
+            $this->syncPermisosInternal($grupoId, $permisos);
+            $this->db->commit();
+        } catch (Throwable $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
+    }
 
-            if (!empty($permisos)) {
-                $ins = $conn->prepare(
-                    "INSERT INTO {$this->permisoTable} (pmo_ele_id, pmo_tar_id, pmo_gru_id)
-                     VALUES (:ele_id, :tar_id, :gru_id)"
-                );
+    /**
+     * @param string[] $permisos
+     */
+    private function syncPermisosInternal(string $grupoId, array $permisos): void
+    {
+        $this->db->query(
+            "DELETE FROM {$this->permisoTable} WHERE pmo_gru_id = :gru_id",
+            ['gru_id' => $grupoId]
+        );
 
-                foreach ($permisos as $pair) {
-                    $parts = explode(':', (string) $pair, 2);
-                    if (count($parts) !== 2) {
-                        continue;
-                    }
-                    $eleId = (int) $parts[0];
-                    $tarId = (int) $parts[1];
-                    if ($eleId <= 0 || $tarId <= 0) {
-                        continue;
-                    }
-                    $ins->bindValue(':ele_id', $eleId, \PDO::PARAM_INT);
-                    $ins->bindValue(':tar_id', $tarId, \PDO::PARAM_INT);
-                    $ins->bindValue(':gru_id', $grupoId, \PDO::PARAM_STR);
-                    $ins->execute();
-                }
+        foreach ($permisos as $pair) {
+            $parts = explode(':', (string) $pair, 2);
+            if (count($parts) !== 2) {
+                continue;
             }
 
-            $conn->commit();
-        } catch (\Throwable $e) {
-            $conn->rollBack();
-            throw $e;
+            $eleId = (int) $parts[0];
+            $tarId = (int) $parts[1];
+            if ($eleId <= 0 || $tarId <= 0) {
+                continue;
+            }
+
+            $this->db->query(
+                "INSERT INTO {$this->permisoTable} (pmo_ele_id, pmo_tar_id, pmo_gru_id)
+                 VALUES (:ele_id, :tar_id, :gru_id)",
+                [
+                    'ele_id' => $eleId,
+                    'tar_id' => $tarId,
+                    'gru_id' => $grupoId,
+                ]
+            );
         }
     }
 }

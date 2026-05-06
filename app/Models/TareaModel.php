@@ -34,7 +34,7 @@ class TareaModel extends Model
 
         $stmt = $this->db->getConnection()->prepare($sql);
         if ($search !== '') {
-            $stmt->bindValue(':search', '%' . $search . '%', \PDO::PARAM_STR);
+            $stmt->bindValue(':search', $this->likePattern($search), \PDO::PARAM_STR);
         }
         $stmt->bindValue(':limit', max(1, $limit), \PDO::PARAM_INT);
         $stmt->bindValue(':offset', max(0, $offset), \PDO::PARAM_INT);
@@ -50,7 +50,7 @@ class TareaModel extends Model
 
         if ($search !== '') {
             $sql .= " WHERE tar_nombre LIKE :search";
-            $params['search'] = '%' . $search . '%';
+            $params['search'] = $this->likePattern($search);
         }
 
         $row = $this->db->query($sql, $params)->fetch();

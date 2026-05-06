@@ -15,7 +15,7 @@
                     <form method="post" action="<?= htmlspecialchars(\Core\Url::to('/modulos/' . urlencode((string) ($elementoId ?? '')) . '/actualizar'), ENT_QUOTES, 'UTF-8') ?>">
                         <?= $csrfField ?>
                         <div class="row g-3">
-                            <div class="col-md-7">
+                            <div class="col-md-8">
                                 <div class="row g-2">
                                     <div class="col-md-6 mb-3">
                                         <label for="ele_nombre" class="form-label">Nombre <span class="text-danger">*</span></label>
@@ -60,7 +60,7 @@
                                                 ?>
                                                     <option value="<?= htmlspecialchars($padreId, ENT_QUOTES, 'UTF-8') ?>"
                                                         <?= $padreActual === $padreId ? 'selected' : '' ?>>
-                                                        <?= htmlspecialchars((string) ($padre['ele_nombre'] ?? ''), ENT_QUOTES, 'UTF-8') ?>
+                                                        <?= htmlspecialchars((string) ($padre['ele_titulo'] ?? ''), ENT_QUOTES, 'UTF-8') ?>
                                                     </option>
                                                 <?php endforeach; ?>
                                             </select>
@@ -68,38 +68,21 @@
                                     </div>
                                 </div>
                                 <div class="row g-2">
-                                    <div class="col-md-6 mb-3">
+                                    <div class="col-12 mb-3">
+                                        <?php
+                                        $iconActual = (string) ($form['ele_icono'] ?? '');
+                                        include dirname(__DIR__) . '/components/icon-picker.php';
+                                        ?>
+                                    </div>
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col-md-4 mb-3">
                                         <label for="ele_orden" class="form-label">Orden</label>
                                         <input id="ele_orden" class="form-control" type="number" name="ele_orden"
                                             min="0"
                                             value="<?= htmlspecialchars((string) ($form['ele_orden'] ?? ''), ENT_QUOTES, 'UTF-8') ?>">
                                     </div>
-                                    <div class="col-md-6 mb-3">
-                                        <div id="grupo_icono">
-                                            <label for="ele_icono" class="form-label">Icono</label>
-                                            <select id="ele_icono" class="form-select" name="ele_icono">
-                                                <option value="">-- Sin icono --</option>
-                                                <?php
-                                                $iconActual = (string) ($form['ele_icono'] ?? '');
-                                                foreach (($iconOptions ?? []) as $opt):
-                                                    $optValue = (string) ($opt['value'] ?? '');
-                                                    $optLabel = (string) ($opt['label'] ?? $optValue);
-                                                ?>
-                                                    <option value="<?= htmlspecialchars($optValue, ENT_QUOTES, 'UTF-8') ?>"
-                                                        <?= $iconActual === $optValue ? 'selected' : '' ?>>
-                                                        <?= htmlspecialchars($optLabel, ENT_QUOTES, 'UTF-8') ?> (<?= htmlspecialchars($optValue, ENT_QUOTES, 'UTF-8') ?>)
-                                                    </option>
-                                                <?php endforeach; ?>
-                                            </select>
-                                            <div class="form-text">
-                                                Vista previa:
-                                                <i id="preview_ele_icono" class="<?= htmlspecialchars($iconActual !== '' ? $iconActual : 'fa fa-circle-o', ENT_QUOTES, 'UTF-8') ?> ms-1" aria-hidden="true"></i>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row g-2">
-                                    <div class="col-md-6 mb-3">
+                                    <div class="col-md-4 mb-3">
                                         <label for="ele_estado" class="form-label">Estado <span class="text-danger">*</span></label>
                                         <select id="ele_estado" class="form-select" name="ele_estado">
                                             <?php
@@ -114,7 +97,7 @@
                                             <?php endforeach; ?>
                                         </select>
                                     </div>
-                                    <div class="col-md-6 mb-3">
+                                    <div class="col-md-4 mb-3">
                                         <label for="ele_tarea" class="form-label">Tarea por defecto <span class="text-danger">*</span></label>
                                         <input id="ele_tarea" class="form-control" type="text" name="ele_tarea"
                                             maxlength="100"
@@ -122,7 +105,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-5">
+                            <div class="col-md-4">
                                 <label class="form-label d-block">Tareas</label>
                                 <div class="table-responsive" style="max-height: 430px; overflow-y: auto;">
                                     <table class="table table-sm table-bordered table-hover align-middle mb-0">
@@ -175,25 +158,17 @@
                             var tipoSelect = document.getElementById('ele_tipo');
                             var grupoIcono = document.getElementById('grupo_icono');
                             var grupoPadre = document.getElementById('grupo_padre');
+                            var padreSelect = document.getElementById('ele_padre');
                             function toggleExtras() {
-                                var show = tipoSelect.value === 'M';
-                                grupoIcono.style.display = show ? '' : 'none';
-                                grupoPadre.style.display = show ? '' : 'none';
+                                var tipo = tipoSelect.value;
+                                grupoIcono.style.display = (tipo === 'M') ? '' : 'none';
+                                grupoPadre.style.display = (tipo === 'S') ? '' : 'none';
+                                if (tipo !== 'S' && padreSelect) {
+                                    padreSelect.value = '';
+                                }
                             }
                             tipoSelect.addEventListener('change', toggleExtras);
                             toggleExtras();
-
-                            var iconSelect = document.getElementById('ele_icono');
-                            var iconPreview = document.getElementById('preview_ele_icono');
-                            function updateIconPreview() {
-                                if (!iconSelect || !iconPreview) return;
-                                var selected = iconSelect.value.trim();
-                                iconPreview.className = (selected !== '' ? selected : 'fa fa-circle-o') + ' ms-1';
-                            }
-                            if (iconSelect) {
-                                iconSelect.addEventListener('change', updateIconPreview);
-                                updateIconPreview();
-                            }
 
                             var checkAll = document.getElementById('checkAllTareas');
                             checkAll.addEventListener('change', function () {

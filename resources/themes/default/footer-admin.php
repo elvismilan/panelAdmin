@@ -26,6 +26,136 @@
     <!-- Sidebar jquery-->
     <script src="<?= htmlspecialchars($adminAssetBase, ENT_QUOTES, 'UTF-8') ?>/js/config.js"></script>
     <script src="<?= htmlspecialchars($adminAssetBase, ENT_QUOTES, 'UTF-8') ?>/js/sidebar-menu.js"></script>
+    <script>
+      (function ($) {
+        'use strict';
+
+        function normalizePath(path) {
+          if (!path) return '/';
+          var clean = path.split('?')[0].split('#')[0].trim();
+          if (clean === '') return '/';
+          if (clean.length > 1 && clean.endsWith('/')) {
+            clean = clean.slice(0, -1);
+          }
+          return clean;
+        }
+
+        function hrefToPath(href) {
+          if (!href) return '';
+          var value = href.trim();
+          if (
+            value === '' ||
+            value === '#' ||
+            value.indexOf('javascript:') === 0 ||
+            value.indexOf('mailto:') === 0 ||
+            value.indexOf('tel:') === 0
+          ) {
+            return '';
+          }
+
+          if (/^https?:\/\//i.test(value)) {
+            try {
+              var url = new URL(value, window.location.origin);
+              if (url.origin !== window.location.origin) return '';
+              return normalizePath(url.pathname);
+            } catch (e) {
+              return '';
+            }
+          }
+
+          if (value.indexOf('/') !== 0) {
+            value = '/' + value;
+          }
+          return normalizePath(value);
+        }
+
+        function matchesPath(currentPath, linkPath) {
+          if (!linkPath) return false;
+          return currentPath === linkPath || currentPath.indexOf(linkPath + '/') === 0;
+        }
+
+        function markExpanded($anchor) {
+          if (!$anchor || !$anchor.length) return;
+          $anchor.addClass('active');
+
+          var $arrow = $anchor.find('.according-menu i');
+          if ($arrow.length) {
+            $arrow.removeClass('fa-angle-right').addClass('fa-angle-down');
+          }
+        }
+
+        function openParents($link) {
+          if (!$link || !$link.length) return;
+          $link.addClass('active');
+
+          $link.parents('ul.menu-content, ul.submenu-content').each(function () {
+            $(this).css('display', 'block');
+          });
+
+          $link.parents('li').each(function () {
+            var $li = $(this);
+            markExpanded($li.children('a.menu-title'));
+            markExpanded($li.children('a.submenu-title'));
+          });
+        }
+
+        $(function () {
+          var currentPath = normalizePath(window.location.pathname);
+          var $links = $('.main-navbar ul a[href]');
+          var $best = $();
+          var bestLen = -1;
+
+          $links.each(function () {
+            var $link = $(this);
+            var linkPath = hrefToPath($link.attr('href'));
+            if (!matchesPath(currentPath, linkPath)) return;
+            if (linkPath.length > bestLen) {
+              bestLen = linkPath.length;
+              $best = $link;
+            }
+          });
+
+          if ($best.length) {
+            openParents($best);
+          }
+
+          var glassStorageKey = 'admin_glass_theme';
+          var $pageWrapper = $('#pageWrapper');
+          var $glassToggle = $('#glass-theme-toggle');
+
+          function setGlassState(enabled) {
+            $pageWrapper.toggleClass('glass-theme', enabled);
+            $('body').toggleClass('glass-active', enabled);
+            $glassToggle.toggleClass('active', enabled);
+            $glassToggle.attr('title', enabled ? 'Desactivar glass theme' : 'Activar glass theme');
+            $glassToggle.attr('aria-pressed', enabled ? 'true' : 'false');
+          }
+
+          if ($pageWrapper.length && $glassToggle.length) {
+            var storedState = null;
+            try {
+              storedState = window.localStorage.getItem(glassStorageKey);
+            } catch (e) {
+              storedState = null;
+            }
+
+            var isEnabled = storedState !== 'off';
+            setGlassState(isEnabled);
+
+            $glassToggle.on('click', function (event) {
+              event.preventDefault();
+              isEnabled = !$pageWrapper.hasClass('glass-theme');
+              setGlassState(isEnabled);
+              try {
+                window.localStorage.setItem(glassStorageKey, isEnabled ? 'on' : 'off');
+              } catch (e) {
+                // Ignore storage errors (private mode/quota)
+              }
+            });
+          }
+        });
+      })(jQuery);
+    </script>
     <!-- Bootstrap js-->
     <script src="<?= htmlspecialchars($adminAssetBase, ENT_QUOTES, 'UTF-8') ?>/js/bootstrap/popper.min.js"></script>
     <script src="<?= htmlspecialchars($adminAssetBase, ENT_QUOTES, 'UTF-8') ?>/js/bootstrap/bootstrap.min.js"></script>

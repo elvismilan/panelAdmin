@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Core\Model;
+use Throwable;
 
 class ElementoModel extends Model
 {
@@ -31,8 +32,9 @@ class ElementoModel extends Model
 
         $stmt = $this->db->getConnection()->prepare($sql);
         if ($search !== '') {
-            $stmt->bindValue(':search1', '%' . $search . '%', \PDO::PARAM_STR);
-            $stmt->bindValue(':search2', '%' . $search . '%', \PDO::PARAM_STR);
+            $pattern = $this->likePattern($search);
+            $stmt->bindValue(':search1', $pattern, \PDO::PARAM_STR);
+            $stmt->bindValue(':search2', $pattern, \PDO::PARAM_STR);
         }
         $stmt->bindValue(':limit', max(1, $limit), \PDO::PARAM_INT);
         $stmt->bindValue(':offset', max(0, $offset), \PDO::PARAM_INT);
@@ -48,8 +50,9 @@ class ElementoModel extends Model
 
         if ($search !== '') {
             $sql .= " WHERE ele_nombre LIKE :search1 OR ele_titulo LIKE :search2";
-            $params['search1'] = '%' . $search . '%';
-            $params['search2'] = '%' . $search . '%';
+            $pattern = $this->likePattern($search);
+            $params['search1'] = $pattern;
+            $params['search2'] = $pattern;
         }
 
         $row = $this->db->query($sql, $params)->fetch();
@@ -70,7 +73,10 @@ class ElementoModel extends Model
     /** All elements for dropdowns (padre selector). */
     public function allForDropdown(): array
     {
-        $sql = "SELECT ele_id, ele_nombre FROM {$this->elementoTable} ORDER BY ele_nombre ASC";
+        $sql = "SELECT ele_id, ele_titulo, ele_padre
+                FROM {$this->elementoTable}
+                WHERE ele_padre IS NULL OR ele_padre = 0
+                ORDER BY ele_titulo ASC, ele_id ASC";
         return $this->db->query($sql)->fetchAll();
     }
 
@@ -91,47 +97,74 @@ class ElementoModel extends Model
 
     public function createElemento(array $data, array $tareaIds = []): string
     {
-        $eleId = $this->create([
-            'ele_nombre' => (string) ($data['ele_nombre'] ?? ''),
-            'ele_titulo'  => (string) ($data['ele_titulo'] ?? ''),
-            'ele_estado'  => (string) ($data['ele_estado'] ?? 'H'),
-            'ele_icono'   => ($data['ele_icono'] ?? '') !== '' ? (string) $data['ele_icono'] : null,
-            'ele_orden'   => ($data['ele_orden'] ?? '') !== '' ? (int) $data['ele_orden'] : null,
-            'ele_tipo'    => (string) ($data['ele_tipo'] ?? 'M'),
-            'ele_padre'   => ($data['ele_padre'] ?? '') !== '' ? (int) $data['ele_padre'] : null,
-            'ele_tarea'   => (string) ($data['ele_tarea'] ?? 'ACCEDER'),
-        ]);
+        $this->db->beginTransaction();
 
-        $this->syncTareas($eleId, $tareaIds);
+        try {
+            $eleId = $this->create([
+                'ele_nombre' => (string) ($data['ele_nombre'] ?? ''),
+                'ele_titulo'  => (string) ($data['ele_titulo'] ?? ''),
+                'ele_estado'  => (string) ($data['ele_estado'] ?? 'H'),
+                'ele_icono'   => ($data['ele_icono'] ?? '') !== '' ? (string) $data['ele_icono'] : null,
+                'ele_orden'   => ($data['ele_orden'] ?? '') !== '' ? (int) $data['ele_orden'] : null,
+                'ele_tipo'    => (string) ($data['ele_tipo'] ?? 'M'),
+                'ele_padre'   => ($data['ele_padre'] ?? '') !== '' ? (int) $data['ele_padre'] : null,
+                'ele_tarea'   => (string) ($data['ele_tarea'] ?? 'ACCEDER'),
+            ]);
 
-        return $eleId;
+            $this->syncTareas($eleId, $tareaIds);
+            $this->db->commit();
+
+            return $eleId;
+        } catch (Throwable $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
     }
 
     public function updateElemento(string $id, array $data, array $tareaIds = []): bool
     {
-        $this->update($id, [
-            'ele_nombre' => (string) ($data['ele_nombre'] ?? ''),
-            'ele_titulo'  => (string) ($data['ele_titulo'] ?? ''),
-            'ele_estado'  => (string) ($data['ele_estado'] ?? 'H'),
-            'ele_icono'   => ($data['ele_icono'] ?? '') !== '' ? (string) $data['ele_icono'] : null,
-            'ele_orden'   => ($data['ele_orden'] ?? '') !== '' ? (int) $data['ele_orden'] : null,
-            'ele_tipo'    => (string) ($data['ele_tipo'] ?? 'M'),
-            'ele_padre'   => ($data['ele_padre'] ?? '') !== '' ? (int) $data['ele_padre'] : null,
-            'ele_tarea'   => (string) ($data['ele_tarea'] ?? 'ACCEDER'),
-        ]);
+        $this->db->beginTransaction();
 
-        $this->syncTareas($id, $tareaIds);
+        try {
+            $this->update($id, [
+                'ele_nombre' => (string) ($data['ele_nombre'] ?? ''),
+                'ele_titulo'  => (string) ($data['ele_titulo'] ?? ''),
+                'ele_estado'  => (string) ($data['ele_estado'] ?? 'H'),
+                'ele_icono'   => ($data['ele_icono'] ?? '') !== '' ? (string) $data['ele_icono'] : null,
+                'ele_orden'   => ($data['ele_orden'] ?? '') !== '' ? (int) $data['ele_orden'] : null,
+                'ele_tipo'    => (string) ($data['ele_tipo'] ?? 'M'),
+                'ele_padre'   => ($data['ele_padre'] ?? '') !== '' ? (int) $data['ele_padre'] : null,
+                'ele_tarea'   => (string) ($data['ele_tarea'] ?? 'ACCEDER'),
+            ]);
 
-        return true;
+            $this->syncTareas($id, $tareaIds);
+            $this->db->commit();
+
+            return true;
+        } catch (Throwable $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
     }
 
     public function deleteElemento(string $id): bool
     {
-        $this->db->query(
-            "DELETE FROM {$this->elementoTareaTable} WHERE eta_ele_id = :id",
-            ['id' => $id]
-        );
-        return $this->delete($id);
+        $this->db->beginTransaction();
+
+        try {
+            $this->db->query(
+                "DELETE FROM {$this->elementoTareaTable} WHERE eta_ele_id = :id",
+                ['id' => $id]
+            );
+
+            $result = $this->delete($id);
+            $this->db->commit();
+
+            return $result;
+        } catch (Throwable $e) {
+            $this->db->rollBack();
+            throw $e;
+        }
     }
 
     public function existsByNombre(string $nombre, ?string $excludeId = null): bool

@@ -169,6 +169,7 @@ class UsuarioController extends Controller
         $hasPersonaLinked = trim((string) ($params['usu_per_id'] ?? '')) !== '';
         $email            = $hasPersonaLinked ? $model->getPersonaEmail($usuId) : null;
         $resetLinkSent    = false;
+        $normalizedEmail  = $email !== null ? strtolower(trim((string) $email)) : '';
 
         if ($email !== null) {
             try {
@@ -177,7 +178,6 @@ class UsuarioController extends Controller
                     ((string) ($persona['per_nombre'] ?? '')) . ' ' .
                     ((string) ($persona['per_apellido'] ?? ''))
                 );
-                $normalizedEmail = strtolower(trim((string) $email));
 
                 $resetModel = new PasswordResetModel();
                 $token      = $resetModel->createToken($normalizedEmail);
@@ -202,9 +202,9 @@ class UsuarioController extends Controller
                 );
                 $resetLinkSent = true;
             } catch (MailerException $e) {
-                error_log(LogMessages::usuarioGuardarMailerError($e));
+                error_log(LogMessages::usuarioGuardarMailerErrorForRecipient($e, $normalizedEmail));
             } catch (Throwable $e) {
-                error_log(LogMessages::usuarioGuardarError($e));
+                error_log(LogMessages::usuarioGuardarErrorForRecipient($e, $normalizedEmail));
             }
         }
 

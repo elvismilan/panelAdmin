@@ -1,6 +1,6 @@
 # PanelAdmin Template
 
-Plantilla base MVC en PHP 8 para hosting compartido, con autenticacion sobre tablas `wr_*`, permisos por `wr_elemento` + `wr_grupo`, y registro de acciones en `wr_logs`.
+Plantilla base MVC en PHP 8 para hosting compartido, con autenticacion sobre tablas reales (`usuario`, `persona`), permisos por `elemento` + `grupo`, y registro de acciones en `logs`.
 
 ## Requisitos
 
@@ -26,14 +26,14 @@ Plantilla base MVC en PHP 8 para hosting compartido, con autenticacion sobre tab
 
 4. Crear/importar tu propia base de datos segun el cliente.
 
-5. Configurar tablas base de autenticacion y permisos con prefijo `wr_`:
+5. Configurar tablas base de autenticacion y permisos:
 
-- `wr_usuario`
-- `wr_persona`
-- `wr_grupo`
-- `wr_elemento`
-- `wr_permiso`
-- `wr_logs`
+- `usuario`
+- `persona`
+- `grupo`
+- `elemento`
+- `permiso`
+- `logs`
 
 ## Estructura base
 
@@ -58,10 +58,11 @@ Variables de entorno recomendadas:
 
 ## Seguridad y logs
 
-- Login principal con `wr_usuario` y `wr_persona`
-- Fallback opcional por variables `AUTH_USERNAME` y `AUTH_PASSWORD`
-- Permisos por grupo/elemento desde `wr_permiso`
-- Log de acciones en `wr_logs` mediante `logAction()` del controlador base
+- Login principal con `usuario` y `persona`
+- Autenticacion solo contra base de datos (sin fallback por credenciales en `.env`)
+- Compatibilidad opcional con hash legacy via `AUTH_LEGACY_ALGO` y `AUTH_LEGACY_SALT`
+- Permisos por grupo/elemento desde `permiso`
+- Log de acciones en `logs` mediante `logAction()` del controlador base
 
 ## Deploy en hosting compartido
 

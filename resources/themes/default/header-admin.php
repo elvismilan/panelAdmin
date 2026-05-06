@@ -47,8 +47,9 @@ $adminGroupName = trim((string) ($user['group_name'] ?? $user['group'] ?? ''));
     <link id="color" rel="stylesheet" href="<?= htmlspecialchars($adminAssetBase, ENT_QUOTES, 'UTF-8') ?>/css/color-1.css" media="screen">
     <!-- Responsive css-->
     <link rel="stylesheet" type="text/css" href="<?= htmlspecialchars($adminAssetBase, ENT_QUOTES, 'UTF-8') ?>/css/responsive.css">
+    <link rel="stylesheet" type="text/css" href="<?= htmlspecialchars($adminAssetBase, ENT_QUOTES, 'UTF-8') ?>/css/glass-admin.css">
   </head>
-  <body>
+  <body class="admin-theme">
     <!-- Loader starts-->
     <div class="loader-wrapper">
       <div class="theme-loader">    
@@ -70,6 +71,15 @@ $adminGroupName = trim((string) ($user['group_name'] ?? $user['group'] ?? ''));
           <div class="nav-right col pull-right right-menu p-0 box-col-6">
             <ul class="nav-menus">
               <li><a class="text-dark" href="#!" onclick="javascript:toggleFullScreen()"><i data-feather="maximize"></i></a></li>
+              <li>
+                <a class="text-dark glass-toggle-btn"
+                   href="#!"
+                   id="glass-theme-toggle"
+                   aria-label="Activar o desactivar glass theme"
+                   title="Glass theme">
+                  <i data-feather="layers"></i>
+                </a>
+              </li>
               <?= NotificationHelper::renderDropdown() ?>
               <li>
                 <div class="mode"><i class="fa fa-moon-o"></i></div>

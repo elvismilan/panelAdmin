@@ -216,4 +216,5 @@ class PasswordResetModel extends Model
             throw $e;
         }
     }
+
 }

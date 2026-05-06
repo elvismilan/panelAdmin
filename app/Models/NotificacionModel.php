@@ -112,7 +112,7 @@ class NotificacionModel extends Model
 
         if ($search !== '') {
             $conditions[] = '(noti_titulo LIKE :search OR noti_usu_origen LIKE :search)';
-            $params['search'] = '%' . $search . '%';
+            $params['search'] = $this->likePattern($search);
         }
 
         if ($modulo !== '') {

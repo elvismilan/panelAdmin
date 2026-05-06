@@ -11,9 +11,8 @@ class ActionLogger
 
     public function __construct()
     {
-        $prefix = (string) ($_ENV['DB_PREFIX'] ?? 'wr_');
-        $this->logsTable = $prefix . 'logs';
         $this->db = Database::fromEnv();
+        $this->logsTable = TableNameResolver::resolve($this->db, 'logs');
     }
 
     public function record(array $payload): bool

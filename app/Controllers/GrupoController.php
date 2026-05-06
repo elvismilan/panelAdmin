@@ -7,6 +7,7 @@ use Core\Auth;
 use Core\Controller;
 use Core\FlashMessages;
 use Core\LogMessages;
+use Core\NotificacionService;
 use Core\UiMessages;
 use Core\ValidationMessages;
 use Core\Validator;
@@ -149,12 +150,10 @@ class GrupoController extends Controller
         }
 
         try {
-            $model->createGrupo($params);
-            $this->logAction($model->getLastActionLog(), 'CREATE');
-
-            // Sincronizar permisos
             $permisos = $this->parsePermisos($params);
-            $model->syncPermisos($gruId, $permisos);
+            $model->createGrupoWithPermisos($params, $permisos);
+            $this->logAction($model->getLastActionLog(), 'CREATE');
+            NotificacionService::registrar('grupos', 'CREATE', (string) (Auth::user()['id'] ?? 'ANON'), $gruId);
 
             $this->logAction(
                 "SYNC_PERMISOS grupo={$gruId} pares=[" . implode(',', $permisos) . ']',
@@ -257,12 +256,10 @@ class GrupoController extends Controller
         }
 
         try {
-            $model->updateGrupo($id, $params);
-            $this->logAction($model->getLastActionLog(), 'UPDATE');
-
-            // Sincronizar permisos
             $permisos = $this->parsePermisos($params);
-            $model->syncPermisos($id, $permisos);
+            $model->updateGrupoWithPermisos($id, $params, $permisos);
+            $this->logAction($model->getLastActionLog(), 'UPDATE');
+            NotificacionService::registrar('grupos', 'UPDATE', (string) (Auth::user()['id'] ?? 'ANON'), $id);
 
             $this->logAction(
                 "SYNC_PERMISOS grupo={$id} pares=[" . implode(',', $permisos) . ']',
@@ -336,12 +333,10 @@ class GrupoController extends Controller
         }
 
         try {
-            // Eliminar permisos primero (FK)
-            $model->syncPermisos($id, []);
+            $model->deleteGrupoWithPermisos($id);
             $this->logAction("DELETE_PERMISOS grupo={$id}", 'DELETE');
-
-            $model->deleteGrupo($id);
             $this->logAction($model->getLastActionLog(), 'DELETE');
+            NotificacionService::registrar('grupos', 'DELETE', (string) (Auth::user()['id'] ?? 'ANON'), $id);
         } catch (Throwable $e) {
             error_log(LogMessages::grupoBorrarError($e));
             $this->flashError(FlashMessages::GRUPO_DELETE_ERROR);

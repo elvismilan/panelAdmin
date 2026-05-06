@@ -94,6 +94,9 @@ class ElementoController extends Controller
 
         $model = new ElementoModel();
         $params = $this->request->getParams();
+        if ((string) ($params['ele_tipo'] ?? '') !== 'S') {
+            $params['ele_padre'] = '';
+        }
         $tareaIds = isset($params['tareas']) && is_array($params['tareas']) ? $params['tareas'] : [];
 
         $validator = Validator::make($params, [
@@ -207,6 +210,9 @@ class ElementoController extends Controller
         }
 
         $params = $this->request->getParams();
+        if ((string) ($params['ele_tipo'] ?? '') !== 'S') {
+            $params['ele_padre'] = '';
+        }
         $tareaIds = isset($params['tareas']) && is_array($params['tareas']) ? $params['tareas'] : [];
 
         $validator = Validator::make($params, [

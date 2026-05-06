@@ -297,7 +297,7 @@ private const ETIQUETA_MODULO = [
 ### Migración
 
 ```bash
-php migrate.php   # crea wr_notificacion si aún no existe
+php migrate.php   # crea notificacion si aun no existe
 ```
 
 ### Archivos clave

@@ -11,6 +11,7 @@ use Core\FlashMessages;
 use Core\LogMessages;
 use Core\Mailer;
 use Core\RateLimiter;
+use Core\Csrf;
 use Core\UiMessages;
 use Core\Url;
 use Core\ValidationMessages;
@@ -50,7 +51,7 @@ class AuthController extends Controller
         }
 
         if ($rateLimiter !== null && $rateLimiter->tooManyAttempts($ip)) {
-            $this->logAction('Login bloqueado por rate limit: ' . $ip, 'AUTH_BLOCK');
+            $this->logAction(LogMessages::authLoginBlocked($ip), 'AUTH_BLOCK');
             $this->render($loginView, [
                 'title' => UiMessages::AUTH_LOGIN_TITLE,
                 'error' => ValidationMessages::authLoginRateLimit($rateLimiter->lockoutMinutes()),
@@ -82,6 +83,7 @@ class AuthController extends Controller
         if (is_array($user)) {
             $rateLimiter?->clear($ip);
             Auth::login($user);
+            Csrf::regenerate();
             $this->logAction('Ingreso al Sistema', 'AUTH_OK');
             $this->redirect('/dashboard');
             return;
@@ -90,7 +92,7 @@ class AuthController extends Controller
         $rateLimiter?->hit($ip);
         $remaining = $rateLimiter?->remainingAttempts($ip);
 
-        $this->logAction('Login fallido: ' . $username, 'AUTH_FAIL');
+        $this->logAction(LogMessages::authLoginFailed($username), 'AUTH_FAIL');
 
         $error = ValidationMessages::authInvalidCredentialsWithRemaining($remaining);
 
@@ -104,6 +106,7 @@ class AuthController extends Controller
     {
         $this->requireCsrf('/dashboard');
         $this->logAction('Salir del Sistema', 'AUTH');
+        Csrf::regenerate();
         Auth::logout();
         $this->redirect('/login');
     }
@@ -186,13 +189,13 @@ class AuthController extends Controller
                     $emailHtml
                 );
 
-                $this->logAction('Solicitud recuperacion contrasena: ' . $email, 'AUTH_RESET');
+                $this->logAction(LogMessages::authForgotRequested($email), 'AUTH_RESET');
             }
         } catch (MailerException $e) {
-            error_log(LogMessages::authForgotMailerError($e));
+            error_log(LogMessages::authForgotMailerErrorForRecipient($e, $email));
             // Mostramos exito igual para no revelar info, pero logueamos el fallo
         } catch (Throwable $e) {
-            error_log(LogMessages::authForgotError($e));
+            error_log(LogMessages::authForgotErrorForRecipient($e, $email));
         }
 
         $rateLimiter?->hit($ip);
@@ -267,7 +270,7 @@ class AuthController extends Controller
                 return;
             }
 
-            $this->logAction('Contrasena restablecida para: ' . $tokenEmail, 'AUTH_RESET_OK');
+            $this->logAction(LogMessages::authResetCompleted($tokenEmail), 'AUTH_RESET_OK');
         } catch (Throwable $e) {
             error_log(LogMessages::authResetError($e));
             $renderError(ValidationMessages::RESET_SAVE_ERROR);

@@ -59,7 +59,7 @@ class UserModel extends Model
             'full_name' => $fullName,
             'email' => (string) ($user['per_email'] ?? ''),
             'photo' => (string) ($user['per_foto'] ?? ''),
-            'auth_driver' => 'wr_usuario',
+            'auth_driver' => 'usuario',
         ];
     }
 

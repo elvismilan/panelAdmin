@@ -9,14 +9,12 @@ class Model
     protected Database $db;
     protected string $table;
     protected string $primaryKey  = 'id';
-    protected string $tablePrefix;
     protected bool   $softDeletes = false;
     protected string $deletedAtColumn = 'deleted_at';
     private array $lastActionLog = [];
 
     public function __construct() {
         $this->db = Database::fromEnv();
-        $this->tablePrefix = (string) ($_ENV['DB_PREFIX'] ?? 'wr_');
     }
 
     public function setTable(string $table): void {
@@ -31,15 +29,7 @@ class Model
 
     protected function tableName(string $table): string
     {
-        if ($this->tablePrefix === '') {
-            return $table;
-        }
-
-        if (str_starts_with($table, $this->tablePrefix)) {
-            return $table;
-        }
-
-        return $this->tablePrefix . $table;
+        return TableNameResolver::resolve($this->db, $table);
     }
 
     public function find(int|string $id): array|false {
@@ -192,4 +182,20 @@ class Model
         $row = $this->db->query($sql, ['value' => $value])->fetch();
         return (int) ($row['total'] ?? 0) > 0;
     }
+
+    /**
+     * Build a safe pattern for SQL LIKE by escaping wildcard tokens.
+     */
+    protected function likePattern(string $value): string
+    {
+        $trimmed = trim($value);
+        $escaped = str_replace(
+            ['\\', '%', '_'],
+            ['\\\\', '\\%', '\\_'],
+            $trimmed
+        );
+
+        return '%' . $escaped . '%';
+    }
+
 }
