@@ -20,6 +20,7 @@ class NotificacionController extends Controller
         $items   = [];
         $page    = $this->getCurrentPage();
         $perPage = $this->getDefaultPerPage();
+        $usuId   = trim((string) (Auth::user()['id'] ?? ''));
         $filters = $this->getQueryParams(['q' => '', 'modulo' => '', 'leida' => '']);
         $search  = $filters['q'];
         $modulo  = $filters['modulo'];
@@ -33,7 +34,7 @@ class NotificacionController extends Controller
 
         try {
             $model      = new NotificacionModel();
-            $totalRows  = $model->countAll($search, $modulo, $leida);
+            $totalRows  = $model->countAll($search, $modulo, $leida, $usuId);
             $pagination = $this->buildPagination($totalRows, $page, $perPage, '/notificaciones', [
                 'q'      => $search,
                 'modulo' => $modulo,
@@ -44,7 +45,8 @@ class NotificacionController extends Controller
                 (int) $pagination['perPage'],
                 $search,
                 $modulo,
-                $leida
+                $leida,
+                $usuId
             );
         } catch (Throwable) {
             $items = [];
@@ -84,14 +86,15 @@ class NotificacionController extends Controller
     public function ver(string $id): void
     {
         $this->requireAuth();
+        $usuId = trim((string) (Auth::user()['id'] ?? ''));
 
         $item = null;
         try {
             $model = new NotificacionModel();
-            $item  = $model->findById($id);
+            $item  = $model->findById($id, $usuId);
 
             if (is_array($item) && (int) ($item['noti_leida'] ?? 0) === 0) {
-                $model->marcarLeida($id);
+                $model->marcarLeida($id, $usuId);
                 $item['noti_leida']    = 1;
                 $item['noti_leida_en'] = date('Y-m-d H:i:s');
             }
@@ -120,9 +123,10 @@ class NotificacionController extends Controller
     {
         $this->requireAuth();
         $this->requireCsrf();
+        $usuId = trim((string) (Auth::user()['id'] ?? ''));
 
         try {
-            (new NotificacionModel())->marcarLeida($id);
+            (new NotificacionModel())->marcarLeida($id, $usuId);
         } catch (Throwable) {
             // Silencioso: no es critico
         }

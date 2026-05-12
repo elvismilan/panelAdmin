@@ -17,6 +17,7 @@ class TableNameResolver
         'logs' => true,
         'migrations' => true,
         'notificacion' => true,
+        'notificacion_destino' => true,
         'password_resets' => true,
         'permiso' => true,
         'persona' => true,
