@@ -162,7 +162,19 @@ class UsuarioController extends Controller
 
         $model->createUsuario($params);
         $this->logAction($model->getLastActionLog(), 'CREATE');
-        NotificacionService::registrar('usuarios', 'CREATE', (string) (Auth::user()['id'] ?? 'ANON'), $usuId);
+        $actorId = (string) (Auth::user()['id'] ?? 'ANON');
+
+        // Auditoria global del evento
+        NotificacionService::registrar('usuarios', 'CREATE', $actorId, $usuId);
+        // Notificacion personal al usuario creado
+        NotificacionService::registrar(
+            'usuarios',
+            'CREATE',
+            $actorId,
+            $usuId,
+            'Tu cuenta fue creada. Si tienes correo registrado, recibirás un enlace para configurar tu contraseña.',
+            $usuId
+        );
 
         // Enviar enlace seguro de configuracion de contrasena si hay correo vinculado
         $usuId = trim((string) ($params['usu_id'] ?? ''));
@@ -325,6 +337,19 @@ class UsuarioController extends Controller
 
         $model->updateUsuario($id, $params);
         $this->logAction($model->getLastActionLog(), 'UPDATE');
+        $actorId = (string) (Auth::user()['id'] ?? 'ANON');
+
+        // Auditoria global del evento
+        NotificacionService::registrar('usuarios', 'UPDATE', $actorId, $id);
+        // Notificacion personal al usuario afectado
+        NotificacionService::registrar(
+            'usuarios',
+            'UPDATE',
+            $actorId,
+            $id,
+            'Tu cuenta fue actualizada por un administrador.',
+            $id
+        );
 
         $this->flashSuccess(FlashMessages::USUARIO_UPDATED);
         $this->redirect('/usuarios');
