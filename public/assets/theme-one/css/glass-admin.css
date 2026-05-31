@@ -261,7 +261,13 @@ body.admin-theme.glass-active .page-wrapper .page-body-wrapper .page-body {
     background-attachment: scroll;
   }
 
-  .page-wrapper.glass-theme.compact-wrapper .page-body-wrapper header.main-nav {
+  .page-wrapper.modern-sidebar.compact-wrapper.glass-theme .page-body-wrapper header.main-nav {
+    top: 65px;
+  }
+}
+
+@media (min-width: 992px) and (max-width: 1199px) {
+  .page-wrapper.modern-sidebar.compact-wrapper.glass-theme .page-body-wrapper header.main-nav {
     top: 76px;
   }
 }

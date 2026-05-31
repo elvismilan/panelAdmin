@@ -52,13 +52,15 @@ class NotificacionService
      * @param string      $usuOrigen    Usuario que ejecuto la accion
      * @param string|null $referenciaId ID del registro afectado (opcional)
      * @param string|null $mensajeExtra Texto adicional para el mensaje (opcional)
+     * @param array|string|null $destinos IDs de usuario destinatarios. Null = global para usuarios activos.
      */
     public static function registrar(
         string $modulo,
         string $accion,
         string $usuOrigen,
         ?string $referenciaId  = null,
-        ?string $mensajeExtra  = null
+        ?string $mensajeExtra  = null,
+        array|string|null $destinos = null
     ): void {
         try {
             $moduloLabel = self::ETIQUETA_MODULO[$modulo] ?? ucfirst($modulo);
@@ -86,6 +88,7 @@ class NotificacionService
                 'noti_usu_origen'    => $usuOrigen,
                 'noti_fecha'         => date('Y-m-d H:i:s'),
                 'noti_referencia_id' => $referenciaId,
+                'noti_destinos'      => $destinos,
             ]);
         } catch (Throwable $e) {
             error_log(LogMessages::notificacionRegistrarError($e));

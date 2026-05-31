@@ -3,6 +3,7 @@
 namespace Core\Helpers;
 
 use App\Models\NotificacionModel;
+use Core\Auth;
 use Throwable;
 
 class NotificationHelper
@@ -39,9 +40,15 @@ class NotificationHelper
     private static function fetch(): array
     {
         try {
+            $user = Auth::user();
+            $usuId = trim((string) ($user['id'] ?? ''));
+            if ($usuId === '') {
+                return [0, []];
+            }
+
             $model    = new NotificacionModel();
-            $noLeidas = $model->countNoLeidas();
-            $items    = $model->paginate(0, self::LIMIT, '', '', '0');
+            $noLeidas = $model->countNoLeidas($usuId);
+            $items    = $model->paginate(0, self::LIMIT, '', '', '0', $usuId);
             return [$noLeidas, $items];
         } catch (Throwable) {
             return [0, []];
