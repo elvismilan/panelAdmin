@@ -10,7 +10,7 @@ SET @sql := (
               AND TABLE_NAME = 'usuario'
               AND COLUMN_NAME = 'deleted_at'
         ),
-        'ALTER TABLE `usuario` DROP COLUMN `deleted_at`',
+        'ALTER TABLE `wr_usuario` DROP COLUMN `deleted_at`',
         'SELECT 1'
     )
 );
@@ -27,7 +27,7 @@ SET @sql := (
               AND TABLE_NAME = 'persona'
               AND COLUMN_NAME = 'deleted_at'
         ),
-        'ALTER TABLE `persona` DROP COLUMN `deleted_at`',
+        'ALTER TABLE `wr_persona` DROP COLUMN `deleted_at`',
         'SELECT 1'
     )
 );
@@ -44,7 +44,7 @@ SET @sql := (
               AND TABLE_NAME = 'elemento'
               AND COLUMN_NAME = 'deleted_at'
         ),
-        'ALTER TABLE `elemento` DROP COLUMN `deleted_at`',
+        'ALTER TABLE `wr_elemento` DROP COLUMN `deleted_at`',
         'SELECT 1'
     )
 );
@@ -61,7 +61,7 @@ SET @sql := (
               AND TABLE_NAME = 'grupo'
               AND COLUMN_NAME = 'deleted_at'
         ),
-        'ALTER TABLE `grupo` DROP COLUMN `deleted_at`',
+        'ALTER TABLE `wr_grupo` DROP COLUMN `deleted_at`',
         'SELECT 1'
     )
 );

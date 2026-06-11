@@ -18,7 +18,7 @@ $typeToIcon = [
         $icon = $typeToIcon[$type] ?? 'icon-info';
         ?>
         <div class="row justify-content-center">
-            <div class="col-sm-7 mb-3">
+            <div class="col-sm-8 mb-3">
                 <div class="alert alert-<?= htmlspecialchars($type, ENT_QUOTES, 'UTF-8') ?> inverse alert-dismissible fade show" role="alert" data-auto-dismiss="10000">
                     <i class="<?= htmlspecialchars($icon, ENT_QUOTES, 'UTF-8') ?>"></i>
                     <p><?= htmlspecialchars($message, ENT_QUOTES, 'UTF-8') ?></p>

@@ -411,6 +411,10 @@ class UsuarioController extends Controller
 
         $model->deleteUsuario($id);
         $this->logAction($model->getLastActionLog(), 'DELETE');
+        $actorId = (string) (Auth::user()['id'] ?? 'ANON');
+
+        // Auditoria global del evento
+        NotificacionService::registrar('usuarios', 'DELETE', $actorId, $id);
 
         $this->flashSuccess(FlashMessages::USUARIO_DELETED);
         $this->redirect('/usuarios');

@@ -31,6 +31,13 @@
                     ?>
 
                     <?php
+                    $filterBarView = dirname(__DIR__) . '/components/filter-bar.php';
+                    if (is_file($filterBarView)) {
+                        include $filterBarView;
+                    }
+                    ?>
+
+                    <?php
                     $flashView = dirname(__DIR__) . '/components/flash-messages.php';
                     if (is_file($flashView)) {
                         include $flashView;

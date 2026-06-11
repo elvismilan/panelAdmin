@@ -71,7 +71,7 @@ $adminGroupName = trim((string) ($user['group_name'] ?? $user['group'] ?? ''));
           <div class="nav-right col pull-right right-menu p-0 box-col-6">
             <ul class="nav-menus">
               <li><a class="text-dark" href="#!" onclick="javascript:toggleFullScreen()"><i data-feather="maximize"></i></a></li>
-              <li class="onhover-dropdown">
+              <li class="onhover-dropdown theme-color-menu">
                 <div class="notification-box" id="theme-color-toggle" aria-label="Cambiar colores del theme" title="Cambiar colores del theme">
                   <i data-feather="droplet"></i>
                 </div>

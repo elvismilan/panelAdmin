@@ -51,13 +51,7 @@ ok('Reutilizacion de token bloqueada');
 
 $expiredToken = $model->createToken($email);
 $db = Database::fromEnv();
-$prefix = trim((string) ($_ENV['DB_PREFIX'] ?? ''));
-$candidatePrefixed = $prefix !== '' ? $prefix . 'password_resets' : 'password_resets';
-$existsStmt = $db->query(
-    'SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = :table',
-    ['table' => $candidatePrefixed]
-);
-$resetsTable = ((int) $existsStmt->fetchColumn() > 0) ? $candidatePrefixed : 'password_resets';
+$resetsTable = 'wr_password_resets';
 $db->query("UPDATE {$resetsTable} SET created_at = DATE_SUB(NOW(), INTERVAL 2 HOUR) WHERE token = :token", [
     'token' => $expiredToken,
 ]);

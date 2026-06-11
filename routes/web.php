@@ -7,11 +7,20 @@ use App\Controllers\GrupoController;
 use App\Controllers\HomeController;
 use App\Controllers\LogController;
 use App\Controllers\NotificacionController;
+use App\Controllers\ParametroController;
 use App\Controllers\PersonaController;
 use App\Controllers\TareaController;
 use App\Controllers\UsuarioController;
 
-$router->get('/', HomeController::class, 'index');
+// Determinar la ruta raíz según configuración APP_INDEX
+$defaultIndex = $_ENV['APP_INDEX'] ?? 'home';
+$indexRoute = match ($defaultIndex) {
+    'login' => [AuthController::class, 'showLogin'],
+    'home' => [HomeController::class, 'index'],
+    default => [HomeController::class, 'index']
+};
+
+$router->get('/', $indexRoute[0], $indexRoute[1]);
 $router->get('/login', AuthController::class, 'showLogin');
 $router->post('/login', AuthController::class, 'login');
 $router->post('/logout', AuthController::class, 'logout');
@@ -69,3 +78,12 @@ $router->get('/grupos/{id}/editar', GrupoController::class, 'editar');
 $router->post('/grupos/{id}/actualizar', GrupoController::class, 'actualizar');
 $router->get('/grupos/{id}/eliminar', GrupoController::class, 'eliminar');
 $router->post('/grupos/{id}/borrar', GrupoController::class, 'borrar');
+
+// Parametros
+$router->get('/parametros', ParametroController::class, 'index');
+$router->get('/parametros/agregar', ParametroController::class, 'agregar');
+$router->post('/parametros/guardar', ParametroController::class, 'guardar');
+$router->get('/parametros/{id}/editar', ParametroController::class, 'editar');
+$router->post('/parametros/{id}/actualizar', ParametroController::class, 'actualizar');
+$router->get('/parametros/{id}/eliminar', ParametroController::class, 'eliminar');
+$router->post('/parametros/{id}/borrar', ParametroController::class, 'borrar');

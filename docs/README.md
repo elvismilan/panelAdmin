@@ -6,6 +6,53 @@ Guía actual del proyecto para desarrollo, operación y onboarding.
 
 Validada contra el código del repositorio el **26 de mayo de 2026**.
 
+**Última actualización:** 11 de junio de 2026
+
+### Cambios recientes (Sesión 11 jun 2026)
+
+#### 1. Módulo de Parámetros (CRUD Completo) ✅
+- **Nuevo módulo generado:** `ParametroController`, `ParametroModel`
+- **Ruta base:** `/parametros`
+- **Tabla:** `wr_parametro` (8 columnas)
+  - `par_clave` (UNIQUE) - identificador del parámetro
+  - `par_valor` (nullable) - valor del parámetro
+  - `par_tipo` - tipo de dato (string, int, json, etc.)
+  - `par_grupo` (INDEX) - agrupación para organización
+  - `par_label` - etiqueta legible para usuarios
+  - Timestamps automáticos (`par_created_at`, `par_updated_at`)
+- **Características:**
+  - Búsqueda por clave/etiqueta
+  - **FilterBar implementado** con filtro por `par_grupo` (chips)
+  - Paginación
+  - Validación de datos
+  - Notificaciones de auditoría (CREATE, UPDATE, DELETE)
+- **Migración:** `0008_create_parametro.sql` ejecutada exitosamente
+- **Rutas:** Siguiendo patrón CRUD estándar (index, agregar, guardar, editar, actualizar, eliminar, borrar)
+
+#### 2. Variable de Entorno APP_INDEX ✅
+- **Ubicación:** `.env`
+- **Variable:** `APP_INDEX='login'` (o `'home'`)
+- **Función:** Controla la página de inicio por defecto
+  - `APP_INDEX='home'` → raíz "/" redirige a `HomeController::index`
+  - `APP_INDEX='login'` → raíz "/" redirige a `AuthController::showLogin`
+- **Implementación:** En `routes/web.php` con match expression
+- **Uso:** Permite cambiar fácilmente el índice sin modificar código
+
+#### 3. Sistema de Notificaciones - Completado DELETE ✅
+- **Problema:** Métodos `borrar()` (DELETE) no registraban notificaciones
+- **Solución:** Agregada `NotificacionService::registrar()` en:
+  - `UsuarioController::borrar()`
+  - `ElementoController::borrar()`
+  - `TareaController::borrar()`
+  - `ParametroController::borrar()`
+  - PersonaController y GrupoController ya tenían (verificado)
+- **Resultado:** Todos los CRUD ahora registran notificaciones para CREATE, UPDATE, DELETE
+
+#### 4. Migraciones - Prefijo wr_ Consistente ✅
+- **Corregidas:** Todas las migraciones (0002-0008) para usar prefijo `wr_` consistentemente
+- **Verificación:** `php migrate.php status` muestra todas ejecutadas
+- **Base de datos:** Tablas con prefijo `wr_` confirmadas en admin_db
+
 ## 1. Resumen del sistema
 
 - Arquitectura MVC en PHP 8.2+.
@@ -13,7 +60,7 @@ Validada contra el código del repositorio el **26 de mayo de 2026**.
 - Router propio con rutas declaradas en `routes/web.php`.
 - RBAC por `grupo` + `elemento` + `tarea`.
 - Multi-tema por área (`public`, `login`, `admin`) mediante `ThemeResolver`.
-- Soporte de tablas con prefijo dinámico (`DB_PREFIX`) para tablas core.
+- Tablas core con prefijo fijo `wr_` (no configurables).
 
 ## 2. Estructura actual del proyecto
 
@@ -53,18 +100,19 @@ panelAdmin/
 
 ### Módulos principales
 
-| Módulo | Controller | Modelo(s) | Ruta base |
-|---|---|---|---|
-| Home | `HomeController` | — | `/` |
-| Auth | `AuthController` | `UserModel`, `PasswordResetModel` | `/login` |
-| Dashboard | `DashboardController` | — | `/dashboard` |
-| Tareas | `TareaController` | `TareaModel` | `/tareas` |
-| Módulos/Elementos | `ElementoController` | `ElementoModel` | `/modulos` |
-| Personas | `PersonaController` | `PersonaModel` | `/personas` |
-| Usuarios | `UsuarioController` | `UsuarioModel` | `/usuarios` |
-| Grupos | `GrupoController` | `GrupoModel` | `/grupos` |
-| Logs | `LogController` | `LogModel` | `/logs` |
-| Notificaciones | `NotificacionController` | `NotificacionModel` | `/notificaciones` |
+| Módulo | Controller | Modelo(s) | Ruta base | FilterBar |
+|---|---|---|---|---|
+| Home | `HomeController` | — | `/` | — |
+| Auth | `AuthController` | `UserModel`, `PasswordResetModel` | `/login` | — |
+| Dashboard | `DashboardController` | — | `/dashboard` | — |
+| Tareas | `TareaController` | `TareaModel` | `/tareas` | ❌ |
+| Módulos/Elementos | `ElementoController` | `ElementoModel` | `/modulos` | ✅ Padre |
+| Personas | `PersonaController` | `PersonaModel` | `/personas` | ❌ |
+| Usuarios | `UsuarioController` | `UsuarioModel` | `/usuarios` | ❌ |
+| Grupos | `GrupoController` | `GrupoModel` | `/grupos` | ❌ |
+| Logs | `LogController` | `LogModel` | `/logs` | ✅ Tipo |
+| Notificaciones | `NotificacionController` | `NotificacionModel` | `/notificaciones` | — |
+| **Parámetros** | **`ParametroController`** | **`ParametroModel`** | **/parametros** | **✅ Grupo** |
 
 ### Rutas especiales (no CRUD estándar)
 
@@ -183,11 +231,12 @@ Notas:
 
 ### App y URLs
 
-- `APP_DEBUG`
-- `APP_URL`
-- `SITE_ROOT`
-- `SITE_TITLE`
-- `LOGO`
+- `APP_DEBUG` - Modo debug (true|false)
+- `APP_URL` - URL base de la aplicación
+- `APP_INDEX` - **Página de inicio por defecto** (`'home'` | `'login'`) — **Nuevo 11 jun 2026**
+- `SITE_ROOT` - Raíz del sitio
+- `SITE_TITLE` - Título del sitio
+- `LOGO` - Ruta del logo
 
 ### Base de datos
 
@@ -197,7 +246,6 @@ Notas:
 - `DB_USER`
 - `DB_PASS`
 - `DB_CHARSET`
-- `DB_PREFIX` (opcional)
 
 ### Autenticación y seguridad
 

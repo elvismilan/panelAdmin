@@ -8,11 +8,11 @@ SET @sql := (
             SELECT 1
             FROM INFORMATION_SCHEMA.COLUMNS
             WHERE TABLE_SCHEMA = @schema_name
-              AND TABLE_NAME = 'usuario'
+              AND TABLE_NAME = 'wr_usuario'
               AND COLUMN_NAME = 'deleted_at'
         ),
         'SELECT 1',
-        'ALTER TABLE `usuario` ADD COLUMN `deleted_at` DATETIME NULL DEFAULT NULL'
+        'ALTER TABLE `wr_usuario` ADD COLUMN `deleted_at` DATETIME NULL DEFAULT NULL'
     )
 );
 PREPARE stmt FROM @sql;
@@ -25,11 +25,11 @@ SET @sql := (
             SELECT 1
             FROM INFORMATION_SCHEMA.COLUMNS
             WHERE TABLE_SCHEMA = @schema_name
-              AND TABLE_NAME = 'persona'
+              AND TABLE_NAME = 'wr_persona'
               AND COLUMN_NAME = 'deleted_at'
         ),
         'SELECT 1',
-        'ALTER TABLE `persona` ADD COLUMN `deleted_at` DATETIME NULL DEFAULT NULL'
+        'ALTER TABLE `wr_persona` ADD COLUMN `deleted_at` DATETIME NULL DEFAULT NULL'
     )
 );
 PREPARE stmt FROM @sql;
@@ -42,11 +42,11 @@ SET @sql := (
             SELECT 1
             FROM INFORMATION_SCHEMA.COLUMNS
             WHERE TABLE_SCHEMA = @schema_name
-              AND TABLE_NAME = 'elemento'
+              AND TABLE_NAME = 'wr_elemento'
               AND COLUMN_NAME = 'deleted_at'
         ),
         'SELECT 1',
-        'ALTER TABLE `elemento` ADD COLUMN `deleted_at` DATETIME NULL DEFAULT NULL'
+        'ALTER TABLE `wr_elemento` ADD COLUMN `deleted_at` DATETIME NULL DEFAULT NULL'
     )
 );
 PREPARE stmt FROM @sql;
@@ -59,11 +59,11 @@ SET @sql := (
             SELECT 1
             FROM INFORMATION_SCHEMA.COLUMNS
             WHERE TABLE_SCHEMA = @schema_name
-              AND TABLE_NAME = 'grupo'
+              AND TABLE_NAME = 'wr_grupo'
               AND COLUMN_NAME = 'deleted_at'
         ),
         'SELECT 1',
-        'ALTER TABLE `grupo` ADD COLUMN `deleted_at` DATETIME NULL DEFAULT NULL'
+        'ALTER TABLE `wr_grupo` ADD COLUMN `deleted_at` DATETIME NULL DEFAULT NULL'
     )
 );
 PREPARE stmt FROM @sql;

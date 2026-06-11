@@ -43,6 +43,66 @@ class ElementoModel extends Model
         return $stmt->fetchAll();
     }
 
+    public function paginateWithParentFilter(int $offset, int $limit, string $search = '', string $padre = ''): array
+    {
+        $sql = "SELECT ele_id, ele_nombre, ele_titulo, ele_tipo, ele_estado, ele_orden, ele_padre
+                FROM {$this->elementoTable}";
+        
+        $conditions = [];
+        $params = [];
+
+        if ($search !== '') {
+            $conditions[] = "(ele_nombre LIKE :search1 OR ele_titulo LIKE :search2)";
+            $pattern = $this->likePattern($search);
+            $params['search1'] = $pattern;
+            $params['search2'] = $pattern;
+        }
+
+        if ($padre !== '') {
+            $padreInt = (int) $padre;
+            if ($padreInt === 0) {
+                $conditions[] = "(ele_padre IS NULL OR ele_padre = 0)";
+            } else {
+                $conditions[] = "ele_padre = :padre";
+                $params['padre'] = $padreInt;
+            }
+        }
+
+        if (!empty($conditions)) {
+            $sql .= " WHERE " . implode(" AND ", $conditions);
+        }
+
+        $sql .= " ORDER BY ele_orden ASC, ele_id ASC LIMIT :limit OFFSET :offset";
+
+        $stmt = $this->db->getConnection()->prepare($sql);
+        
+        foreach ($params as $key => $value) {
+            $stmt->bindValue(':' . $key, $value, \PDO::PARAM_STR);
+        }
+        
+        $stmt->bindValue(':limit', max(1, $limit), \PDO::PARAM_INT);
+        $stmt->bindValue(':offset', max(0, $offset), \PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll();
+    }
+
+    public function getPadreFilterOptions(): array
+    {
+        // Obtener todos los padres (elementos sin padre) con conteo de hijos
+        $sql = "SELECT 
+                    p.ele_id AS value,
+                    p.ele_titulo AS label,
+                    COUNT(h.ele_id) AS count
+                FROM {$this->elementoTable} p
+                LEFT JOIN {$this->elementoTable} h ON h.ele_padre = p.ele_id
+                WHERE p.ele_padre IS NULL OR p.ele_padre = 0
+                GROUP BY p.ele_id, p.ele_titulo
+                ORDER BY p.ele_titulo ASC";
+        
+        return $this->db->query($sql)->fetchAll();
+    }
+
     public function countAll(string $search = ''): int
     {
         $sql = "SELECT COUNT(*) AS total FROM {$this->elementoTable}";
@@ -53,6 +113,70 @@ class ElementoModel extends Model
             $pattern = $this->likePattern($search);
             $params['search1'] = $pattern;
             $params['search2'] = $pattern;
+        }
+
+        $row = $this->db->query($sql, $params)->fetch();
+
+        return (int) ($row['total'] ?? 0);
+    }
+
+    public function countAllWithFilters(string $search = '', string $estado = '', string $tipo = ''): int
+    {
+        $sql = "SELECT COUNT(*) AS total FROM {$this->elementoTable}";
+        $params = [];
+        $conditions = [];
+
+        if ($search !== '') {
+            $conditions[] = "(ele_nombre LIKE :search1 OR ele_titulo LIKE :search2)";
+            $pattern = $this->likePattern($search);
+            $params['search1'] = $pattern;
+            $params['search2'] = $pattern;
+        }
+
+        if ($estado !== '') {
+            $conditions[] = "ele_estado = :estado";
+            $params['estado'] = $estado;
+        }
+
+        if ($tipo !== '') {
+            $conditions[] = "ele_tipo = :tipo";
+            $params['tipo'] = $tipo;
+        }
+
+        if (!empty($conditions)) {
+            $sql .= " WHERE " . implode(" AND ", $conditions);
+        }
+
+        $row = $this->db->query($sql, $params)->fetch();
+
+        return (int) ($row['total'] ?? 0);
+    }
+
+    public function countAllWithParentFilter(string $search = '', string $padre = ''): int
+    {
+        $sql = "SELECT COUNT(*) AS total FROM {$this->elementoTable}";
+        $params = [];
+        $conditions = [];
+
+        if ($search !== '') {
+            $conditions[] = "(ele_nombre LIKE :search1 OR ele_titulo LIKE :search2)";
+            $pattern = $this->likePattern($search);
+            $params['search1'] = $pattern;
+            $params['search2'] = $pattern;
+        }
+
+        if ($padre !== '') {
+            $padreInt = (int) $padre;
+            if ($padreInt === 0) {
+                $conditions[] = "(ele_padre IS NULL OR ele_padre = 0)";
+            } else {
+                $conditions[] = "ele_padre = :padre";
+                $params['padre'] = $padreInt;
+            }
+        }
+
+        if (!empty($conditions)) {
+            $sql .= " WHERE " . implode(" AND ", $conditions);
         }
 
         $row = $this->db->query($sql, $params)->fetch();

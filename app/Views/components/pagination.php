@@ -29,11 +29,34 @@ $paginationClass = (string) ($paginationClass ?? 'pagination justify-content-cen
                 <li class="page-item disabled"><span class="page-link">Anterior</span></li>
             <?php endif; ?>
 
-            <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-                <li class="page-item<?= $i === $currentPage ? ' active' : '' ?>">
-                    <a class="page-link" href="<?= htmlspecialchars($makePageUrl($i), ENT_QUOTES, 'UTF-8') ?>"><?= $i ?></a>
-                </li>
-            <?php endfor; ?>
+            <?php
+            $window   = 2;
+            $winStart = max(1, $currentPage - $window);
+            $winEnd   = min($totalPages, $currentPage + $window);
+
+            // Conjunto de páginas a mostrar (sin duplicados)
+            $toShow = array_unique(array_merge([1, $totalPages], range($winStart, $winEnd)));
+            sort($toShow);
+
+            // Insertar null donde hay saltos
+            $pages = [];
+            $prev  = null;
+            foreach ($toShow as $p) {
+                if ($prev !== null && $p > $prev + 1) { $pages[] = null; }
+                $pages[] = $p;
+                $prev = $p;
+            }
+
+            foreach ($pages as $p):
+                if ($p === null): ?>
+                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                <?php else: ?>
+                    <li class="page-item<?= $p === $currentPage ? ' active' : '' ?>">
+                        <a class="page-link" href="<?= htmlspecialchars($makePageUrl($p), ENT_QUOTES, 'UTF-8') ?>"><?= $p ?></a>
+                    </li>
+                <?php endif;
+            endforeach;
+            ?>
 
             <?php if ((bool) ($paginationData['hasNext'] ?? false)): ?>
                 <li class="page-item">

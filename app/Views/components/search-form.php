@@ -6,12 +6,12 @@ $searchFields = is_array($searchConfig['fields'] ?? null) ? $searchConfig['field
 $submitLabel = (string) ($searchConfig['submitLabel'] ?? 'Buscar');
 $submitIcon = (string) ($searchConfig['submitIcon'] ?? 'fa fa-search');
 $clearUrl = (string) ($searchConfig['clearUrl'] ?? '');
-$formClass = (string) ($searchConfig['formClass'] ?? 'mb-3 d-flex justify-content-center');
+$formClass = (string) ($searchConfig['formClass'] ?? 'search-form mb-3 d-flex justify-content-center no-print');
 $groupClass = (string) ($searchConfig['groupClass'] ?? 'input-group input-group-sm');
 $groupStyle = (string) ($searchConfig['groupStyle'] ?? 'max-width: 520px; width: 100%;');
 ?>
 <?php if ($searchAction !== '' && !empty($searchFields)): ?>
-    <form method="<?= htmlspecialchars($searchMethod, ENT_QUOTES, 'UTF-8') ?>" action="<?= htmlspecialchars($searchAction, ENT_QUOTES, 'UTF-8') ?>" class="<?= htmlspecialchars($formClass, ENT_QUOTES, 'UTF-8') ?>">
+    <form class="<?= htmlspecialchars($formClass, ENT_QUOTES, 'UTF-8') ?>" method="<?= htmlspecialchars($searchMethod, ENT_QUOTES, 'UTF-8') ?>" action="<?= htmlspecialchars($searchAction, ENT_QUOTES, 'UTF-8') ?>">
         <div class="<?= htmlspecialchars($groupClass, ENT_QUOTES, 'UTF-8') ?>" style="<?= htmlspecialchars($groupStyle, ENT_QUOTES, 'UTF-8') ?>">
             <?php foreach ($searchFields as $index => $field): ?>
                 <?php
