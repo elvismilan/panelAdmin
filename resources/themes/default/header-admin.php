@@ -71,6 +71,24 @@ $adminGroupName = trim((string) ($user['group_name'] ?? $user['group'] ?? ''));
           <div class="nav-right col pull-right right-menu p-0 box-col-6">
             <ul class="nav-menus">
               <li><a class="text-dark" href="#!" onclick="javascript:toggleFullScreen()"><i data-feather="maximize"></i></a></li>
+              <li class="onhover-dropdown">
+                <div class="notification-box" id="theme-color-toggle" aria-label="Cambiar colores del theme" title="Cambiar colores del theme">
+                  <i data-feather="droplet"></i>
+                </div>
+                <ul class="notification-dropdown onhover-show-div theme-color-dropdown">
+                  <li><p class="f-w-700 mb-0">Light layout</p></li>
+                  <li>
+                    <div class="theme-color-grid">
+                      <button type="button" class="theme-color-option" data-theme-color="color-1" data-primary="#24695c" data-secondary="#ba895d" style="background:linear-gradient(135deg,#24695c 0%,#ba895d 100%);" aria-label="Color 1"></button>
+                      <button type="button" class="theme-color-option" data-theme-color="color-2" data-primary="#d97f3d" data-secondary="#f25f4c" style="background:linear-gradient(135deg,#d97f3d 0%,#f25f4c 100%);" aria-label="Color 2"></button>
+                      <button type="button" class="theme-color-option" data-theme-color="color-3" data-primary="#168eea" data-secondary="#90b4cd" style="background:linear-gradient(135deg,#168eea 0%,#90b4cd 100%);" aria-label="Color 3"></button>
+                      <button type="button" class="theme-color-option" data-theme-color="color-4" data-primary="#665ed5" data-secondary="#d1d1e9" style="background:linear-gradient(135deg,#665ed5 0%,#d1d1e9 100%);" aria-label="Color 4"></button>
+                      <button type="button" class="theme-color-option" data-theme-color="color-5" data-primary="#3a9aa8" data-secondary="#984ff3" style="background:linear-gradient(135deg,#3a9aa8 0%,#984ff3 100%);" aria-label="Color 5"></button>
+                      <button type="button" class="theme-color-option" data-theme-color="color-6" data-primary="#7951aa" data-secondary="#72757D" style="background:linear-gradient(135deg,#7951aa 0%,#72757D 100%);" aria-label="Color 6"></button>
+                    </div>
+                  </li>
+                </ul>
+              </li>
               <li>
                 <a class="text-dark glass-toggle-btn"
                    href="#!"

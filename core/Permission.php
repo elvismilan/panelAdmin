@@ -54,6 +54,10 @@ class Permission
             return false;
         }
 
+        if ($this->isInternalBypassedPath($requestPath)) {
+            return true;
+        }
+
         $elementId = $this->resolveElementIdFromPath($requestPath);
         if ($elementId === null) {
             return null;
@@ -204,5 +208,15 @@ class Permission
 
         $stmt = $this->db->query($sql, $params);
         return (bool) $stmt->fetchColumn();
+    }
+
+    private function isInternalBypassedPath(string $requestPath): bool
+    {
+        $path = trim((string) parse_url($requestPath, PHP_URL_PATH));
+        if ($path === '') {
+            return false;
+        }
+
+        return str_starts_with('/' . trim($path, '/'), '/notificaciones');
     }
 }

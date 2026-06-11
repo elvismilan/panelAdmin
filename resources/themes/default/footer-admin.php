@@ -11,7 +11,7 @@
               <div class="col-md-6 footer-copyright">
               </div>
               <div class="col-md-6">
-                <p class="pull-right mb-0">Copyright © elvismilan.com 2014-26 <i class="fa fa-laptop font-secondary"></i></p>
+                <p class="pull-right mb-0">Copyright © <a href="https://elvismilan.com" target="_blank" rel="noopener noreferrer" title="Sitio oficial de Elvis Milan">elvismilan.com</a> 2014-26 <i class="fa fa-laptop font-secondary"></i></p>
               </div>
             </div>
           </div>
@@ -153,6 +153,49 @@
               }
             });
           }
+
+          function buildColorHref(colorName) {
+            var currentHref = $('#color').attr('href') || '';
+            var basePath = currentHref.replace(/color-\d+\.css(?:\?.*)?$/i, '');
+            if (basePath) return basePath + colorName + '.css';
+            return '<?= htmlspecialchars($adminAssetBase, ENT_QUOTES, 'UTF-8') ?>/css/' + colorName + '.css';
+          }
+
+          function applyStoredThemeColor() {
+            var color = window.localStorage.getItem('color');
+            var primary = window.localStorage.getItem('primary');
+            var secondary = window.localStorage.getItem('secondary');
+
+            if (color) {
+              $('#color').attr('href', buildColorHref(color));
+            }
+            if (primary) {
+              document.documentElement.style.setProperty('--theme-deafult', primary);
+            }
+            if (secondary) {
+              document.documentElement.style.setProperty('--theme-secondary', secondary);
+            }
+          }
+
+          applyStoredThemeColor();
+
+          $(document).on('click', '.theme-color-option', function () {
+            var $item = $(this);
+            var color = String($item.data('theme-color') || 'color-1');
+            var primary = String($item.data('primary') || '#24695c');
+            var secondary = String($item.data('secondary') || '#ba895d');
+
+            localStorage.setItem('color', color);
+            localStorage.setItem('primary', primary);
+            localStorage.setItem('secondary', secondary);
+            localStorage.removeItem('dark');
+
+            $('#color').attr('href', buildColorHref(color));
+            document.documentElement.style.setProperty('--theme-deafult', primary);
+            document.documentElement.style.setProperty('--theme-secondary', secondary);
+            $('body').removeClass('dark-only');
+            location.reload(true);
+          });
         });
       })(jQuery);
     </script>
@@ -166,7 +209,60 @@
     <!-- Plugins JS Ends-->
     <!-- Theme js-->
     <script src="<?= htmlspecialchars($adminAssetBase, ENT_QUOTES, 'UTF-8') ?>/js/script.js"></script>
-    <!-- <script src="<?= htmlspecialchars($adminAssetBase, ENT_QUOTES, 'UTF-8') ?>/js/theme-customizer/customizer.js"></script> -->
+    <style>
+      .theme-color-dropdown {
+        width: 220px;
+        top: 40px !important;
+        right: -12px !important;
+        transform: translateY(0) !important;
+        transition: none !important;
+      }
+
+      .theme-color-dropdown:before,
+      .theme-color-dropdown:after {
+        right: 16px !important;
+        left: unset !important;
+      }
+
+      .theme-color-dropdown li:last-child {
+        padding-bottom: 0;
+      }
+
+      .theme-color-dropdown li:hover {
+        background: transparent !important;
+      }
+
+      .theme-color-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .theme-color-option {
+        width: 100%;
+        height: 30px;
+        border: 1px solid #dce3ea;
+        border-radius: 6px;
+        padding: 0;
+        -webkit-appearance: none;
+        appearance: none;
+        cursor: pointer;
+      }
+
+      .theme-color-option:hover,
+      .theme-color-option:focus,
+      .theme-color-option:active {
+        transform: none !important;
+        box-shadow: none !important;
+        filter: none !important;
+        opacity: 1 !important;
+        outline: none !important;
+      }
+
+      .page-main-header .main-header-right .nav-right .notification-dropdown {
+        top: 48px !important;
+      }
+    </style>
     <!-- login js-->
     <!-- Plugin used-->
     <?php foreach (($pageAssets['js'] ?? []) as $_js): ?>

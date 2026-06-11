@@ -129,7 +129,7 @@ class Router {
         }
 
         $normalizedPath = trim($path);
-        if ($normalizedPath === '' || $normalizedPath === '/' || str_starts_with($normalizedPath, '/dashboard')) {
+        if ($this->isPermissionBypassedPath($normalizedPath)) {
             return false;
         }
 
@@ -147,6 +147,35 @@ class Router {
             error_log(LogMessages::routerPermissionCheckFailed($e));
             return false;
         }
+    }
+
+    private function isPermissionBypassedPath(string $path): bool
+    {
+        $path = trim($path);
+
+        if ($path === '' || $path === '/') {
+            return true;
+        }
+
+        if (str_starts_with($path, '/dashboard')) {
+            return true;
+        }
+
+        if (str_starts_with($path, '/notificaciones')) {
+            return true;
+        }
+
+        if (
+            $path === '/login'
+            || $path === '/logout'
+            || $path === '/forgot-password'
+            || $path === '/reset-password'
+            || str_starts_with($path, '/reset-password/')
+        ) {
+            return true;
+        }
+
+        return false;
     }
 
     private function renderErrorPage(int $statusCode, string $template, array $data = []): void

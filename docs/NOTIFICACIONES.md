@@ -1,27 +1,19 @@
-# Notificaciones — Email y WhatsApp
+# Notificaciones — Email e internas
 
-Documentación del sistema de notificaciones del panel: envío de correos transaccionales y plan de integración con WhatsApp.
+Documentación actual del sistema de notificaciones y envíos de correo del panel.
 
----
+## Estado de esta guía
 
-## Tabla de contenidos
+Validada contra el código del repositorio el **26 de mayo de 2026**.
 
-1. [Core\Mailer](#1-coremailer)
-2. [Plantillas de email](#2-plantillas-de-email)
-3. [Envío de credenciales al crear usuario](#3-envío-de-credenciales-al-crear-usuario)
-4. [Recuperación de contraseña](#4-recuperación-de-contraseña)
-5. [Plan: WhatsApp Business API (pendiente)](#5-plan-whatsapp-business-api-pendiente)
+## 1. Correo saliente (`Core\Mailer`)
 
----
+`Core\Mailer` es un wrapper sobre PHPMailer y usa variables SMTP desde `.env`.
 
-## 1. Core\Mailer
-
-Clase wrapper sobre **PHPMailer**. Lee su configuración del `.env`.
-
-### Variables de entorno requeridas
+Variables necesarias:
 
 ```ini
-MAIL_HOST=smtp.gmail.com
+MAIL_HOST=mail.tudominio.com
 MAIL_PORT=587
 MAIL_ENCRYPTION=tls
 MAIL_USERNAME=correo@dominio.com
@@ -30,286 +22,176 @@ MAIL_FROM_ADDRESS=correo@dominio.com
 MAIL_FROM_NAME=Panel Admin
 ```
 
-### Uso
+Uso base:
 
 ```php
 use Core\Mailer;
-use PHPMailer\PHPMailer\Exception as MailerException;
 
-try {
-    $html   = $this->renderEmailView('emails/mi-plantilla', $data);
-    $mailer = new Mailer();
-    $mailer->send($destinatario, 'Asunto del correo', $html);
-} catch (MailerException $e) {
-    error_log('Mailer error: ' . $e->getMessage());
-}
+$mailer = new Mailer();
+$mailer->send($destinatario, $asunto, $html);
 ```
 
-### `renderEmailView(string $template, array $data): string`
+## 2. Render de plantillas de email
 
-Método disponible en `Core\Controller`. Renderiza una vista de `app/Views/` como string HTML sin layout de admin.
+Las plantillas se renderizan con `Core\EmailTemplatesRenderer`, disponible en controladores como `$this->emailTemplatesRenderer`.
 
----
+Ejemplo real:
 
-## 2. Plantillas de email
-
-Ubicación: `app/Views/emails/`
-
-| Archivo | Descripción | Variables |
-|---|---|---|
-| `password-reset.php` | Enlace para restablecer contraseña | `$resetUrl`, `$userName`, `$siteTitle`, `$address`, `$country`, `$expiryMinutes` |
-| `usuario-credenciales.php` | Credenciales de acceso para nuevo usuario | `$userName`, `$usuId`, `$password`, `$loginUrl`, `$siteTitle`, `$address`, `$country` |
-
-### Crear una nueva plantilla
-
-1. Copiar `password-reset.php` como base
-2. Declarar las variables con `htmlspecialchars` al inicio del archivo
-3. Construir el HTML inline (los clientes de email no soportan CSS externo)
-4. Registrar en esta tabla
-
----
-
-## 3. Envío de credenciales al crear usuario
-
-### Comportamiento
-
-Al guardar un nuevo usuario en `UsuarioController::guardar()`, si la persona vinculada tiene `per_email` registrado, se le envía automáticamente un correo con sus datos de acceso.
-
-- Si el usuario **no tiene persona vinculada** → no se envía correo
-- Si la persona vinculada **no tiene email** → no se envía correo
-- Si el correo **falla** → se registra en `error_log` pero el usuario se crea igual
-
-### Flujo
-
+```php
+$emailHtml = $this->emailTemplatesRenderer->render(
+    \Core\EmailMessages::TEMPLATE_PASSWORD_RESET,
+    [
+        'resetUrl'      => $resetUrl,
+        'userName'      => $userName,
+        'siteTitle'     => $siteTitle,
+        'address'       => (string) ($_ENV['ADDRESS'] ?? ''),
+        'country'       => (string) ($_ENV['COUNTRY'] ?? ''),
+        'expiryMinutes' => 60,
+    ]
+);
 ```
+
+Plantillas existentes (`app/Views/emails/`):
+
+- `password-reset.php`
+- `usuario-credenciales.php` (histórica/disponible, no es la plantilla principal del flujo actual de alta)
+
+## 3. Alta de usuario y email enviado
+
+Implementado en `UsuarioController::guardar()`.
+
+Comportamiento actual:
+
+- Se crea el usuario.
+- Si el usuario está vinculado a `persona` y tiene `per_email`, se genera token de reset.
+- Se envía email con **enlace de configuración de contraseña** (no contraseña en texto plano).
+- Si falla el correo, se registra en `error_log` y el alta del usuario se mantiene.
+
+Flujo simplificado:
+
+```text
 POST /usuarios/guardar
-  ↓
-Validación de formulario
-  ↓
-UsuarioModel::createUsuario()
-  ↓
-UsuarioModel::getPersonaEmail($usuId)  ← JOIN usuario + persona, filtra per_email vacío
-  ↓ (solo si hay email)
-renderEmailView('emails/usuario-credenciales', [...])
-  ↓
-Mailer::send($email, 'Tus credenciales...', $html)
-  ↓
-flashSuccess() + redirect('/usuarios')
+  -> UsuarioModel::createUsuario()
+  -> UsuarioModel::getPersonaEmail($usuId)
+  -> PasswordResetModel::createToken($email)
+  -> EmailTemplatesRenderer::render('emails/password-reset', ...)
+  -> Mailer::send(...)
 ```
-
-### Métodos involucrados
-
-| Clase | Método | Descripción |
-|---|---|---|
-| `UsuarioModel` | `getPersonaEmail(string $usuId): ?string` | Retorna el email de la persona vinculada o `null` |
-| `UsuarioController` | `guardar(): void` | Orquesta creación + envío de correo |
-
----
 
 ## 4. Recuperación de contraseña
 
 Implementado en `AuthController::processForgotPassword()`.
 
-### Flujo
+Flujo:
 
-```
+```text
 POST /forgot-password
-  ↓
-PasswordResetModel::createToken($email)   ← token único con expiración
-  ↓
-renderEmailView('emails/password-reset', [...])
-  ↓
-Mailer::send($email, 'Recuperación de contraseña...', $html)
+  -> rate limit por IP
+  -> PasswordResetModel::findUserByEmail()
+  -> PasswordResetModel::createToken()
+  -> EmailTemplatesRenderer::render('emails/password-reset', ...)
+  -> Mailer::send(...)
 ```
 
-El token expira en **60 minutos**. Si el email no existe en el sistema se muestra igual el mensaje de éxito para no revelar información.
+Detalles:
 
----
+- Token de recuperación con expiración (60 minutos).
+- Respuesta neutral al usuario para no revelar si el correo existe.
 
-## 5. Plan: WhatsApp Business API (pendiente)
+## 5. Notificaciones internas del panel
 
-Integración futura para enviar credenciales también por WhatsApp al crear un usuario, usando `per_telefono` de la tabla `persona`.
+### Servicio
 
-### Proveedor elegido
+`Core\NotificacionService::registrar(...)` registra eventos para mostrar en UI.
 
-**Meta WhatsApp Cloud API** — sin SDK externo, solo HTTP requests.
-
-Endpoint:
-```
-POST https://graph.facebook.com/v19.0/{PHONE_ID}/messages
-Authorization: Bearer {TOKEN}
-```
-
-### Variables de entorno a agregar
-
-```ini
-WHATSAPP_TOKEN=EAAxxxxxxxxxxxxxxx
-WHATSAPP_PHONE_ID=1234567890
-WHATSAPP_TEMPLATE_NAME=bienvenida_credenciales
-WHATSAPP_TEMPLATE_LANG=es
-```
-
-### Pasos para habilitar
-
-#### 1. Configurar cuenta en Meta
-
-1. Ir a [developers.facebook.com](https://developers.facebook.com) → crear app tipo **Business**
-2. Agregar producto **WhatsApp** a la app
-3. En **Getting Started** obtener `WHATSAPP_TOKEN` y `WHATSAPP_PHONE_ID`
-4. Para producción: verificar el negocio en Meta Business Manager
-
-#### 2. Crear plantilla de mensaje aprobada
-
-Los mensajes que inician conversación requieren plantillas aprobadas por Meta.
-
-Ruta: Meta Business Suite → WhatsApp → Plantillas de mensaje → Crear
-
-```
-Nombre:     bienvenida_credenciales
-Categoría:  UTILITY
-Idioma:     es
-
-Cuerpo:
-Hola {{1}}, tu cuenta en {{2}} ha sido creada.
-Usuario: {{3}}
-Contraseña: {{4}}
-Ingresa en: {{5}}
-```
-
-Parámetros: `[nombre, siteTitle, usuId, password, loginUrl]`
-
-> La aprobación puede tardar entre minutos y 24 horas.
-
-#### 3. Archivos a crear / modificar
-
-| Archivo | Acción | Descripción |
-|---|---|---|
-| `core/WhatsApp.php` | Crear | Cliente HTTP para Meta Cloud API |
-| `app/Models/UsuarioModel.php` | Modificar | Agregar `getPersonaTelefono(string $usuId): ?string` |
-| `app/Controllers/UsuarioController.php` | Modificar | Integrar envío WA en `guardar()` tras el bloque de email |
-| `.env` | Modificar | Agregar las 4 variables de WhatsApp |
-
-#### 4. Estructura de `Core\WhatsApp`
-
-```php
-namespace Core;
-
-class WhatsApp
-{
-    public function sendTemplate(
-        string $to,           // Número en formato internacional sin '+' (ej: 59170000000)
-        string $templateName,
-        string $languageCode,
-        array  $bodyParams    // Parámetros posicionales del cuerpo
-    ): void
-
-    public function sendCredentials(
-        string $telefono,
-        string $userName,
-        string $usuId,
-        string $password
-    ): void
-}
-```
-
-#### 5. Normalización del número de teléfono
-
-`per_telefono` puede estar guardado sin código de país (ej: `70000000`).  
-Antes de enviar se debe anteponer el código del país configurado en `.env`:
-
-```ini
-PHONE_COUNTRY_CODE=591
-```
-
-#### 6. Comportamiento esperado (igual que email)
-
-- Si no hay persona vinculada → no enviar
-- Si `per_telefono` está vacío → no enviar
-- Si falla el envío → `error_log`, el usuario se crea igual
-
----
-
----
-
-## 6. Notificaciones internas del sistema
-
-Notificaciones en tiempo real dentro del panel. Son **solo lectura** y se generan automáticamente desde los controllers. No se crean manualmente.
-
-Se muestran en:
-- **Header admin** → dropdown de la campana (últimas 5 no leídas)
-- **`/notificaciones`** → listado completo con filtros
-- **`/notificaciones/{id}/ver`** → detalle; al abrir se marca como leída automáticamente
-
-### Agregar un trigger en cualquier controller
-
-**Paso 1** — importar el servicio:
-
-```php
-use Core\NotificacionService;
-```
-
-**Paso 2** — llamar después del `logAction`, pasando módulo, acción, usuario y el ID del registro:
-
-```php
-$model->createRegistro($params);
-$this->logAction($model->getLastActionLog(), 'CREATE');
-NotificacionService::registrar('modulo', 'CREATE', (string) (Auth::user()['id'] ?? 'ANON'), $id);
-```
-
-### Firma completa
+Firma actual:
 
 ```php
 NotificacionService::registrar(
-    string  $modulo,        // 'usuarios' | 'personas' | 'grupos' | 'modulos' | 'tareas'
-    string  $accion,        // 'CREATE' | 'UPDATE' | 'DELETE'
-    string  $usuOrigen,     // ID del usuario que ejecutó la acción
-    ?string $referenciaId,  // ID del registro afectado (null si no aplica)
-    ?string $mensajeExtra   // Texto adicional opcional al final del mensaje
-);
+    string $modulo,
+    string $accion,
+    string $usuOrigen,
+    ?string $referenciaId = null,
+    ?string $mensajeExtra = null,
+    array|string|null $destinos = null
+): void
 ```
 
-### Acciones y tipos visuales
-
-| Acción   | Tipo      | Color   |
-|----------|-----------|---------|
-| `CREATE` | `success` | Verde   |
-| `UPDATE` | `warning` | Amarillo|
-| `DELETE` | `danger`  | Rojo    |
-
-### Módulos disponibles
-
-Definidos en `ETIQUETA_MODULO` dentro de `core/NotificacionService.php`. Para registrar uno nuevo añadirlo ahí:
+Destinos soportados:
 
 ```php
-private const ETIQUETA_MODULO = [
-    'usuarios'   => 'Usuarios',
-    'personas'   => 'Personas',
-    'nuevo_modulo' => 'Mi Módulo',   // ← agregar aquí
-];
+// Global para todos los usuarios autenticables
+NotificacionService::registrar('usuarios', 'CREATE', 'admin');
+
+// Usuario unico
+NotificacionService::registrar('usuarios', 'CREATE', 'admin', 'USR-1', null, 'juan');
+
+// Varios usuarios
+NotificacionService::registrar('usuarios', 'CREATE', 'admin', 'USR-1', null, ['juan', 'ana']);
+
+// Mezcla de usuarios y grupos
+NotificacionService::registrar('usuarios', 'CREATE', 'admin', 'USR-1', null, [
+    'usuarios' => ['juan', 'ana'],
+    'grupos' => ['Administrador', 'Caja'],
+]);
 ```
 
-### Triggers activos
+Notas:
 
-| Controller          | Método    | Acción   |
-|---------------------|-----------|----------|
-| `UsuarioController` | `guardar` | `CREATE` |
+- Los grupos se expanden a usuarios activos en el momento de crear la notificacion.
+- `wr_notificacion_destino` controla visibilidad.
+- `wr_notificacion_lectura` controla estado de lectura por usuario.
+- Las notificaciones antiguas sin filas en `wr_notificacion_destino` se consideran globales.
 
-### Migración
+### Tipos por acción
+
+- `CREATE` -> `success`
+- `UPDATE` -> `warning`
+- `DELETE` -> `danger`
+
+### Triggers activos detectados
+
+- `UsuarioController`: `CREATE`, `UPDATE`
+- `PersonaController`: `CREATE`, `UPDATE`, `DELETE`
+- `GrupoController`: `CREATE`, `UPDATE`, `DELETE`
+
+### Visualización en UI
+
+- Dropdown del header: `Core\Helpers\NotificationHelper` (últimas 5 no leídas)
+- Listado: `GET /notificaciones`
+- Detalle: `GET /notificaciones/{id}/ver` (auto-marca leída)
+- Marcado explícito: `POST /notificaciones/{id}/leida`
+- Estas rutas son internas y no requieren alta en `elemento`; el acceso se resuelve por autenticación.
+
+### Modelo de datos
+
+`NotificacionModel` trabaja con dos capas:
+
+- `wr_notificacion`: evento generado por el sistema.
+- `wr_notificacion_destino`: usuarios que pueden verla.
+- `wr_notificacion_lectura`: marca de lectura por usuario (`nrl_usu_id`).
+- Si una notificación no tiene destinatarios registrados, se trata como global por compatibilidad.
+
+## 6. Migraciones relacionadas
+
+- `0004_create_notificacion.sql`
+- `0005_create_notificacion_destino.sql`
+- `0006_create_notificacion_lectura.sql`
+- `0007_backfill_notificacion_lectura.sql`
+
+Ejecutar:
 
 ```bash
-php migrate.php   # crea notificacion si aun no existe
+php migrate.php
 ```
 
-### Archivos clave
+## 7. Plan de WhatsApp (pendiente)
 
-| Archivo | Descripción |
-|---|---|
-| `core/NotificacionService.php` | Servicio estático — punto de entrada para registrar |
-| `app/Models/NotificacionModel.php` | Acceso a BD: `createRecord`, `countNoLeidas`, `marcarLeida` |
-| `app/Controllers/NotificacionController.php` | Rutas: index, ver (auto-marca leída), marcarLeida |
-| `core/Helpers/NotificationHelper.php` | Renderiza el dropdown del header |
-| `core/database/migrations/0004_create_notificacion.sql` | Estructura de la tabla |
+La integración WhatsApp Business API sigue como plan futuro y **no está implementada** en el estado actual del código.
 
----
+Sugerencia de implementación futura:
 
-*Ver también: [README.md](README.md) — documentación general del framework.*
+- `core/WhatsApp.php`
+- extensión de `UsuarioController::guardar()` tras envío de email
+- variables `.env` para token, phone id y template
+

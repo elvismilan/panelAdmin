@@ -1,16 +1,8 @@
 <div class="container-fluid">
     <?php
-    $groupId = trim((string) ($user['group'] ?? ''));
-    $canVer  = false;
-
-    if ($groupId !== '') {
-        try {
-            $permission = new \Core\Permission();
-            $canVer = $permission->canAccessRoute($groupId, '/notificaciones/1/ver', 'ver') === true;
-        } catch (\Throwable) {
-            $canVer = false;
-        }
-    }
+    // Notificaciones es un modulo interno sin registro en `elemento`.
+    // El acceso ya se resuelve por autenticacion y bypass interno.
+    $canVer = true;
 
     $tipoBadge = [
         'success' => 'success',
