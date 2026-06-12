@@ -33,6 +33,7 @@ class NotificacionService
         'modulos'     => 'Modulos',
         'tareas'      => 'Tareas',
         'logs'        => 'Logs',
+        'parametros'  => 'Parametros',
     ];
 
     /**
@@ -52,7 +53,7 @@ class NotificacionService
      * @param string      $usuOrigen    Usuario que ejecuto la accion
      * @param string|null $referenciaId ID del registro afectado (opcional)
      * @param string|null $mensajeExtra Texto adicional para el mensaje (opcional)
-     * @param array|string|null $destinos IDs de usuario destinatarios. Null = global para usuarios activos.
+     * @param array|string|null $destinos IDs de usuario destinatarios. Null = global.
      */
     public static function registrar(
         string $modulo,

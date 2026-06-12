@@ -25,7 +25,7 @@ Validada contra el código del repositorio el **12 de junio de 2026**.
   - **FilterBar implementado** con filtro por `par_grupo` (chips)
   - Paginación
   - Validación de datos
-  - Notificación de auditoría en `DELETE`
+  - Notificaciones de auditoría en `CREATE`, `UPDATE` y `DELETE`
 - **Migración:** `0005_create_wr_parametro_table.sql` dentro del baseline core activo
 - **Rutas:** Siguiendo patrón CRUD estándar (index, agregar, guardar, editar, actualizar, eliminar, borrar)
 
@@ -38,15 +38,14 @@ Validada contra el código del repositorio el **12 de junio de 2026**.
 - **Implementación:** En `routes/web.php` con match expression
 - **Uso:** Permite cambiar fácilmente el índice sin modificar código
 
-#### 3. Sistema de Notificaciones - Completado DELETE ✅
-- **Problema:** Métodos `borrar()` (DELETE) no registraban notificaciones
-- **Solución:** Agregada `NotificacionService::registrar()` en:
-  - `UsuarioController::borrar()`
-  - `ElementoController::borrar()`
-  - `TareaController::borrar()`
-  - `ParametroController::borrar()`
-  - PersonaController y GrupoController ya tenían (verificado)
-- **Resultado:** Todos los métodos `borrar()` de los CRUD actuales registran notificaciones `DELETE`
+#### 3. Sistema de Notificaciones - CRUD alineado ✅
+- **Problema:** La cobertura de notificaciones estaba incompleta y el modelo mantenía ramas legacy.
+- **Solución:** `NotificacionModel` ahora asume como oficiales `wr_notificacion_destino` y `wr_notificacion_lectura`, y `NotificacionService::registrar()` quedó alineado en:
+  - `ElementoController::guardar()` / `actualizar()` / `borrar()`
+  - `TareaController::guardar()` / `actualizar()` / `borrar()`
+  - `ParametroController::guardar()` / `actualizar()` / `borrar()`
+  - PersonaController, GrupoController y UsuarioController ya cubrían el flujo principal
+- **Resultado:** Los CRUD actuales quedan alineados con eventos `CREATE`, `UPDATE` y `DELETE` según el módulo.
 
 #### 4. Baseline core por migraciones ✅
 - **Convención actual:** solo las 15 tablas core usan prefijo fijo `wr_`
@@ -331,6 +330,7 @@ El módulo usa `NotificacionModel` con visibilidad por destinatario y lectura po
 - `wr_notificacion` guarda el evento.
 - `wr_notificacion_destino` guarda a qué usuarios se entrega cada notificación.
 - `wr_notificacion_lectura` guarda quién ya la leyó (`nrl_usu_id`, `nrl_leida_en`).
+- `wr_notificacion_destino` y `wr_notificacion_lectura` son parte del esquema oficial activo.
 - Si una notificación no tiene filas en `wr_notificacion_destino`, se interpreta como global por compatibilidad.
 - Las rutas `/notificaciones*` son internas: requieren sesión, pero no dependen de `elemento` ni aparecen en el menú RBAC.
 

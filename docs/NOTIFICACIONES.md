@@ -139,9 +139,10 @@ NotificacionService::registrar('usuarios', 'CREATE', 'admin', 'USR-1', null, [
 Notas:
 
 - Los grupos se expanden a usuarios activos en el momento de crear la notificacion.
+- `wr_notificacion_destino` y `wr_notificacion_lectura` forman parte del esquema oficial activo.
 - `wr_notificacion_destino` controla visibilidad.
 - `wr_notificacion_lectura` controla estado de lectura por usuario.
-- Las notificaciones antiguas sin filas en `wr_notificacion_destino` se consideran globales.
+- Si una notificacion se crea sin destinatarios explicitos, se considera global y queda visible por compatibilidad mediante ausencia de filas en `wr_notificacion_destino`.
 
 ### Tipos por acción
 
@@ -154,14 +155,13 @@ Notas:
 - `UsuarioController`: `CREATE`, `UPDATE`, `DELETE`
 - `PersonaController`: `CREATE`, `UPDATE`, `DELETE`
 - `GrupoController`: `CREATE`, `UPDATE`, `DELETE`
-- `ElementoController`: `DELETE`
-- `TareaController`: `DELETE`
-- `ParametroController`: `DELETE`
+- `ElementoController`: `CREATE`, `UPDATE`, `DELETE`
+- `TareaController`: `CREATE`, `UPDATE`, `DELETE`
+- `ParametroController`: `CREATE`, `UPDATE`, `DELETE`
 
 Cobertura actual:
 
-- `usuarios`, `personas` y `grupos` cubren `CREATE`, `UPDATE`, `DELETE`
-- `modulos`, `tareas` y `parametros` actualmente sólo registran `DELETE`
+- `usuarios`, `personas`, `grupos`, `modulos`, `tareas` y `parametros` cubren `CREATE`, `UPDATE`, `DELETE`
 
 ### Visualización en UI
 
@@ -173,7 +173,7 @@ Cobertura actual:
 
 ### Modelo de datos
 
-`NotificacionModel` trabaja con dos capas:
+`NotificacionModel` trabaja sobre el esquema oficial:
 
 - `wr_notificacion`: evento generado por el sistema.
 - `wr_notificacion_destino`: usuarios que pueden verla.

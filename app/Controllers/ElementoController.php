@@ -189,6 +189,7 @@ class ElementoController extends Controller
 
         $eleId = $model->createElemento($params, $tareaIds);
         $this->logAction($model->getLastActionLog(), 'CREATE');
+        NotificacionService::registrar('modulos', 'CREATE', (string) (Auth::user()['id'] ?? 'ANON'), $eleId);
 
         $this->flashSuccess(FlashMessages::MODULO_CREATED);
         $this->redirect('/modulos');
@@ -308,6 +309,7 @@ class ElementoController extends Controller
 
         $model->updateElemento($id, $params, $tareaIds);
         $this->logAction($model->getLastActionLog(), 'UPDATE');
+        NotificacionService::registrar('modulos', 'UPDATE', (string) (Auth::user()['id'] ?? 'ANON'), $id);
 
         $this->flashSuccess(FlashMessages::MODULO_UPDATED);
         $this->redirect('/modulos');

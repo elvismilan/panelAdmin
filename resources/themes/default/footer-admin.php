@@ -262,6 +262,28 @@
       .page-main-header .main-header-right .nav-right .notification-dropdown {
         top: 48px !important;
       }
+
+      .page-main-header .main-header-right .nav-right > ul > li.notification-menu:hover::before {
+        content: "";
+        position: absolute;
+        top: 100%;
+        right: -20px;
+        width: 76px;
+        height: 18px;
+      }
+
+      .page-main-header .main-header-right .nav-right > ul > li.notification-menu > .notification-dropdown {
+        top: calc(100% + 8px) !important;
+        right: -20px !important;
+        transform: translateY(0) !important;
+        transition: none !important;
+      }
+
+      .page-main-header .main-header-right .nav-right > ul > li.notification-menu > .notification-dropdown:before,
+      .page-main-header .main-header-right .nav-right > ul > li.notification-menu > .notification-dropdown:after {
+        right: 28px !important;
+        left: unset !important;
+      }
     </style>
     <!-- login js-->
     <!-- Plugin used-->

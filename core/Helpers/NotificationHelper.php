@@ -31,7 +31,7 @@ class NotificationHelper
         $html .= '<li class="text-center"><a class="f-w-700" href="' . htmlspecialchars(\Core\Url::to('/notificaciones'), ENT_QUOTES, 'UTF-8') . '">Ver todas</a></li>';
         $html .= '</ul>';
 
-        return '<li class="onhover-dropdown">' . $html . '</li>';
+        return '<li class="onhover-dropdown notification-menu">' . $html . '</li>';
     }
 
     // -------------------------------------------------------------------------

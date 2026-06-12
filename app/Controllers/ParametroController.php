@@ -133,8 +133,9 @@ class ParametroController extends Controller
             return;
         }
 
-        $model->createRecord($params);
+        $parId = $model->createRecord($params);
         $this->logAction($model->getLastActionLog(), 'CREATE');
+        NotificacionService::registrar('parametros', 'CREATE', (string) (Auth::user()['id'] ?? 'ANON'), $parId);
         $this->flashSuccess('Parámetro creado correctamente.');
         $this->redirect('/parametros');
     }
@@ -208,6 +209,7 @@ class ParametroController extends Controller
 
         $model->updateRecord($id, $params);
         $this->logAction($model->getLastActionLog(), 'UPDATE');
+        NotificacionService::registrar('parametros', 'UPDATE', (string) (Auth::user()['id'] ?? 'ANON'), $id);
         $this->flashSuccess('Parámetro actualizado correctamente.');
         $this->redirect('/parametros');
     }

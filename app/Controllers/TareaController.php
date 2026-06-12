@@ -118,6 +118,7 @@ class TareaController extends Controller
             'tar_nombre' => $nombre,
         ]);
         $this->logAction($model->getLastActionLog(), 'CREATE');
+        NotificacionService::registrar('tareas', 'CREATE', (string) (Auth::user()['id'] ?? 'ANON'), $tarId);
 
         $this->flashSuccess(FlashMessages::TAREA_CREATED);
 
@@ -189,6 +190,7 @@ class TareaController extends Controller
             'tar_nombre' => $nombre,
         ]);
         $this->logAction($model->getLastActionLog(), 'UPDATE');
+        NotificacionService::registrar('tareas', 'UPDATE', (string) (Auth::user()['id'] ?? 'ANON'), $id);
 
         $this->flashSuccess(FlashMessages::TAREA_UPDATED);
 
@@ -235,7 +237,8 @@ class TareaController extends Controller
 
         $nombre = (string) ($tarea['tar_nombre'] ?? '');
         $model->deleteTask($id);
-        $this->logAction($model->getLastActionLog(), 'DELETE');        NotificacionService::registrar('tareas', 'DELETE', (string) (Auth::user()['id'] ?? 'ANON'), $id);
+        $this->logAction($model->getLastActionLog(), 'DELETE');
+        NotificacionService::registrar('tareas', 'DELETE', (string) (Auth::user()['id'] ?? 'ANON'), $id);
         $this->flashSuccess(FlashMessages::TAREA_DELETED);
         $this->redirect('/tareas');
     }

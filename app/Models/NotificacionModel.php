@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Core\Model;
-use RuntimeException;
 use Throwable;
 
 class NotificacionModel extends Model
@@ -14,8 +13,6 @@ class NotificacionModel extends Model
     private string $notificacionDestinoTable;
     private string $lecturaTable;
     private string $usuarioTable;
-    private bool $hasDestinoTable;
-    private bool $hasLecturaTable;
 
     public function __construct()
     {
@@ -24,8 +21,6 @@ class NotificacionModel extends Model
         $this->notificacionDestinoTable = $this->tableName('notificacion_destino');
         $this->lecturaTable = $this->tableName('notificacion_lectura');
         $this->usuarioTable = $this->tableName('usuario');
-        $this->hasDestinoTable = $this->tableExistsByName($this->notificacionDestinoTable);
-        $this->hasLecturaTable = $this->tableExistsByName($this->lecturaTable);
 
         $this->setTable('notificacion');
         $this->setPrimaryKey('noti_id');
@@ -44,50 +39,18 @@ class NotificacionModel extends Model
             return [];
         }
 
-        if ($this->hasLecturaTable) {
-            [$where, $params] = $this->buildWhereWithLectura($search, $modulo, $leida, $usuDestino);
+        [$where, $params] = $this->buildWhereWithLectura($search, $modulo, $leida, $usuDestino);
 
-            $sql = "SELECT n.noti_id, n.noti_titulo, n.noti_mensaje, n.noti_tipo, n.noti_modulo,
-                           n.noti_accion, n.noti_usu_origen, n.noti_fecha,
-                           IF(r.nrl_noti_id IS NOT NULL, 1, 0) AS noti_leida,
-                           r.nrl_leida_en AS noti_leida_en,
-                           n.noti_referencia_id
-                    FROM {$this->notificacionTable} n
-                    LEFT JOIN {$this->lecturaTable} r
-                           ON r.nrl_noti_id = n.noti_id AND r.nrl_usu_id = :lectura_usu_id
-                    {$where}
-                    ORDER BY n.noti_id DESC
-                    LIMIT :limit OFFSET :offset";
-
-            return $this->fetchPaginated($sql, $params, $offset, $limit);
-        }
-
-        if ($this->hasDestinoTable) {
-            [$where, $params] = $this->buildWhere($search, $modulo, $leida, 'nd.nd_leida');
-
-            $sql = "SELECT n.noti_id, n.noti_titulo, n.noti_mensaje, n.noti_tipo, n.noti_modulo,
-                           n.noti_accion, n.noti_usu_origen, n.noti_fecha,
-                           nd.nd_leida AS noti_leida,
-                           nd.nd_leida_en AS noti_leida_en,
-                           n.noti_referencia_id
-                    FROM {$this->notificacionTable} n
-                    INNER JOIN {$this->notificacionDestinoTable} nd ON nd.nd_noti_id = n.noti_id
-                    WHERE nd.nd_usu_id = :usuDestino"
-                    . ($where !== '' ? ' AND ' . substr($where, 6) : '')
-                    . "\nORDER BY n.noti_id DESC
-                    LIMIT :limit OFFSET :offset";
-
-            return $this->fetchPaginated($sql, ['usuDestino' => $usuDestino] + $params, $offset, $limit);
-        }
-
-        [$where, $params] = $this->buildWhere($search, $modulo, $leida, 'noti_leida');
-
-        $sql = "SELECT noti_id, noti_titulo, noti_mensaje, noti_tipo, noti_modulo,
-                       noti_accion, noti_usu_origen, noti_fecha, noti_leida,
-                       noti_leida_en, noti_referencia_id
-                FROM {$this->notificacionTable}
+        $sql = "SELECT n.noti_id, n.noti_titulo, n.noti_mensaje, n.noti_tipo, n.noti_modulo,
+                       n.noti_accion, n.noti_usu_origen, n.noti_fecha,
+                       IF(r.nrl_noti_id IS NOT NULL, 1, 0) AS noti_leida,
+                       r.nrl_leida_en AS noti_leida_en,
+                       n.noti_referencia_id
+                FROM {$this->notificacionTable} n
+                LEFT JOIN {$this->lecturaTable} r
+                       ON r.nrl_noti_id = n.noti_id AND r.nrl_usu_id = :lectura_usu_id
                 {$where}
-                ORDER BY noti_id DESC
+                ORDER BY n.noti_id DESC
                 LIMIT :limit OFFSET :offset";
 
         return $this->fetchPaginated($sql, $params, $offset, $limit);
@@ -100,32 +63,14 @@ class NotificacionModel extends Model
             return 0;
         }
 
-        if ($this->hasLecturaTable) {
-            [$where, $params] = $this->buildWhereWithLectura($search, $modulo, $leida, $usuDestino);
+        [$where, $params] = $this->buildWhereWithLectura($search, $modulo, $leida, $usuDestino);
 
-            $sql = "SELECT COUNT(*) AS total
-                    FROM {$this->notificacionTable} n
-                    LEFT JOIN {$this->lecturaTable} r
-                           ON r.nrl_noti_id = n.noti_id AND r.nrl_usu_id = :lectura_usu_id
-                    {$where}";
+        $sql = "SELECT COUNT(*) AS total
+                FROM {$this->notificacionTable} n
+                LEFT JOIN {$this->lecturaTable} r
+                       ON r.nrl_noti_id = n.noti_id AND r.nrl_usu_id = :lectura_usu_id
+                {$where}";
 
-            return $this->countByQuery($sql, $params);
-        }
-
-        if ($this->hasDestinoTable) {
-            [$where, $params] = $this->buildWhere($search, $modulo, $leida, 'nd.nd_leida');
-
-            $sql = "SELECT COUNT(*) AS total
-                    FROM {$this->notificacionTable} n
-                    INNER JOIN {$this->notificacionDestinoTable} nd ON nd.nd_noti_id = n.noti_id
-                    WHERE nd.nd_usu_id = :usuDestino"
-                . ($where !== '' ? ' AND ' . substr($where, 6) : '');
-
-            return $this->countByQuery($sql, ['usuDestino' => $usuDestino] + $params);
-        }
-
-        [$where, $params] = $this->buildWhere($search, $modulo, $leida, 'noti_leida');
-        $sql = "SELECT COUNT(*) AS total FROM {$this->notificacionTable}{$where}";
         return $this->countByQuery($sql, $params);
     }
 
@@ -136,57 +81,30 @@ class NotificacionModel extends Model
             return null;
         }
 
-        if ($this->hasLecturaTable) {
-            [$visibilitySql, $visibilityParams] = $this->buildVisibilityConstraint($usuDestino, 'n');
-            $conditions = ['n.noti_id = :id'];
-            $params = [
-                'id' => $id,
-                'lectura_usu_id' => $usuDestino,
-            ];
+        [$visibilitySql, $visibilityParams] = $this->buildVisibilityConstraint($usuDestino, 'n');
+        $conditions = ['n.noti_id = :id'];
+        $params = [
+            'id' => $id,
+            'lectura_usu_id' => $usuDestino,
+        ];
 
-            if ($visibilitySql !== '') {
-                $conditions[] = $visibilitySql;
-                $params = array_merge($params, $visibilityParams);
-            }
-
-            $sql = "SELECT n.noti_id, n.noti_titulo, n.noti_mensaje, n.noti_tipo, n.noti_modulo,
-                           n.noti_accion, n.noti_usu_origen, n.noti_fecha,
-                           IF(r.nrl_noti_id IS NOT NULL, 1, 0) AS noti_leida,
-                           r.nrl_leida_en AS noti_leida_en,
-                           n.noti_referencia_id
-                    FROM {$this->notificacionTable} n
-                    LEFT JOIN {$this->lecturaTable} r
-                           ON r.nrl_noti_id = n.noti_id AND r.nrl_usu_id = :lectura_usu_id
-                    WHERE " . implode(' AND ', $conditions) . "
-                    LIMIT 1";
-
-            $row = $this->db->query($sql, $params)->fetch();
-            return is_array($row) ? $row : null;
+        if ($visibilitySql !== '') {
+            $conditions[] = $visibilitySql;
+            $params = array_merge($params, $visibilityParams);
         }
 
-        if ($this->hasDestinoTable) {
-            $sql = "SELECT n.noti_id, n.noti_titulo, n.noti_mensaje, n.noti_tipo, n.noti_modulo,
-                           n.noti_accion, n.noti_usu_origen, n.noti_fecha,
-                           nd.nd_leida AS noti_leida,
-                           nd.nd_leida_en AS noti_leida_en,
-                           n.noti_referencia_id
-                    FROM {$this->notificacionTable} n
-                    INNER JOIN {$this->notificacionDestinoTable} nd ON nd.nd_noti_id = n.noti_id
-                    WHERE n.noti_id = :id AND nd.nd_usu_id = :usuDestino
-                    LIMIT 1";
-
-            $row = $this->db->query($sql, ['id' => $id, 'usuDestino' => $usuDestino])->fetch();
-            return is_array($row) ? $row : null;
-        }
-
-        $sql = "SELECT noti_id, noti_titulo, noti_mensaje, noti_tipo, noti_modulo,
-                       noti_accion, noti_usu_origen, noti_fecha, noti_leida,
-                       noti_leida_en, noti_referencia_id
-                FROM {$this->notificacionTable}
-                WHERE noti_id = :id
+        $sql = "SELECT n.noti_id, n.noti_titulo, n.noti_mensaje, n.noti_tipo, n.noti_modulo,
+                       n.noti_accion, n.noti_usu_origen, n.noti_fecha,
+                       IF(r.nrl_noti_id IS NOT NULL, 1, 0) AS noti_leida,
+                       r.nrl_leida_en AS noti_leida_en,
+                       n.noti_referencia_id
+                FROM {$this->notificacionTable} n
+                LEFT JOIN {$this->lecturaTable} r
+                       ON r.nrl_noti_id = n.noti_id AND r.nrl_usu_id = :lectura_usu_id
+                WHERE " . implode(' AND ', $conditions) . "
                 LIMIT 1";
 
-        $row = $this->db->query($sql, ['id' => $id])->fetch();
+        $row = $this->db->query($sql, $params)->fetch();
         return is_array($row) ? $row : null;
     }
 
@@ -197,35 +115,21 @@ class NotificacionModel extends Model
             return 0;
         }
 
-        if ($this->hasLecturaTable) {
-            [$visibilitySql, $visibilityParams] = $this->buildVisibilityConstraint($usuDestino, 'n');
-            $conditions = ['r.nrl_noti_id IS NULL'];
-            $params = array_merge(['lectura_usu_id' => $usuDestino], $visibilityParams);
+        [$visibilitySql, $visibilityParams] = $this->buildVisibilityConstraint($usuDestino, 'n');
+        $conditions = ['r.nrl_noti_id IS NULL'];
+        $params = array_merge(['lectura_usu_id' => $usuDestino], $visibilityParams);
 
-            if ($visibilitySql !== '') {
-                $conditions[] = $visibilitySql;
-            }
-
-            $sql = "SELECT COUNT(*) AS total
-                    FROM {$this->notificacionTable} n
-                    LEFT JOIN {$this->lecturaTable} r
-                           ON r.nrl_noti_id = n.noti_id AND r.nrl_usu_id = :lectura_usu_id
-                    WHERE " . implode(' AND ', $conditions);
-
-            $row = $this->db->query($sql, $params)->fetch();
-            return (int) ($row['total'] ?? 0);
+        if ($visibilitySql !== '') {
+            $conditions[] = $visibilitySql;
         }
 
-        if ($this->hasDestinoTable) {
-            $sql = "SELECT COUNT(*) AS total
-                    FROM {$this->notificacionDestinoTable}
-                    WHERE nd_usu_id = :usuDestino AND nd_leida = 0";
-            $row = $this->db->query($sql, ['usuDestino' => $usuDestino])->fetch();
-            return (int) ($row['total'] ?? 0);
-        }
+        $sql = "SELECT COUNT(*) AS total
+                FROM {$this->notificacionTable} n
+                LEFT JOIN {$this->lecturaTable} r
+                       ON r.nrl_noti_id = n.noti_id AND r.nrl_usu_id = :lectura_usu_id
+                WHERE " . implode(' AND ', $conditions);
 
-        $sql = "SELECT COUNT(*) AS total FROM {$this->notificacionTable} WHERE noti_leida = 0";
-        $row = $this->db->query($sql)->fetch();
+        $row = $this->db->query($sql, $params)->fetch();
         return (int) ($row['total'] ?? 0);
     }
 
@@ -236,63 +140,32 @@ class NotificacionModel extends Model
             return false;
         }
 
-        if ($this->hasLecturaTable) {
-            if (!$this->userCanAccessNotification($id, $usuDestino)) {
-                return false;
-            }
-
-            $ahora = date('Y-m-d H:i:s');
-            $sql = "INSERT IGNORE INTO {$this->lecturaTable} (nrl_noti_id, nrl_usu_id, nrl_leida_en)
-                    VALUES (:noti_id, :usu_id, :ahora)";
-
-            $stmt = $this->db->getConnection()->prepare($sql);
-            $stmt->bindValue(':noti_id', $id, \PDO::PARAM_INT);
-            $stmt->bindValue(':usu_id', $usuDestino, \PDO::PARAM_STR);
-            $stmt->bindValue(':ahora', $ahora, \PDO::PARAM_STR);
-            $stmt->execute();
-
-            if ($this->hasDestinoTable) {
-                $this->db->query(
-                    "UPDATE {$this->notificacionDestinoTable}
-                     SET nd_estado = :estado, nd_leida = :leida, nd_leida_en = :leida_en
-                     WHERE nd_noti_id = :noti_id AND nd_usu_id = :usu_id",
-                    [
-                        'estado' => 'read',
-                        'leida' => 1,
-                        'leida_en' => $ahora,
-                        'noti_id' => $id,
-                        'usu_id' => $usuDestino,
-                    ]
-                );
-            }
-
-            return $stmt->rowCount() > 0;
+        if (!$this->userCanAccessNotification($id, $usuDestino)) {
+            return false;
         }
 
-        if ($this->hasDestinoTable) {
-            $sql = "UPDATE {$this->notificacionDestinoTable}
-                    SET nd_leida = 1,
-                        nd_leida_en = :ahora,
-                        nd_estado = 'read'
-                    WHERE nd_noti_id = :id AND nd_usu_id = :usuDestino AND nd_leida = 0";
-
-            $stmt = $this->db->getConnection()->prepare($sql);
-            $stmt->bindValue(':ahora', date('Y-m-d H:i:s'), \PDO::PARAM_STR);
-            $stmt->bindValue(':id', $id, \PDO::PARAM_STR);
-            $stmt->bindValue(':usuDestino', $usuDestino, \PDO::PARAM_STR);
-            $stmt->execute();
-
-            return $stmt->rowCount() > 0;
-        }
-
-        $sql = "UPDATE {$this->notificacionTable}
-                SET noti_leida = 1, noti_leida_en = :ahora
-                WHERE noti_id = :id AND noti_leida = 0";
+        $ahora = date('Y-m-d H:i:s');
+        $sql = "INSERT IGNORE INTO {$this->lecturaTable} (nrl_noti_id, nrl_usu_id, nrl_leida_en)
+                VALUES (:noti_id, :usu_id, :ahora)";
 
         $stmt = $this->db->getConnection()->prepare($sql);
-        $stmt->bindValue(':ahora', date('Y-m-d H:i:s'), \PDO::PARAM_STR);
-        $stmt->bindValue(':id', $id, \PDO::PARAM_STR);
+        $stmt->bindValue(':noti_id', $id, \PDO::PARAM_INT);
+        $stmt->bindValue(':usu_id', $usuDestino, \PDO::PARAM_STR);
+        $stmt->bindValue(':ahora', $ahora, \PDO::PARAM_STR);
         $stmt->execute();
+
+        $this->db->query(
+            "UPDATE {$this->notificacionDestinoTable}
+             SET nd_estado = :estado, nd_leida = :leida, nd_leida_en = :leida_en
+             WHERE nd_noti_id = :noti_id AND nd_usu_id = :usu_id",
+            [
+                'estado' => 'read',
+                'leida' => 1,
+                'leida_en' => $ahora,
+                'noti_id' => $id,
+                'usu_id' => $usuDestino,
+            ]
+        );
 
         return $stmt->rowCount() > 0;
     }
@@ -301,10 +174,6 @@ class NotificacionModel extends Model
     {
         $destinos = $data['noti_destinos'] ?? null;
         $hasExplicitDestinations = $this->hasExplicitDestinations($destinos);
-
-        if ($hasExplicitDestinations && !$this->hasDestinoTable) {
-            throw new RuntimeException('La tabla de destinos de notificaciones no existe.');
-        }
 
         $this->db->beginTransaction();
 
@@ -324,30 +193,25 @@ class NotificacionModel extends Model
                     : null,
             ]);
 
-            if ($this->hasDestinoTable) {
-                $destinosResueltos = $this->resolveDestinos($destinos);
-                if ($destinosResueltos === null) {
-                    if (!$this->hasLecturaTable) {
-                        $destinosResueltos = $this->getActiveUserIds();
-                    }
-                } elseif ($destinosResueltos === [] && $hasExplicitDestinations) {
-                    $destinosResueltos = [self::DESTINATION_SENTINEL];
-                }
+            $destinosResueltos = $this->resolveDestinos($destinos);
+            if ($destinosResueltos === [] && $hasExplicitDestinations) {
+                $destinosResueltos = [self::DESTINATION_SENTINEL];
+            }
 
-                if (is_array($destinosResueltos) && $destinosResueltos !== []) {
-                    $sql = "INSERT IGNORE INTO {$this->notificacionDestinoTable}
-                            (nd_noti_id, nd_usu_id, nd_estado, nd_leida, nd_leida_en, nd_entregada_en)
-                            VALUES (:notiId, :usuId, 'unread', 0, NULL, :entregadaEn)";
+            if (is_array($destinosResueltos) && $destinosResueltos !== []) {
+                $sql = "INSERT IGNORE INTO {$this->notificacionDestinoTable}
+                        (nd_noti_id, nd_usu_id, nd_estado, nd_leida, nd_leida_en, nd_entregada_en)
+                        VALUES (:notiId, :usuId, 'unread', 0, NULL, :entregadaEn)";
 
-                    $stmt = $this->db->getConnection()->prepare($sql);
-                    $entregadaEn = (string) ($data['noti_fecha'] ?? date('Y-m-d H:i:s'));
-                    foreach ($destinosResueltos as $usuId) {
-                        $stmt->execute([
-                            'notiId' => (int) $notiId,
-                            'usuId' => $usuId,
-                            'entregadaEn' => $entregadaEn,
-                        ]);
-                    }
+                $stmt = $this->db->getConnection()->prepare($sql);
+                $entregadaEn = (string) ($data['noti_fecha'] ?? date('Y-m-d H:i:s'));
+
+                foreach ($destinosResueltos as $usuId) {
+                    $stmt->execute([
+                        'notiId' => (int) $notiId,
+                        'usuId' => $usuId,
+                        'entregadaEn' => $entregadaEn,
+                    ]);
                 }
             }
 
@@ -357,34 +221,9 @@ class NotificacionModel extends Model
             if ($this->db->getConnection()->inTransaction()) {
                 $this->db->rollBack();
             }
+
             throw $e;
         }
-    }
-
-    /** @return array{string, array<string,string>} */
-    private function buildWhere(string $search, string $modulo = '', string $leida = '', string $leidaColumn = 'noti_leida'): array
-    {
-        $conditions = [];
-        $params = [];
-
-        if ($search !== '') {
-            $conditions[] = '(noti_titulo LIKE :search OR noti_usu_origen LIKE :search)';
-            $params['search'] = $this->likePattern($search);
-        }
-
-        if ($modulo !== '') {
-            $conditions[] = 'noti_modulo = :modulo';
-            $params['modulo'] = $modulo;
-        }
-
-        if ($leida === '0' || $leida === '1') {
-            $conditions[] = "{$leidaColumn} = :leida";
-            $params['leida'] = $leida;
-        }
-
-        $where = $this->buildWhereClause($conditions);
-
-        return [$where, $params];
     }
 
     /** @return array{string, array<string,string>} */
@@ -424,10 +263,6 @@ class NotificacionModel extends Model
     /** @return array{string, array<string,string>} */
     private function buildVisibilityConstraint(string $usuDestino, string $notificationAlias): array
     {
-        if (!$this->hasDestinoTable) {
-            return ['', []];
-        }
-
         return [
             '(EXISTS (
                 SELECT 1
@@ -601,35 +436,5 @@ class NotificacionModel extends Model
             }
             $bucket[] = trim((string) $value);
         }
-    }
-
-    /** @return string[] */
-    private function getActiveUserIds(): array
-    {
-        $rows = $this->db->query(
-            "SELECT usu_id FROM {$this->usuarioTable} WHERE usu_estado = 'H'"
-        )->fetchAll();
-
-        $ids = [];
-        foreach ($rows as $row) {
-            $id = trim((string) ($row['usu_id'] ?? ''));
-            if ($id !== '') {
-                $ids[$id] = true;
-            }
-        }
-
-        return array_keys($ids);
-    }
-
-    private function tableExistsByName(string $tableName): bool
-    {
-        $row = $this->db->query(
-            'SELECT COUNT(*) AS total
-             FROM information_schema.tables
-             WHERE table_schema = DATABASE() AND table_name = :table',
-            ['table' => $tableName]
-        )->fetch();
-
-        return (int) ($row['total'] ?? 0) > 0;
     }
 }
