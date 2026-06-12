@@ -59,15 +59,7 @@ class NotificacionModel extends Model
                     ORDER BY n.noti_id DESC
                     LIMIT :limit OFFSET :offset";
 
-            $stmt = $this->db->getConnection()->prepare($sql);
-            foreach ($params as $key => $value) {
-                $stmt->bindValue(':' . $key, $value, \PDO::PARAM_STR);
-            }
-            $stmt->bindValue(':limit', max(1, $limit), \PDO::PARAM_INT);
-            $stmt->bindValue(':offset', max(0, $offset), \PDO::PARAM_INT);
-            $stmt->execute();
-
-            return $stmt->fetchAll();
+            return $this->fetchPaginated($sql, $params, $offset, $limit);
         }
 
         if ($this->hasDestinoTable) {
@@ -85,16 +77,7 @@ class NotificacionModel extends Model
                     . "\nORDER BY n.noti_id DESC
                     LIMIT :limit OFFSET :offset";
 
-            $stmt = $this->db->getConnection()->prepare($sql);
-            $stmt->bindValue(':usuDestino', $usuDestino, \PDO::PARAM_STR);
-            foreach ($params as $key => $value) {
-                $stmt->bindValue(':' . $key, $value, \PDO::PARAM_STR);
-            }
-            $stmt->bindValue(':limit', max(1, $limit), \PDO::PARAM_INT);
-            $stmt->bindValue(':offset', max(0, $offset), \PDO::PARAM_INT);
-            $stmt->execute();
-
-            return $stmt->fetchAll();
+            return $this->fetchPaginated($sql, ['usuDestino' => $usuDestino] + $params, $offset, $limit);
         }
 
         [$where, $params] = $this->buildWhere($search, $modulo, $leida, 'noti_leida');
@@ -107,15 +90,7 @@ class NotificacionModel extends Model
                 ORDER BY noti_id DESC
                 LIMIT :limit OFFSET :offset";
 
-        $stmt = $this->db->getConnection()->prepare($sql);
-        foreach ($params as $key => $value) {
-            $stmt->bindValue(':' . $key, $value, \PDO::PARAM_STR);
-        }
-        $stmt->bindValue(':limit', max(1, $limit), \PDO::PARAM_INT);
-        $stmt->bindValue(':offset', max(0, $offset), \PDO::PARAM_INT);
-        $stmt->execute();
-
-        return $stmt->fetchAll();
+        return $this->fetchPaginated($sql, $params, $offset, $limit);
     }
 
     public function countAll(string $search = '', string $modulo = '', string $leida = '', ?string $usuDestino = null): int
@@ -134,8 +109,7 @@ class NotificacionModel extends Model
                            ON r.nrl_noti_id = n.noti_id AND r.nrl_usu_id = :lectura_usu_id
                     {$where}";
 
-            $row = $this->db->query($sql, $params)->fetch();
-            return (int) ($row['total'] ?? 0);
+            return $this->countByQuery($sql, $params);
         }
 
         if ($this->hasDestinoTable) {
@@ -147,15 +121,12 @@ class NotificacionModel extends Model
                     WHERE nd.nd_usu_id = :usuDestino"
                 . ($where !== '' ? ' AND ' . substr($where, 6) : '');
 
-            $row = $this->db->query($sql, ['usuDestino' => $usuDestino] + $params)->fetch();
-            return (int) ($row['total'] ?? 0);
+            return $this->countByQuery($sql, ['usuDestino' => $usuDestino] + $params);
         }
 
         [$where, $params] = $this->buildWhere($search, $modulo, $leida, 'noti_leida');
-        $sql = "SELECT COUNT(*) AS total FROM {$this->notificacionTable} {$where}";
-        $row = $this->db->query($sql, $params)->fetch();
-
-        return (int) ($row['total'] ?? 0);
+        $sql = "SELECT COUNT(*) AS total FROM {$this->notificacionTable}{$where}";
+        return $this->countByQuery($sql, $params);
     }
 
     public function findById(string $id, ?string $usuDestino = null): ?array
@@ -411,7 +382,7 @@ class NotificacionModel extends Model
             $params['leida'] = $leida;
         }
 
-        $where = $conditions !== [] ? 'WHERE ' . implode(' AND ', $conditions) : '';
+        $where = $this->buildWhereClause($conditions);
 
         return [$where, $params];
     }
@@ -445,7 +416,7 @@ class NotificacionModel extends Model
         }
 
         return [
-            $conditions !== [] ? 'WHERE ' . implode(' AND ', $conditions) : '',
+            $this->buildWhereClause($conditions),
             $params,
         ];
     }

@@ -23,29 +23,23 @@ class PersonaModel extends Model
         $sql = "SELECT per_id, per_nombre, per_apellido, per_email, per_foto, per_ci,
                        per_telefono, per_sexo, per_estado
                 FROM {$this->personaTable}";
+        $params = [];
 
         if ($search !== '') {
             $sql .= " WHERE per_nombre LIKE :search1
                          OR per_apellido LIKE :search2
                          OR per_ci LIKE :search3
                          OR per_email LIKE :search4";
+            $pattern = $this->likePattern($search);
+            $params['search1'] = $pattern;
+            $params['search2'] = $pattern;
+            $params['search3'] = $pattern;
+            $params['search4'] = $pattern;
         }
 
         $sql .= " ORDER BY per_apellido ASC, per_nombre ASC LIMIT :limit OFFSET :offset";
 
-        $stmt = $this->db->getConnection()->prepare($sql);
-        if ($search !== '') {
-            $pattern = $this->likePattern($search);
-            $stmt->bindValue(':search1', $pattern, \PDO::PARAM_STR);
-            $stmt->bindValue(':search2', $pattern, \PDO::PARAM_STR);
-            $stmt->bindValue(':search3', $pattern, \PDO::PARAM_STR);
-            $stmt->bindValue(':search4', $pattern, \PDO::PARAM_STR);
-        }
-        $stmt->bindValue(':limit', max(1, $limit), \PDO::PARAM_INT);
-        $stmt->bindValue(':offset', max(0, $offset), \PDO::PARAM_INT);
-        $stmt->execute();
-
-        return $stmt->fetchAll();
+        return $this->fetchPaginated($sql, $params, $offset, $limit);
     }
 
     public function countAll(string $search = ''): int
@@ -65,8 +59,7 @@ class PersonaModel extends Model
             $params['search4'] = $pattern;
         }
 
-        $row = $this->db->query($sql, $params)->fetch();
-        return (int) ($row['total'] ?? 0);
+        return $this->countByQuery($sql, $params);
     }
 
     public function findById(string $id): ?array

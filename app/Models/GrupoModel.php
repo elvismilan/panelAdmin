@@ -37,26 +37,20 @@ class GrupoModel extends Model
                        COUNT(DISTINCT u.usu_id) AS total_usuarios
                 FROM {$this->grupoTable} g
                 LEFT JOIN {$this->usuarioTable} u ON u.usu_gru_id = g.gru_id";
+        $params = [];
 
         if ($search !== '') {
             $sql .= " WHERE g.gru_id LIKE :search1 OR g.gru_descripcion LIKE :search2";
+            $pattern = $this->likePattern($search);
+            $params['search1'] = $pattern;
+            $params['search2'] = $pattern;
         }
 
         $sql .= " GROUP BY g.gru_id, g.gru_descripcion, g.gru_estado
                   ORDER BY g.gru_descripcion ASC
                   LIMIT :limit OFFSET :offset";
 
-        $stmt = $this->db->getConnection()->prepare($sql);
-        if ($search !== '') {
-            $pattern = $this->likePattern($search);
-            $stmt->bindValue(':search1', $pattern, \PDO::PARAM_STR);
-            $stmt->bindValue(':search2', $pattern, \PDO::PARAM_STR);
-        }
-        $stmt->bindValue(':limit', max(1, $limit), \PDO::PARAM_INT);
-        $stmt->bindValue(':offset', max(0, $offset), \PDO::PARAM_INT);
-        $stmt->execute();
-
-        return $stmt->fetchAll();
+        return $this->fetchPaginated($sql, $params, $offset, $limit);
     }
 
     public function countAll(string $search = ''): int
@@ -71,8 +65,7 @@ class GrupoModel extends Model
             $params['search2'] = $pattern;
         }
 
-        $row = $this->db->query($sql, $params)->fetch();
-        return (int) ($row['total'] ?? 0);
+        return $this->countByQuery($sql, $params);
     }
 
     // -------------------------------------------------------------------------

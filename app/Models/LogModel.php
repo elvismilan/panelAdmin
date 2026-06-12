@@ -27,25 +27,15 @@ class LogModel extends Model
                 ORDER BY log_id DESC
                 LIMIT :limit OFFSET :offset";
 
-        $stmt = $this->db->getConnection()->prepare($sql);
-        foreach ($params as $key => $value) {
-            $stmt->bindValue(':' . $key, $value, \PDO::PARAM_STR);
-        }
-        $stmt->bindValue(':limit',  max(1, $limit),  \PDO::PARAM_INT);
-        $stmt->bindValue(':offset', max(0, $offset), \PDO::PARAM_INT);
-        $stmt->execute();
-
-        return $stmt->fetchAll();
+        return $this->fetchPaginated($sql, $params, $offset, $limit);
     }
 
     public function countAll(string $search = '', string $tipo = ''): int
     {
         [$where, $params] = $this->buildWhere($search, $tipo);
 
-        $sql = "SELECT COUNT(*) AS total FROM {$this->logsTable} {$where}";
-        $row = $this->db->query($sql, $params)->fetch();
-
-        return (int) ($row['total'] ?? 0);
+        $sql = "SELECT COUNT(*) AS total FROM {$this->logsTable}{$where}";
+        return $this->countByQuery($sql, $params);
     }
 
     public function findById(string $id): ?array
@@ -79,7 +69,7 @@ class LogModel extends Model
             $params['tipo'] = $tipo;
         }
 
-        $where = $conditions !== [] ? 'WHERE ' . implode(' AND ', $conditions) : '';
+        $where = $this->buildWhereClause($conditions);
 
         return [$where, $params];
     }

@@ -26,15 +26,7 @@ class ParametroModel extends Model
                 ORDER BY par_grupo ASC, par_clave ASC
                 LIMIT :limit OFFSET :offset";
 
-        $stmt = $this->db->getConnection()->prepare($sql);
-        foreach ($params as $key => $value) {
-            $stmt->bindValue(':' . $key, $value, \PDO::PARAM_STR);
-        }
-        $stmt->bindValue(':limit',  max(1, $limit),  \PDO::PARAM_INT);
-        $stmt->bindValue(':offset', max(0, $offset), \PDO::PARAM_INT);
-        $stmt->execute();
-
-        return $stmt->fetchAll();
+        return $this->fetchPaginated($sql, $params, $offset, $limit);
     }
 
     public function paginateWithFilter(int $offset, int $limit, string $search = '', string $grupo = ''): array
@@ -54,7 +46,7 @@ class ParametroModel extends Model
             $params['grupo'] = $grupo;
         }
 
-        $where = !empty($conditions) ? 'WHERE ' . implode(' AND ', $conditions) : '';
+        $where = $this->buildWhereClause($conditions);
 
         $sql = "SELECT par_id, par_clave, par_valor, par_tipo, par_grupo, par_label
                 FROM {$this->parametroTable}
@@ -62,25 +54,15 @@ class ParametroModel extends Model
                 ORDER BY par_grupo ASC, par_clave ASC
                 LIMIT :limit OFFSET :offset";
 
-        $stmt = $this->db->getConnection()->prepare($sql);
-        foreach ($params as $key => $value) {
-            $stmt->bindValue(':' . $key, $value, \PDO::PARAM_STR);
-        }
-        $stmt->bindValue(':limit',  max(1, $limit),  \PDO::PARAM_INT);
-        $stmt->bindValue(':offset', max(0, $offset), \PDO::PARAM_INT);
-        $stmt->execute();
-
-        return $stmt->fetchAll();
+        return $this->fetchPaginated($sql, $params, $offset, $limit);
     }
 
     public function countAll(string $search = ''): int
     {
         [$where, $params] = $this->buildWhere($search);
 
-        $sql = "SELECT COUNT(*) AS total FROM {$this->parametroTable} {$where}";
-        $row = $this->db->query($sql, $params)->fetch();
-
-        return (int) ($row['total'] ?? 0);
+        $sql = "SELECT COUNT(*) AS total FROM {$this->parametroTable}{$where}";
+        return $this->countByQuery($sql, $params);
     }
 
     public function countAllWithFilter(string $search = '', string $grupo = ''): int
@@ -100,12 +82,10 @@ class ParametroModel extends Model
             $params['grupo'] = $grupo;
         }
 
-        $where = !empty($conditions) ? 'WHERE ' . implode(' AND ', $conditions) : '';
+        $where = $this->buildWhereClause($conditions);
 
-        $sql = "SELECT COUNT(*) AS total FROM {$this->parametroTable} {$where}";
-        $row = $this->db->query($sql, $params)->fetch();
-
-        return (int) ($row['total'] ?? 0);
+        $sql = "SELECT COUNT(*) AS total FROM {$this->parametroTable}{$where}";
+        return $this->countByQuery($sql, $params);
     }
 
     public function findById(string $id): ?array
@@ -180,7 +160,7 @@ class ParametroModel extends Model
             $params['search2'] = $pattern;
         }
 
-        $where = $conditions !== [] ? 'WHERE ' . implode(' AND ', $conditions) : '';
+        $where = $this->buildWhereClause($conditions);
 
         return [$where, $params];
     }

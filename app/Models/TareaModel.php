@@ -27,20 +27,15 @@ class TareaModel extends Model
     public function paginate(int $offset, int $limit, string $search = ''): array
     {
         $sql = "SELECT tar_id, tar_nombre FROM {$this->tareaTable}";
+        $params = [];
+
         if ($search !== '') {
             $sql .= " WHERE tar_nombre LIKE :search";
+            $params['search'] = $this->likePattern($search);
         }
         $sql .= " ORDER BY tar_id DESC LIMIT :limit OFFSET :offset";
 
-        $stmt = $this->db->getConnection()->prepare($sql);
-        if ($search !== '') {
-            $stmt->bindValue(':search', $this->likePattern($search), \PDO::PARAM_STR);
-        }
-        $stmt->bindValue(':limit', max(1, $limit), \PDO::PARAM_INT);
-        $stmt->bindValue(':offset', max(0, $offset), \PDO::PARAM_INT);
-        $stmt->execute();
-
-        return $stmt->fetchAll();
+        return $this->fetchPaginated($sql, $params, $offset, $limit);
     }
 
     public function countAll(string $search = ''): int
@@ -53,9 +48,7 @@ class TareaModel extends Model
             $params['search'] = $this->likePattern($search);
         }
 
-        $row = $this->db->query($sql, $params)->fetch();
-
-        return (int) ($row['total'] ?? 0);
+        return $this->countByQuery($sql, $params);
     }
 
     public function findById(string $id): ?array

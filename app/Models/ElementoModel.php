@@ -25,66 +25,29 @@ class ElementoModel extends Model
     {
         $sql = "SELECT ele_id, ele_nombre, ele_titulo, ele_tipo, ele_estado, ele_orden, ele_padre
                 FROM {$this->elementoTable}";
+        $params = [];
+
         if ($search !== '') {
             $sql .= " WHERE ele_nombre LIKE :search1 OR ele_titulo LIKE :search2";
+            $pattern = $this->likePattern($search);
+            $params['search1'] = $pattern;
+            $params['search2'] = $pattern;
         }
         $sql .= " ORDER BY ele_orden ASC, ele_id ASC LIMIT :limit OFFSET :offset";
 
-        $stmt = $this->db->getConnection()->prepare($sql);
-        if ($search !== '') {
-            $pattern = $this->likePattern($search);
-            $stmt->bindValue(':search1', $pattern, \PDO::PARAM_STR);
-            $stmt->bindValue(':search2', $pattern, \PDO::PARAM_STR);
-        }
-        $stmt->bindValue(':limit', max(1, $limit), \PDO::PARAM_INT);
-        $stmt->bindValue(':offset', max(0, $offset), \PDO::PARAM_INT);
-        $stmt->execute();
-
-        return $stmt->fetchAll();
+        return $this->fetchPaginated($sql, $params, $offset, $limit);
     }
 
     public function paginateWithParentFilter(int $offset, int $limit, string $search = '', string $padre = ''): array
     {
         $sql = "SELECT ele_id, ele_nombre, ele_titulo, ele_tipo, ele_estado, ele_orden, ele_padre
                 FROM {$this->elementoTable}";
-        
-        $conditions = [];
-        $params = [];
-
-        if ($search !== '') {
-            $conditions[] = "(ele_nombre LIKE :search1 OR ele_titulo LIKE :search2)";
-            $pattern = $this->likePattern($search);
-            $params['search1'] = $pattern;
-            $params['search2'] = $pattern;
-        }
-
-        if ($padre !== '') {
-            $padreInt = (int) $padre;
-            if ($padreInt === 0) {
-                $conditions[] = "(ele_padre IS NULL OR ele_padre = 0)";
-            } else {
-                $conditions[] = "ele_padre = :padre";
-                $params['padre'] = $padreInt;
-            }
-        }
-
-        if (!empty($conditions)) {
-            $sql .= " WHERE " . implode(" AND ", $conditions);
-        }
+        [$where, $params] = $this->buildParentFilterWhere($search, $padre);
+        $sql .= $where;
 
         $sql .= " ORDER BY ele_orden ASC, ele_id ASC LIMIT :limit OFFSET :offset";
 
-        $stmt = $this->db->getConnection()->prepare($sql);
-        
-        foreach ($params as $key => $value) {
-            $stmt->bindValue(':' . $key, $value, \PDO::PARAM_STR);
-        }
-        
-        $stmt->bindValue(':limit', max(1, $limit), \PDO::PARAM_INT);
-        $stmt->bindValue(':offset', max(0, $offset), \PDO::PARAM_INT);
-        $stmt->execute();
-
-        return $stmt->fetchAll();
+        return $this->fetchPaginated($sql, $params, $offset, $limit);
     }
 
     public function getPadreFilterOptions(): array
@@ -117,9 +80,7 @@ class ElementoModel extends Model
             $params['search2'] = $pattern;
         }
 
-        $row = $this->db->query($sql, $params)->fetch();
-
-        return (int) ($row['total'] ?? 0);
+        return $this->countByQuery($sql, $params);
     }
 
     public function countAllWithFilters(string $search = '', string $estado = '', string $tipo = ''): int
@@ -145,20 +106,25 @@ class ElementoModel extends Model
             $params['tipo'] = $tipo;
         }
 
-        if (!empty($conditions)) {
-            $sql .= " WHERE " . implode(" AND ", $conditions);
-        }
+        $sql .= $this->buildWhereClause($conditions);
 
-        $row = $this->db->query($sql, $params)->fetch();
-
-        return (int) ($row['total'] ?? 0);
+        return $this->countByQuery($sql, $params);
     }
 
     public function countAllWithParentFilter(string $search = '', string $padre = ''): int
     {
         $sql = "SELECT COUNT(*) AS total FROM {$this->elementoTable}";
-        $params = [];
+        [$where, $params] = $this->buildParentFilterWhere($search, $padre);
+        $sql .= $where;
+
+        return $this->countByQuery($sql, $params);
+    }
+
+    /** @return array{string, array<string, int|string>} */
+    private function buildParentFilterWhere(string $search = '', string $padre = ''): array
+    {
         $conditions = [];
+        $params = [];
 
         if ($search !== '') {
             $conditions[] = "(ele_nombre LIKE :search1 OR ele_titulo LIKE :search2)";
@@ -177,13 +143,7 @@ class ElementoModel extends Model
             }
         }
 
-        if (!empty($conditions)) {
-            $sql .= " WHERE " . implode(" AND ", $conditions);
-        }
-
-        $row = $this->db->query($sql, $params)->fetch();
-
-        return (int) ($row['total'] ?? 0);
+        return [$this->buildWhereClause($conditions), $params];
     }
 
     public function findById(string $id): ?array
