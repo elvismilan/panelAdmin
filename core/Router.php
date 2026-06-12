@@ -43,6 +43,20 @@ class Router {
         $this->addRoute('DELETE', $path, $controller, $action);
     }
 
+    public function crud(string $basePath, string $controller, string $paramName = 'id'): void
+    {
+        $normalizedBasePath = '/' . trim($basePath, '/');
+        $paramSegment = '{' . trim($paramName) . '}';
+
+        $this->get($normalizedBasePath, $controller, 'index');
+        $this->get($normalizedBasePath . '/agregar', $controller, 'agregar');
+        $this->post($normalizedBasePath . '/guardar', $controller, 'guardar');
+        $this->get($normalizedBasePath . '/' . $paramSegment . '/editar', $controller, 'editar');
+        $this->post($normalizedBasePath . '/' . $paramSegment . '/actualizar', $controller, 'actualizar');
+        $this->get($normalizedBasePath . '/' . $paramSegment . '/eliminar', $controller, 'eliminar');
+        $this->post($normalizedBasePath . '/' . $paramSegment . '/borrar', $controller, 'borrar');
+    }
+
     public function dispatch(): void {
 
         $request = new Request();
