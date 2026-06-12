@@ -1108,7 +1108,7 @@ TPL;
         $v = $this->vars();
 
         $tpl = <<<'SQL'
-CREATE TABLE IF NOT EXISTS `{prefix}{{tabla}}` (
+CREATE TABLE IF NOT EXISTS `{{tabla}}` (
     `{{pre}}_id`         INT UNSIGNED NOT NULL AUTO_INCREMENT,
 {{SqlColumns}}
     `{{pre}}_created_at` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -1128,7 +1128,7 @@ SQL;
     private function buildMigrationDown(): string
     {
         $v = $this->vars();
-        return $this->replace("DROP TABLE IF EXISTS `{prefix}{{tabla}}`;\n", $v);
+        return $this->replace("DROP TABLE IF EXISTS `{{tabla}}`;\n", $v);
     }
 
     // =========================================================================

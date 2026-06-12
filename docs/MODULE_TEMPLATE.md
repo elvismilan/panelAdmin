@@ -622,7 +622,7 @@ class {Modulo}Model extends Model
 ## 7. Migración — `core/database/migrations/NNNN_create_{tabla}.sql`
 
 ```sql
-CREATE TABLE IF NOT EXISTS `{prefix}{tabla}` (
+CREATE TABLE IF NOT EXISTS `{tabla}` (
     `{pre}_id`         INT UNSIGNED     NOT NULL AUTO_INCREMENT,
     `{pre}_nombre`     VARCHAR(250)     NOT NULL,
     `{pre}_estado`     CHAR(1)          NOT NULL DEFAULT 'A'
@@ -638,7 +638,7 @@ CREATE TABLE IF NOT EXISTS `{prefix}{tabla}` (
 ### Migración DOWN — `NNNN_create_{tabla}_down.sql`
 
 ```sql
-DROP TABLE IF EXISTS `{prefix}{tabla}`;
+DROP TABLE IF EXISTS `{tabla}`;
 ```
 
 ---
@@ -688,3 +688,8 @@ $router->post('/{recursos}/{id}/borrar',         {Modulo}Controller::class, 'bor
 | `{TituloSingular}` | Etiqueta singular capitalizada | `Producto` |
 | `{TituloPlural}` | Etiqueta plural capitalizada | `Productos` |
 | `{tituloPlural}` | Etiqueta plural minúscula | `productos` |
+
+Nota de convención actual:
+
+- Solo las 15 tablas core del sistema usan prefijo fijo `wr_`.
+- Los módulos de negocio existentes y los nuevos módulos deben crear sus tablas sin prefijo.

@@ -4,7 +4,7 @@ Documentación actual del sistema de notificaciones y envíos de correo del pane
 
 ## Estado de esta guía
 
-Validada contra el código del repositorio el **26 de mayo de 2026**.
+Validada contra el código del repositorio el **12 de junio de 2026**.
 
 ## 1. Correo saliente (`Core\Mailer`)
 
@@ -151,9 +151,17 @@ Notas:
 
 ### Triggers activos detectados
 
-- `UsuarioController`: `CREATE`, `UPDATE`
+- `UsuarioController`: `CREATE`, `UPDATE`, `DELETE`
 - `PersonaController`: `CREATE`, `UPDATE`, `DELETE`
 - `GrupoController`: `CREATE`, `UPDATE`, `DELETE`
+- `ElementoController`: `DELETE`
+- `TareaController`: `DELETE`
+- `ParametroController`: `DELETE`
+
+Cobertura actual:
+
+- `usuarios`, `personas` y `grupos` cubren `CREATE`, `UPDATE`, `DELETE`
+- `modulos`, `tareas` y `parametros` actualmente sólo registran `DELETE`
 
 ### Visualización en UI
 
@@ -174,10 +182,7 @@ Notas:
 
 ## 6. Migraciones relacionadas
 
-- `0004_create_notificacion.sql`
-- `0005_create_notificacion_destino.sql`
-- `0006_create_notificacion_lectura.sql`
-- `0007_backfill_notificacion_lectura.sql`
+- `0004_create_wr_notification_tables.sql`
 
 Ejecutar:
 
@@ -194,4 +199,3 @@ Sugerencia de implementación futura:
 - `core/WhatsApp.php`
 - extensión de `UsuarioController::guardar()` tras envío de email
 - variables `.env` para token, phone id y template
-

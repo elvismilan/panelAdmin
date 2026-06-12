@@ -89,14 +89,16 @@ class ElementoModel extends Model
 
     public function getPadreFilterOptions(): array
     {
-        // Obtener todos los padres (elementos sin padre) con conteo de hijos
+        // Mostrar solo padres reales con hijos visibles.
+        // "Inicio" no debe aparecer como opcion del filtro.
         $sql = "SELECT 
                     p.ele_id AS value,
                     p.ele_titulo AS label,
                     COUNT(h.ele_id) AS count
                 FROM {$this->elementoTable} p
-                LEFT JOIN {$this->elementoTable} h ON h.ele_padre = p.ele_id
-                WHERE p.ele_padre IS NULL OR p.ele_padre = 0
+                INNER JOIN {$this->elementoTable} h ON h.ele_padre = p.ele_id
+                WHERE (p.ele_padre IS NULL OR p.ele_padre = 0)
+                  AND LOWER(TRIM(COALESCE(p.ele_titulo, ''))) <> 'inicio'
                 GROUP BY p.ele_id, p.ele_titulo
                 ORDER BY p.ele_titulo ASC";
         

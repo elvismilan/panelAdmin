@@ -4,9 +4,9 @@ Guía actual del proyecto para desarrollo, operación y onboarding.
 
 ## Estado de esta guía
 
-Validada contra el código del repositorio el **26 de mayo de 2026**.
+Validada contra el código del repositorio el **12 de junio de 2026**.
 
-**Última actualización:** 11 de junio de 2026
+**Última actualización:** 12 de junio de 2026
 
 ### Cambios recientes (Sesión 11 jun 2026)
 
@@ -25,8 +25,8 @@ Validada contra el código del repositorio el **26 de mayo de 2026**.
   - **FilterBar implementado** con filtro por `par_grupo` (chips)
   - Paginación
   - Validación de datos
-  - Notificaciones de auditoría (CREATE, UPDATE, DELETE)
-- **Migración:** `0008_create_parametro.sql` ejecutada exitosamente
+  - Notificación de auditoría en `DELETE`
+- **Migración:** `0005_create_wr_parametro_table.sql` dentro del baseline core activo
 - **Rutas:** Siguiendo patrón CRUD estándar (index, agregar, guardar, editar, actualizar, eliminar, borrar)
 
 #### 2. Variable de Entorno APP_INDEX ✅
@@ -46,12 +46,12 @@ Validada contra el código del repositorio el **26 de mayo de 2026**.
   - `TareaController::borrar()`
   - `ParametroController::borrar()`
   - PersonaController y GrupoController ya tenían (verificado)
-- **Resultado:** Todos los CRUD ahora registran notificaciones para CREATE, UPDATE, DELETE
+- **Resultado:** Todos los métodos `borrar()` de los CRUD actuales registran notificaciones `DELETE`
 
-#### 4. Migraciones - Prefijo wr_ Consistente ✅
-- **Corregidas:** Todas las migraciones (0002-0008) para usar prefijo `wr_` consistentemente
-- **Verificación:** `php migrate.php status` muestra todas ejecutadas
-- **Base de datos:** Tablas con prefijo `wr_` confirmadas en admin_db
+#### 4. Baseline core por migraciones ✅
+- **Convención actual:** solo las 15 tablas core usan prefijo fijo `wr_`
+- **Migraciones activas:** definen la estructura base core ordenada
+- **Datos actuales:** si se quieren preservar, deben importarse mediante export separado
 
 ## 1. Resumen del sistema
 
@@ -60,7 +60,8 @@ Validada contra el código del repositorio el **26 de mayo de 2026**.
 - Router propio con rutas declaradas en `routes/web.php`.
 - RBAC por `grupo` + `elemento` + `tarea`.
 - Multi-tema por área (`public`, `login`, `admin`) mediante `ThemeResolver`.
-- Tablas core con prefijo fijo `wr_` (no configurables).
+- Solo las 15 tablas core usan prefijo fijo `wr_`.
+- Las tablas de modulos de negocio existentes y los nuevos modulos usan nombres sin prefijo.
 
 ## 2. Estructura actual del proyecto
 
@@ -307,19 +308,21 @@ php migrate.php status
 php migrate.php rollback
 ```
 
-### Migraciones existentes
+### Migraciones activas
 
-- `0001_create_login_attempts.sql`
-- `0002_add_soft_deletes.sql`
-- `0003_create_password_resets.sql`
-- `0004_create_notificacion.sql`
-- `0005_create_notificacion_destino.sql`
-- `0006_create_notificacion_lectura.sql`
-- `0007_backfill_notificacion_lectura.sql`
+- `0001_create_wr_security_tables.sql`
+- `0002_create_wr_access_tables.sql`
+- `0003_create_wr_rbac_tables.sql`
+- `0004_create_wr_notification_tables.sql`
+- `0005_create_wr_parametro_table.sql`
 
 ### Base inicial
 
-`core/database/admin_db.sql` contiene el esquema base del panel (catálogos/tablas núcleo).
+`core/database/admin_db.sql` queda como referencia histórica/export.
+
+La estructura activa del core ahora vive en `core/database/migrations/`.
+
+Si se quiere conservar la data actual del sistema, se recomienda importar un export después de crear la estructura base.
 
 ## 11. Notificaciones
 
@@ -363,4 +366,4 @@ Valida:
 - [`CLI-GENERATOR.md`](CLI-GENERATOR.md)
 - [`MODULE_TEMPLATE.md`](MODULE_TEMPLATE.md)
 - [`NOTIFICACIONES.md`](NOTIFICACIONES.md)
-
+- [`ROADMAP-OPTIMIZACION.md`](ROADMAP-OPTIMIZACION.md)

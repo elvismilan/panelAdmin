@@ -4,7 +4,7 @@ Panel administrativo MVC en PHP 8.2+, orientado a hosting compartido, con autent
 
 ## Estado de esta documentación
 
-Actualizada según el código del repositorio el **26 de mayo de 2026**.
+Actualizada según el código del repositorio el **12 de junio de 2026**.
 
 ## Requisitos
 
@@ -89,6 +89,7 @@ panelAdmin/
 - `Grupos`: `/grupos`
 - `Logs`: `/logs`
 - `Notificaciones`: `/notificaciones`
+- `Parámetros`: `/parametros`
 
 ## Seguridad implementada (resumen)
 
@@ -118,3 +119,11 @@ Variables de entorno principales:
 - Generador CLI de módulos: [`docs/CLI-GENERATOR.md`](docs/CLI-GENERATOR.md)
 - Plantilla de módulo: [`docs/MODULE_TEMPLATE.md`](docs/MODULE_TEMPLATE.md)
 - Notificaciones: [`docs/NOTIFICACIONES.md`](docs/NOTIFICACIONES.md)
+- Roadmap técnico de optimización: [`docs/ROADMAP-OPTIMIZACION.md`](docs/ROADMAP-OPTIMIZACION.md)
+
+## Convención de tablas
+
+- Las 15 tablas core del sistema usan prefijo fijo `wr_`.
+- Las tablas de módulos de negocio existentes y futuros no usan prefijo.
+- La estructura core activa se define por migraciones.
+- La data actual del sistema puede conservarse importando un export aparte.

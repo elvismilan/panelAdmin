@@ -34,7 +34,11 @@
                                     <?php foreach ($grupos as $grupo): ?>
                                         <option value="<?= htmlspecialchars((string) ($grupo['gru_id'] ?? ''), ENT_QUOTES, 'UTF-8') ?>"
                                             <?= ($form['usu_gru_id'] ?? '') === (string) ($grupo['gru_id'] ?? '') ? 'selected' : '' ?>>
-                                            <?= htmlspecialchars((string) ($grupo['gru_descripcion'] ?? ''), ENT_QUOTES, 'UTF-8') ?>
+                                            <?= htmlspecialchars(
+                                                trim((string) ($grupo['gru_id'] ?? '')) . ' - ' . trim((string) ($grupo['gru_descripcion'] ?? '')),
+                                                ENT_QUOTES,
+                                                'UTF-8'
+                                            ) ?>
                                         </option>
                                     <?php endforeach; ?>
                                 </select>

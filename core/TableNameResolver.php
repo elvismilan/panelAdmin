@@ -4,9 +4,12 @@ namespace Core;
 
 class TableNameResolver
 {
+    private const CORE_PREFIX = 'wr_';
+
     /**
-     * Tablas que usan el prefijo wr_ directo (sin configuración).
-     * Solo estas tablas tienen prefijo fijo.
+     * Tablas core que usan el prefijo fijo wr_.
+     * Todo modulo de negocio existente o futuro fuera de esta lista
+     * debe mantenerse sin prefijo.
      *
      * @var array<string, bool>
      */
@@ -18,7 +21,9 @@ class TableNameResolver
         'logs' => true,
         'migrations' => true,
         'notificacion' => true,
+        'notificacion_destino' => true,
         'notificacion_lectura' => true,
+        'parametro' => true,
         'password_resets' => true,
         'permiso' => true,
         'persona' => true,
@@ -33,12 +38,11 @@ class TableNameResolver
             return $baseName;
         }
 
-        // Solo las tablas en PREFIXED_TABLES usan wr_
+        // Solo las tablas core incluidas en PREFIXED_TABLES usan wr_.
         if (!isset(self::PREFIXED_TABLES[$baseName])) {
             return $baseName;
         }
 
-        // Retorna el nombre con prefijo wr_ directo
-        return 'wr_' . $baseName;
+        return self::CORE_PREFIX . $baseName;
     }
 }
