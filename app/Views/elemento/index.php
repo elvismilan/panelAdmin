@@ -35,16 +35,14 @@
                 </div>
                 <div class="card-body pt-3">
                     <?php
-                    $searchView = dirname(__DIR__) . '/components/search-form.php';
-                    if (is_file($searchView)) {
-                        include $searchView;
-                    }
-                    ?>
-
-                    <?php
-                    $filterBarView = dirname(__DIR__) . '/components/filter-bar.php';
-                    if (is_file($filterBarView)) {
-                        include $filterBarView;
+                    $listToolbarConfig = [
+                        'mode' => 'simple',
+                        'searchConfig' => is_array($searchConfig ?? null) ? $searchConfig : [],
+                        'filterBarGroups' => is_array($filterBarGroups ?? null) ? $filterBarGroups : [],
+                    ];
+                    $toolbarView = dirname(__DIR__) . '/components/list-toolbar.php';
+                    if (is_file($toolbarView)) {
+                        include $toolbarView;
                     }
                     ?>
 
@@ -60,8 +58,10 @@
                             <thead class="table-primary">
                             <tr>
                                 <th>#</th>
-                                <th>Nombre</th>
+                                <th>Titulo</th>
                                 <th>Slug</th>
+                                <th>Padre</th>
+                                <th>Orden</th>
                                 <th>Estado</th>
                                 <th class="text-center" style="width: 150px;">Acciones</th>
                             </tr>
@@ -69,7 +69,7 @@
                             <tbody>
                             <?php if (empty($elementos)): ?>
                                 <tr>
-                                    <td colspan="5" class="text-center">
+                                    <td colspan="7" class="text-center">
                                         <?= !empty($search) ? 'No se encontraron modulos para la busqueda.' : 'No hay modulos registrados.' ?>
                                     </td>
                                 </tr>
@@ -87,6 +87,10 @@
                                         <td><?= htmlspecialchars((string) ($elemento['ele_titulo'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
                                         <td><?= htmlspecialchars((string) ($elemento['ele_nombre'] ?? ''), ENT_QUOTES, 'UTF-8') ?></td>
                                         <td>
+                                            <?= htmlspecialchars((string) ($elemento['ele_padre_titulo'] ?? '—'), ENT_QUOTES, 'UTF-8') ?>
+                                        </td>
+                                        <td><?= htmlspecialchars((string) ($elemento['ele_orden'] ?? '—'), ENT_QUOTES, 'UTF-8') ?></td>
+                                        <td class="text-center">
                                             <span class="badge bg-<?= htmlspecialchars($estadoBadge[$estado] ?? 'secondary', ENT_QUOTES, 'UTF-8') ?>">
                                                 <?= htmlspecialchars($estadoLabels[$estado] ?? $estado, ENT_QUOTES, 'UTF-8') ?>
                                             </span>

@@ -30,13 +30,13 @@
                 </div>
                 <div class="card-body pt-3">
                     <?php
-                    $searchView = dirname(__DIR__) . '/components/search-form.php';
-                    if (is_file($searchView)) { include $searchView; }
-                    ?>
-
-                    <?php
-                    $filterBarView = dirname(__DIR__) . '/components/filter-bar.php';
-                    if (is_file($filterBarView)) { include $filterBarView; }
+                    $listToolbarConfig = [
+                        'mode' => 'simple',
+                        'searchConfig' => is_array($searchConfig ?? null) ? $searchConfig : [],
+                        'filterBarGroups' => is_array($filterBarGroups ?? null) ? $filterBarGroups : [],
+                    ];
+                    $toolbarView = dirname(__DIR__) . '/components/list-toolbar.php';
+                    if (is_file($toolbarView)) { include $toolbarView; }
                     ?>
 
                     <?php

@@ -27,6 +27,7 @@ Validada contra el código del repositorio el **12 de junio de 2026**.
   - Validación de datos
   - Notificaciones de auditoría en `CREATE`, `UPDATE` y `DELETE`
 - **Migración:** `0005_create_wr_parametro_table.sql` dentro del baseline core activo
+- **Seed inicial recomendado:** `0006_seed_wr_parametro_defaults.sql`
 - **Rutas:** Siguiendo patrón CRUD estándar (index, agregar, guardar, editar, actualizar, eliminar, borrar)
 
 #### 2. Variable de Entorno APP_INDEX ✅
@@ -51,6 +52,12 @@ Validada contra el código del repositorio el **12 de junio de 2026**.
 - **Convención actual:** solo las 15 tablas core usan prefijo fijo `wr_`
 - **Migraciones activas:** definen la estructura base core ordenada
 - **Datos actuales:** si se quieren preservar, deben importarse mediante export separado
+
+#### 5. Criterio UI para filtros de listados ✅
+- **Regla acordada:** si el módulo tiene `1` filtro visible, se usa una UI simple; si tiene `2 o más`, se usa una barra compacta en una sola línea.
+- **Piloto actual:** `Notificaciones`
+- **Implementación actual:** componente reutilizable `app/Views/components/list-toolbar.php`
+- **Primer uso real:** `Notificaciones`
 
 ## 1. Resumen del sistema
 
@@ -111,7 +118,7 @@ panelAdmin/
 | Usuarios | `UsuarioController` | `UsuarioModel` | `/usuarios` | ❌ |
 | Grupos | `GrupoController` | `GrupoModel` | `/grupos` | ❌ |
 | Logs | `LogController` | `LogModel` | `/logs` | ✅ Tipo |
-| Notificaciones | `NotificacionController` | `NotificacionModel` | `/notificaciones` | — |
+| Notificaciones | `NotificacionController` | `NotificacionModel` | `/notificaciones` | ✅ `list-toolbar` |
 | **Parámetros** | **`ParametroController`** | **`ParametroModel`** | **/parametros** | **✅ Grupo** |
 
 ### Rutas especiales (no CRUD estándar)
@@ -191,6 +198,13 @@ Notas importantes:
 - grupo (`pmo_gru_id`)
 - elemento (`pmo_ele_id`)
 - tarea (`pmo_tar_id` / `tarea.tar_nombre`)
+
+Optimización actual:
+
+- cachea en sesión y por request la resolución `ruta -> elemento`
+- cachea en sesión y por request la matriz de permisos por grupo
+- invalida el cache RBAC actual al cambiar grupos, módulos o tareas
+- revalida la versión global RBAC desde `wr_parametro` cada `30s` por defecto (`RBAC_VERSION_CHECK_INTERVAL`)
 
 `Router::isForbidden()` deniega rutas cuando el usuario autenticado no tiene permiso.
 

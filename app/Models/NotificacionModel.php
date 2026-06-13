@@ -31,6 +31,7 @@ class NotificacionModel extends Model
         int $limit,
         string $search = '',
         string $modulo = '',
+        string $tipo = '',
         string $leida = '',
         ?string $usuDestino = null
     ): array {
@@ -39,7 +40,7 @@ class NotificacionModel extends Model
             return [];
         }
 
-        [$where, $params] = $this->buildWhereWithLectura($search, $modulo, $leida, $usuDestino);
+        [$where, $params] = $this->buildWhereWithLectura($search, $modulo, $tipo, $leida, $usuDestino);
 
         $sql = "SELECT n.noti_id, n.noti_titulo, n.noti_mensaje, n.noti_tipo, n.noti_modulo,
                        n.noti_accion, n.noti_usu_origen, n.noti_fecha,
@@ -56,14 +57,14 @@ class NotificacionModel extends Model
         return $this->fetchPaginated($sql, $params, $offset, $limit);
     }
 
-    public function countAll(string $search = '', string $modulo = '', string $leida = '', ?string $usuDestino = null): int
+    public function countAll(string $search = '', string $modulo = '', string $tipo = '', string $leida = '', ?string $usuDestino = null): int
     {
         $usuDestino = trim((string) $usuDestino);
         if ($usuDestino === '') {
             return 0;
         }
 
-        [$where, $params] = $this->buildWhereWithLectura($search, $modulo, $leida, $usuDestino);
+        [$where, $params] = $this->buildWhereWithLectura($search, $modulo, $tipo, $leida, $usuDestino);
 
         $sql = "SELECT COUNT(*) AS total
                 FROM {$this->notificacionTable} n
@@ -227,7 +228,7 @@ class NotificacionModel extends Model
     }
 
     /** @return array{string, array<string,string>} */
-    private function buildWhereWithLectura(string $search, string $modulo, string $leida, string $usuDestino): array
+    private function buildWhereWithLectura(string $search, string $modulo, string $tipo, string $leida, string $usuDestino): array
     {
         $conditions = [];
         $params = [
@@ -248,6 +249,11 @@ class NotificacionModel extends Model
         if ($modulo !== '') {
             $conditions[] = 'n.noti_modulo = :modulo';
             $params['modulo'] = $modulo;
+        }
+
+        if ($tipo !== '') {
+            $conditions[] = 'n.noti_tipo = :tipo';
+            $params['tipo'] = $tipo;
         }
 
         if ($leida === '0' || $leida === '1') {

@@ -23,29 +23,47 @@ class ElementoModel extends Model
 
     public function paginate(int $offset, int $limit, string $search = ''): array
     {
-        $sql = "SELECT ele_id, ele_nombre, ele_titulo, ele_tipo, ele_estado, ele_orden, ele_padre
-                FROM {$this->elementoTable}";
+        $sql = "SELECT 
+                    e.ele_id,
+                    e.ele_nombre,
+                    e.ele_titulo,
+                    e.ele_tipo,
+                    e.ele_estado,
+                    e.ele_orden,
+                    e.ele_padre,
+                    p.ele_titulo AS ele_padre_titulo
+                FROM {$this->elementoTable} e
+                LEFT JOIN {$this->elementoTable} p ON p.ele_id = e.ele_padre";
         $params = [];
 
         if ($search !== '') {
-            $sql .= " WHERE ele_nombre LIKE :search1 OR ele_titulo LIKE :search2";
+            $sql .= " WHERE e.ele_nombre LIKE :search1 OR e.ele_titulo LIKE :search2";
             $pattern = $this->likePattern($search);
             $params['search1'] = $pattern;
             $params['search2'] = $pattern;
         }
-        $sql .= " ORDER BY ele_orden ASC, ele_id ASC LIMIT :limit OFFSET :offset";
+        $sql .= " ORDER BY e.ele_orden ASC, e.ele_id ASC LIMIT :limit OFFSET :offset";
 
         return $this->fetchPaginated($sql, $params, $offset, $limit);
     }
 
     public function paginateWithParentFilter(int $offset, int $limit, string $search = '', string $padre = ''): array
     {
-        $sql = "SELECT ele_id, ele_nombre, ele_titulo, ele_tipo, ele_estado, ele_orden, ele_padre
-                FROM {$this->elementoTable}";
+        $sql = "SELECT 
+                    e.ele_id,
+                    e.ele_nombre,
+                    e.ele_titulo,
+                    e.ele_tipo,
+                    e.ele_estado,
+                    e.ele_orden,
+                    e.ele_padre,
+                    p.ele_titulo AS ele_padre_titulo
+                FROM {$this->elementoTable} e
+                LEFT JOIN {$this->elementoTable} p ON p.ele_id = e.ele_padre";
         [$where, $params] = $this->buildParentFilterWhere($search, $padre);
         $sql .= $where;
 
-        $sql .= " ORDER BY ele_orden ASC, ele_id ASC LIMIT :limit OFFSET :offset";
+        $sql .= " ORDER BY e.ele_orden ASC, e.ele_id ASC LIMIT :limit OFFSET :offset";
 
         return $this->fetchPaginated($sql, $params, $offset, $limit);
     }
@@ -127,7 +145,7 @@ class ElementoModel extends Model
         $params = [];
 
         if ($search !== '') {
-            $conditions[] = "(ele_nombre LIKE :search1 OR ele_titulo LIKE :search2)";
+            $conditions[] = "(e.ele_nombre LIKE :search1 OR e.ele_titulo LIKE :search2)";
             $pattern = $this->likePattern($search);
             $params['search1'] = $pattern;
             $params['search2'] = $pattern;
@@ -136,9 +154,9 @@ class ElementoModel extends Model
         if ($padre !== '') {
             $padreInt = (int) $padre;
             if ($padreInt === 0) {
-                $conditions[] = "(ele_padre IS NULL OR ele_padre = 0)";
+                $conditions[] = "(e.ele_padre IS NULL OR e.ele_padre = 0)";
             } else {
-                $conditions[] = "ele_padre = :padre";
+                $conditions[] = "e.ele_padre = :padre";
                 $params['padre'] = $padreInt;
             }
         }

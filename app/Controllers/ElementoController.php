@@ -191,6 +191,7 @@ class ElementoController extends Controller
         $this->logAction($model->getLastActionLog(), 'CREATE');
         NotificacionService::registrar('modulos', 'CREATE', (string) (Auth::user()['id'] ?? 'ANON'), $eleId);
 
+        $this->invalidateMenuCache();
         $this->flashSuccess(FlashMessages::MODULO_CREATED);
         $this->redirect('/modulos');
     }
@@ -311,6 +312,7 @@ class ElementoController extends Controller
         $this->logAction($model->getLastActionLog(), 'UPDATE');
         NotificacionService::registrar('modulos', 'UPDATE', (string) (Auth::user()['id'] ?? 'ANON'), $id);
 
+        $this->invalidateMenuCache();
         $this->flashSuccess(FlashMessages::MODULO_UPDATED);
         $this->redirect('/modulos');
     }
@@ -358,6 +360,7 @@ class ElementoController extends Controller
         $this->logAction($model->getLastActionLog(), 'DELETE');
         NotificacionService::registrar('modulos', 'DELETE', (string) (Auth::user()['id'] ?? 'ANON'), $id);
 
+        $this->invalidateMenuCache();
         $this->flashSuccess(FlashMessages::MODULO_DELETED);
         $this->redirect('/modulos');
     }
