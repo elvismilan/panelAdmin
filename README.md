@@ -50,6 +50,11 @@ php migrate.php            # Aplica migraciones pendientes
 php migrate.php status     # Estado de migraciones
 php migrate.php rollback   # Revierte la última migración (si existe *_down.sql)
 
+composer phpstan           # Análisis estático
+composer test              # Tests unitarios mínimos
+composer test:reset-password # Smoke test de reset password
+composer verify            # phpstan + tests unitarios
+
 php bin/make-module.php    # Generador interactivo de módulos
 
 php tests/reset_password_flow_smoke.php

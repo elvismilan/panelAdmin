@@ -2,8 +2,7 @@
 
 declare(strict_types=1);
 
-use App\Models\PasswordResetModel;
-use Core\Database;
+use Tests\Support\ResetPasswordSmoke;
 
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -21,45 +20,9 @@ function ok(string $message): void
     fwrite(STDOUT, "[OK] {$message}\n");
 }
 
-$email = strtolower(trim((string) ($_ENV['TEST_RESET_EMAIL'] ?? '')));
-if ($email === '') {
-    fail('Define TEST_RESET_EMAIL en .env para ejecutar este smoke test.');
+try {
+    ResetPasswordSmoke::run();
+    ok('Smoke test de reset de contraseña completado');
+} catch (Throwable $e) {
+    fail($e->getMessage());
 }
-
-$model = new PasswordResetModel();
-$token = $model->createToken($email);
-if ($token === '') {
-    fail('No se pudo crear token de reset.');
-}
-
-ok('Token creado');
-
-$newPassword = 'Tmp#' . bin2hex(random_bytes(4));
-$consumedEmail = $model->consumeTokenAndUpdatePassword($token, $newPassword);
-if ($consumedEmail === null) {
-    fail('El token valido no pudo consumirse en primer uso.');
-}
-
-ok('Primer consumo de token exitoso');
-
-$secondTry = $model->consumeTokenAndUpdatePassword($token, $newPassword . 'A');
-if ($secondTry !== null) {
-    fail('El token fue reutilizado y no deberia ser posible.');
-}
-
-ok('Reutilizacion de token bloqueada');
-
-$expiredToken = $model->createToken($email);
-$db = Database::fromEnv();
-$resetsTable = 'wr_password_resets';
-$db->query("UPDATE {$resetsTable} SET created_at = DATE_SUB(NOW(), INTERVAL 2 HOUR) WHERE token = :token", [
-    'token' => $expiredToken,
-]);
-
-$expiredTry = $model->consumeTokenAndUpdatePassword($expiredToken, $newPassword . 'B');
-if ($expiredTry !== null) {
-    fail('El token expirado fue aceptado y no deberia.');
-}
-
-ok('Token expirado rechazado');
-ok('Smoke test de reset de contraseña completado');
