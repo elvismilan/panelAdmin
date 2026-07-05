@@ -3,6 +3,8 @@
 namespace Core;
 
 use Core\Database;
+use PDO;
+use PDOStatement;
 
 class Model
 {
@@ -196,6 +198,42 @@ class Model
         );
 
         return '%' . $escaped . '%';
+    }
+
+    protected function buildWhereClause(array $conditions): string
+    {
+        return $conditions !== [] ? ' WHERE ' . implode(' AND ', $conditions) : '';
+    }
+
+    protected function countByQuery(string $sql, array $params = []): int
+    {
+        $row = $this->db->query($sql, $params)->fetch();
+        return (int) ($row['total'] ?? 0);
+    }
+
+    protected function fetchPaginated(string $sql, array $params, int $offset, int $limit): array
+    {
+        $stmt = $this->db->getConnection()->prepare($sql);
+        $this->bindStatementParams($stmt, $params);
+        $stmt->bindValue(':limit', max(1, $limit), PDO::PARAM_INT);
+        $stmt->bindValue(':offset', max(0, $offset), PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll();
+    }
+
+    protected function bindStatementParams(PDOStatement $stmt, array $params): void
+    {
+        foreach ($params as $key => $value) {
+            $type = match (true) {
+                is_int($value) => PDO::PARAM_INT,
+                is_bool($value) => PDO::PARAM_BOOL,
+                $value === null => PDO::PARAM_NULL,
+                default => PDO::PARAM_STR,
+            };
+
+            $stmt->bindValue(':' . $key, $value, $type);
+        }
     }
 
 }

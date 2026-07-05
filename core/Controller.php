@@ -175,30 +175,17 @@ class Controller
             return [];
         }
 
-        $cacheKey = '_menu_cache';
-
-        Session::start();
-        $cached = Session::get($cacheKey);
-
-        if (is_array($cached) && ($cached['group'] ?? '') === $groupId) {
-            return $cached['menu'];
-        }
-
         try {
             $menuService = new MenuService();
-            $menu        = $menuService->buildForGroup($groupId);
+            return $menuService->buildForGroup($groupId);
         } catch (Throwable) {
-            $menu = [];
+            return [];
         }
-
-        Session::set($cacheKey, ['group' => $groupId, 'menu' => $menu]);
-
-        return $menu;
     }
 
     protected function invalidateMenuCache(): void
     {
-        Session::remove('_menu_cache');
+        RbacVersion::bump();
     }
 
     private function resolveHostname(string $ip): string

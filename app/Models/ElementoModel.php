@@ -23,24 +23,67 @@ class ElementoModel extends Model
 
     public function paginate(int $offset, int $limit, string $search = ''): array
     {
-        $sql = "SELECT ele_id, ele_nombre, ele_titulo, ele_tipo, ele_estado, ele_orden, ele_padre
-                FROM {$this->elementoTable}";
-        if ($search !== '') {
-            $sql .= " WHERE ele_nombre LIKE :search1 OR ele_titulo LIKE :search2";
-        }
-        $sql .= " ORDER BY ele_orden ASC, ele_id ASC LIMIT :limit OFFSET :offset";
+        $sql = "SELECT 
+                    e.ele_id,
+                    e.ele_nombre,
+                    e.ele_titulo,
+                    e.ele_tipo,
+                    e.ele_estado,
+                    e.ele_orden,
+                    e.ele_padre,
+                    p.ele_titulo AS ele_padre_titulo
+                FROM {$this->elementoTable} e
+                LEFT JOIN {$this->elementoTable} p ON p.ele_id = e.ele_padre";
+        $params = [];
 
-        $stmt = $this->db->getConnection()->prepare($sql);
         if ($search !== '') {
+            $sql .= " WHERE e.ele_nombre LIKE :search1 OR e.ele_titulo LIKE :search2";
             $pattern = $this->likePattern($search);
-            $stmt->bindValue(':search1', $pattern, \PDO::PARAM_STR);
-            $stmt->bindValue(':search2', $pattern, \PDO::PARAM_STR);
+            $params['search1'] = $pattern;
+            $params['search2'] = $pattern;
         }
-        $stmt->bindValue(':limit', max(1, $limit), \PDO::PARAM_INT);
-        $stmt->bindValue(':offset', max(0, $offset), \PDO::PARAM_INT);
-        $stmt->execute();
+        $sql .= " ORDER BY e.ele_orden ASC, e.ele_id ASC LIMIT :limit OFFSET :offset";
 
-        return $stmt->fetchAll();
+        return $this->fetchPaginated($sql, $params, $offset, $limit);
+    }
+
+    public function paginateWithParentFilter(int $offset, int $limit, string $search = '', string $padre = ''): array
+    {
+        $sql = "SELECT 
+                    e.ele_id,
+                    e.ele_nombre,
+                    e.ele_titulo,
+                    e.ele_tipo,
+                    e.ele_estado,
+                    e.ele_orden,
+                    e.ele_padre,
+                    p.ele_titulo AS ele_padre_titulo
+                FROM {$this->elementoTable} e
+                LEFT JOIN {$this->elementoTable} p ON p.ele_id = e.ele_padre";
+        [$where, $params] = $this->buildParentFilterWhere($search, $padre);
+        $sql .= $where;
+
+        $sql .= " ORDER BY e.ele_orden ASC, e.ele_id ASC LIMIT :limit OFFSET :offset";
+
+        return $this->fetchPaginated($sql, $params, $offset, $limit);
+    }
+
+    public function getPadreFilterOptions(): array
+    {
+        // Mostrar solo padres reales con hijos visibles.
+        // "Inicio" no debe aparecer como opcion del filtro.
+        $sql = "SELECT 
+                    p.ele_id AS value,
+                    p.ele_titulo AS label,
+                    COUNT(h.ele_id) AS count
+                FROM {$this->elementoTable} p
+                INNER JOIN {$this->elementoTable} h ON h.ele_padre = p.ele_id
+                WHERE (p.ele_padre IS NULL OR p.ele_padre = 0)
+                  AND LOWER(TRIM(COALESCE(p.ele_titulo, ''))) <> 'inicio'
+                GROUP BY p.ele_id, p.ele_titulo
+                ORDER BY p.ele_titulo ASC";
+        
+        return $this->db->query($sql)->fetchAll();
     }
 
     public function countAll(string $search = ''): int
@@ -55,9 +98,70 @@ class ElementoModel extends Model
             $params['search2'] = $pattern;
         }
 
-        $row = $this->db->query($sql, $params)->fetch();
+        return $this->countByQuery($sql, $params);
+    }
 
-        return (int) ($row['total'] ?? 0);
+    public function countAllWithFilters(string $search = '', string $estado = '', string $tipo = ''): int
+    {
+        $sql = "SELECT COUNT(*) AS total FROM {$this->elementoTable}";
+        $params = [];
+        $conditions = [];
+
+        if ($search !== '') {
+            $conditions[] = "(ele_nombre LIKE :search1 OR ele_titulo LIKE :search2)";
+            $pattern = $this->likePattern($search);
+            $params['search1'] = $pattern;
+            $params['search2'] = $pattern;
+        }
+
+        if ($estado !== '') {
+            $conditions[] = "ele_estado = :estado";
+            $params['estado'] = $estado;
+        }
+
+        if ($tipo !== '') {
+            $conditions[] = "ele_tipo = :tipo";
+            $params['tipo'] = $tipo;
+        }
+
+        $sql .= $this->buildWhereClause($conditions);
+
+        return $this->countByQuery($sql, $params);
+    }
+
+    public function countAllWithParentFilter(string $search = '', string $padre = ''): int
+    {
+        $sql = "SELECT COUNT(*) AS total FROM {$this->elementoTable}";
+        [$where, $params] = $this->buildParentFilterWhere($search, $padre);
+        $sql .= $where;
+
+        return $this->countByQuery($sql, $params);
+    }
+
+    /** @return array{string, array<string, int|string>} */
+    private function buildParentFilterWhere(string $search = '', string $padre = ''): array
+    {
+        $conditions = [];
+        $params = [];
+
+        if ($search !== '') {
+            $conditions[] = "(e.ele_nombre LIKE :search1 OR e.ele_titulo LIKE :search2)";
+            $pattern = $this->likePattern($search);
+            $params['search1'] = $pattern;
+            $params['search2'] = $pattern;
+        }
+
+        if ($padre !== '') {
+            $padreInt = (int) $padre;
+            if ($padreInt === 0) {
+                $conditions[] = "(e.ele_padre IS NULL OR e.ele_padre = 0)";
+            } else {
+                $conditions[] = "e.ele_padre = :padre";
+                $params['padre'] = $padreInt;
+            }
+        }
+
+        return [$this->buildWhereClause($conditions), $params];
     }
 
     public function findById(string $id): ?array

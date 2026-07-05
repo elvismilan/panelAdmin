@@ -1,6 +1,6 @@
 -- Migration: 0003_create_password_resets
 -- Description: Tabla para tokens de recuperacion de contrasena
-CREATE TABLE IF NOT EXISTS `password_resets` (
+CREATE TABLE IF NOT EXISTS `wr_password_resets` (
     `id`         INT UNSIGNED  NOT NULL AUTO_INCREMENT,
     `email`      VARCHAR(255)  NOT NULL,
     `token`      VARCHAR(64)   NOT NULL,

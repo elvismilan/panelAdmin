@@ -52,6 +52,11 @@ php bin/make-module.php --name=Producto --route=productos --prefix=pro --table=p
 | `--dry-run` | — | Muestra los archivos sin crearlos | flag |
 | `--force` | — | Sobreescribe archivos existentes | flag |
 
+Nota de convención actual:
+
+- Solo las tablas core del sistema usan prefijo fijo `wr_`.
+- Los módulos nuevos generados por CLI deben crear tablas sin prefijo.
+
 ---
 
 ## Formato de campos (`--fields`)

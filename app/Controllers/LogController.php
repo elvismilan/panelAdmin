@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Models\LogModel;
 use Core\Auth;
 use Core\Controller;
+use Core\Filter\FilterBar;
 use Throwable;
 
 class LogController extends Controller
@@ -27,20 +28,32 @@ class LogController extends Controller
         $filters    = $this->getQueryParams(['q' => '', 'tipo' => '']);
         $search     = $filters['q'];
         $tipo       = $filters['tipo'];
-        $pagination = $this->buildPagination(0, $page, $perPage, '/logs', ['q' => $search, 'tipo' => $tipo]);
+        
+        $queryParams = ['q' => $search];
+        if ($tipo !== '') $queryParams['tipo'] = $tipo;
+        
+        $pagination = $this->buildPagination(0, $page, $perPage, '/logs', $queryParams);
 
         try {
             $model      = new LogModel();
+            
+            // Construir el FilterBar con tipos disponibles
+            $tipoOptions = [];
+            foreach (self::TIPOS as $val => $meta) {
+                $tipoOptions[] = [
+                    'value' => $val,
+                    'label' => $meta['label']
+                ];
+            }
+            $filterBar = FilterBar::make()
+                ->chips('tipo', 'Tipo', $tipoOptions);
+            
             $totalRows  = $model->countAll($search, $tipo);
-            $pagination = $this->buildPagination($totalRows, $page, $perPage, '/logs', ['q' => $search, 'tipo' => $tipo]);
+            $pagination = $this->buildPagination($totalRows, $page, $perPage, '/logs', $queryParams);
             $logs       = $model->paginate((int) $pagination['offset'], (int) $pagination['perPage'], $search, $tipo);
         } catch (Throwable) {
             $logs = [];
-        }
-
-        $tipoOptions = [['value' => '', 'label' => 'Todos los tipos']];
-        foreach (self::TIPOS as $val => $meta) {
-            $tipoOptions[] = ['value' => $val, 'label' => $meta['label']];
+            $filterBar = FilterBar::make()->chips('tipo', 'Tipo', []);
         }
 
         $this->renderAdminModule('log/index', [
@@ -51,6 +64,7 @@ class LogController extends Controller
             'pagination' => $pagination,
             'search'     => $search,
             'tipo'       => $tipo,
+            'filterBarGroups' => $filterBar->toView($filters, '/logs'),
             'searchConfig' => [
                 'action'      => '/logs',
                 'method'      => 'GET',
@@ -61,12 +75,6 @@ class LogController extends Controller
                         'placeholder' => 'Buscar por acción, usuario o IP...',
                         'value'       => $search,
                         'icon'        => 'fa fa-search',
-                    ],
-                    [
-                        'name'    => 'tipo',
-                        'type'    => 'select',
-                        'value'   => $tipo,
-                        'options' => $tipoOptions,
                     ],
                 ],
                 'submitLabel' => 'Buscar',

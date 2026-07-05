@@ -35,9 +35,14 @@
                 </div>
                 <div class="card-body pt-3">
                     <?php
-                    $searchView = dirname(__DIR__) . '/components/search-form.php';
-                    if (is_file($searchView)) {
-                        include $searchView;
+                    $listToolbarConfig = [
+                        'mode' => 'simple',
+                        'searchConfig' => is_array($searchConfig ?? null) ? $searchConfig : [],
+                        'filterBarGroups' => [],
+                    ];
+                    $toolbarView = dirname(__DIR__) . '/components/list-toolbar.php';
+                    if (is_file($toolbarView)) {
+                        include $toolbarView;
                     }
                     ?>
 

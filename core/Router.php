@@ -43,6 +43,20 @@ class Router {
         $this->addRoute('DELETE', $path, $controller, $action);
     }
 
+    public function crud(string $basePath, string $controller, string $paramName = 'id'): void
+    {
+        $normalizedBasePath = '/' . trim($basePath, '/');
+        $paramSegment = '{' . trim($paramName) . '}';
+
+        $this->get($normalizedBasePath, $controller, 'index');
+        $this->get($normalizedBasePath . '/agregar', $controller, 'agregar');
+        $this->post($normalizedBasePath . '/guardar', $controller, 'guardar');
+        $this->get($normalizedBasePath . '/' . $paramSegment . '/editar', $controller, 'editar');
+        $this->post($normalizedBasePath . '/' . $paramSegment . '/actualizar', $controller, 'actualizar');
+        $this->get($normalizedBasePath . '/' . $paramSegment . '/eliminar', $controller, 'eliminar');
+        $this->post($normalizedBasePath . '/' . $paramSegment . '/borrar', $controller, 'borrar');
+    }
+
     public function dispatch(): void {
 
         $request = new Request();
@@ -129,7 +143,7 @@ class Router {
         }
 
         $normalizedPath = trim($path);
-        if ($normalizedPath === '' || $normalizedPath === '/' || str_starts_with($normalizedPath, '/dashboard')) {
+        if ($this->isPermissionBypassedPath($normalizedPath)) {
             return false;
         }
 
@@ -147,6 +161,35 @@ class Router {
             error_log(LogMessages::routerPermissionCheckFailed($e));
             return false;
         }
+    }
+
+    private function isPermissionBypassedPath(string $path): bool
+    {
+        $path = trim($path);
+
+        if ($path === '' || $path === '/') {
+            return true;
+        }
+
+        if (str_starts_with($path, '/dashboard')) {
+            return true;
+        }
+
+        if (str_starts_with($path, '/notificaciones')) {
+            return true;
+        }
+
+        if (
+            $path === '/login'
+            || $path === '/logout'
+            || $path === '/forgot-password'
+            || $path === '/reset-password'
+            || str_starts_with($path, '/reset-password/')
+        ) {
+            return true;
+        }
+
+        return false;
     }
 
     private function renderErrorPage(int $statusCode, string $template, array $data = []): void

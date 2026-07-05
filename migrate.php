@@ -12,6 +12,7 @@
 
 define('MIGRATIONS_DIR', __DIR__ . '/core/database/migrations');
 define('ENV_FILE', __DIR__ . '/.env');
+define('MIGRATIONS_TABLE', 'wr_migrations');
 
 // ---------------------------------------------------------------------------
 // Bootstrap
@@ -65,7 +66,7 @@ function getConnection(): PDO
 
 function ensureMigrationsTable(PDO $pdo): void
 {
-    $pdo->exec("CREATE TABLE IF NOT EXISTS `migrations` (
+    $pdo->exec("CREATE TABLE IF NOT EXISTS `" . MIGRATIONS_TABLE . "` (
         `id`         INT UNSIGNED NOT NULL AUTO_INCREMENT,
         `migration`  VARCHAR(255) NOT NULL,
         `run_at`     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -76,13 +77,13 @@ function ensureMigrationsTable(PDO $pdo): void
 
 function getApplied(PDO $pdo): array
 {
-    return $pdo->query("SELECT migration FROM `migrations` ORDER BY id ASC")
+    return $pdo->query("SELECT migration FROM `" . MIGRATIONS_TABLE . "` ORDER BY id ASC")
                ->fetchAll(PDO::FETCH_COLUMN);
 }
 
 function markApplied(PDO $pdo, string $migration): void
 {
-    $stmt   = $pdo->prepare("INSERT INTO `migrations` (migration) VALUES (:m)");
+    $stmt   = $pdo->prepare("INSERT INTO `" . MIGRATIONS_TABLE . "` (migration) VALUES (:m)");
     $stmt->execute(['m' => $migration]);
 }
 
@@ -191,7 +192,7 @@ if ($command === 'rollback') {
     echo "  Revirtiendo: $last ... ";
     $pdo->exec($sql);
 
-    $stmt   = $pdo->prepare("DELETE FROM `migrations` WHERE migration = :m");
+    $stmt   = $pdo->prepare("DELETE FROM `" . MIGRATIONS_TABLE . "` WHERE migration = :m");
     $stmt->execute(['m' => $last]);
 
     echo "OK\n";

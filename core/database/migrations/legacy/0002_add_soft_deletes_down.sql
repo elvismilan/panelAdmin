@@ -1,5 +1,4 @@
--- Migration: 0002_add_soft_deletes
--- Description: Agrega columna deleted_at para soft deletes en tablas principales
+-- Rollback: 0002_add_soft_deletes
 SET @schema_name := DATABASE();
 
 SET @sql := (
@@ -11,8 +10,8 @@ SET @sql := (
               AND TABLE_NAME = 'usuario'
               AND COLUMN_NAME = 'deleted_at'
         ),
-        'SELECT 1',
-        'ALTER TABLE `usuario` ADD COLUMN `deleted_at` DATETIME NULL DEFAULT NULL'
+        'ALTER TABLE `wr_usuario` DROP COLUMN `deleted_at`',
+        'SELECT 1'
     )
 );
 PREPARE stmt FROM @sql;
@@ -28,8 +27,8 @@ SET @sql := (
               AND TABLE_NAME = 'persona'
               AND COLUMN_NAME = 'deleted_at'
         ),
-        'SELECT 1',
-        'ALTER TABLE `persona` ADD COLUMN `deleted_at` DATETIME NULL DEFAULT NULL'
+        'ALTER TABLE `wr_persona` DROP COLUMN `deleted_at`',
+        'SELECT 1'
     )
 );
 PREPARE stmt FROM @sql;
@@ -45,8 +44,8 @@ SET @sql := (
               AND TABLE_NAME = 'elemento'
               AND COLUMN_NAME = 'deleted_at'
         ),
-        'SELECT 1',
-        'ALTER TABLE `elemento` ADD COLUMN `deleted_at` DATETIME NULL DEFAULT NULL'
+        'ALTER TABLE `wr_elemento` DROP COLUMN `deleted_at`',
+        'SELECT 1'
     )
 );
 PREPARE stmt FROM @sql;
@@ -62,8 +61,8 @@ SET @sql := (
               AND TABLE_NAME = 'grupo'
               AND COLUMN_NAME = 'deleted_at'
         ),
-        'SELECT 1',
-        'ALTER TABLE `grupo` ADD COLUMN `deleted_at` DATETIME NULL DEFAULT NULL'
+        'ALTER TABLE `wr_grupo` DROP COLUMN `deleted_at`',
+        'SELECT 1'
     )
 );
 PREPARE stmt FROM @sql;

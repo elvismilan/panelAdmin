@@ -6,7 +6,9 @@ use App\Models\ElementoModel;
 use Core\Helpers\IconHelper;
 use Core\Auth;
 use Core\Controller;
+use Core\Filter\FilterBar;
 use Core\FlashMessages;
+use Core\NotificacionService;
 use Core\UiMessages;
 use Core\ValidationMessages;
 use Core\Validator;
@@ -22,17 +24,35 @@ class ElementoController extends Controller
         $elementos = [];
         $page = $this->getCurrentPage();
         $perPage = $this->getDefaultPerPage();
-        $filters = $this->getQueryParams(['q' => '']);
+        $filters = $this->getQueryParams(['q' => '', 'padre' => '']);
         $search = (string) ($filters['q'] ?? '');
-        $pagination = $this->buildPagination(0, $page, $perPage, '/modulos', ['q' => $search]);
+        $padre = (string) ($filters['padre'] ?? '');
+        
+        $queryParams = ['q' => $search];
+        if ($padre !== '') $queryParams['padre'] = $padre;
+        
+        $pagination = $this->buildPagination(0, $page, $perPage, '/modulos', $queryParams);
 
         try {
             $model = new ElementoModel();
-            $totalRows = $model->countAll($search);
-            $pagination = $this->buildPagination($totalRows, $page, $perPage, '/modulos', ['q' => $search]);
-            $elementos = $model->paginate((int) $pagination['offset'], (int) $pagination['perPage'], $search);
+            
+            // Construir el FilterBar con opciones de padre
+            $padreOptions = $model->getPadreFilterOptions();
+            $filterBar = FilterBar::make()
+                ->chips('padre', 'Padre', $padreOptions);
+            
+            $totalRows = $model->countAllWithParentFilter($search, $padre);
+            $pagination = $this->buildPagination($totalRows, $page, $perPage, '/modulos', $queryParams);
+            $elementos = $model->paginateWithParentFilter(
+                (int) $pagination['offset'], 
+                (int) $pagination['perPage'], 
+                $search, 
+                $padre
+            );
         } catch (Throwable) {
             $elementos = [];
+            $filterBar = FilterBar::make()
+                ->chips('padre', 'Padre', []);
         }
 
         $this->renderAdminModule('elemento/index', [
@@ -41,6 +61,7 @@ class ElementoController extends Controller
             'elementos' => $elementos,
             'pagination' => $pagination,
             'search' => $search,
+            'filterBarGroups' => $filterBar->toView($filters, '/modulos'),
             'searchConfig' => [
                 'action' => '/modulos',
                 'method' => 'GET',
@@ -55,7 +76,7 @@ class ElementoController extends Controller
                 ],
                 'submitLabel' => 'Buscar',
                 'submitIcon' => 'fa fa-search',
-                'clearUrl' => $search !== '' ? '/modulos' : '',
+                'clearUrl' => $search !== '' || $padre !== '' ? '/modulos' : '',
             ],
         ]);
     }
@@ -168,7 +189,9 @@ class ElementoController extends Controller
 
         $eleId = $model->createElemento($params, $tareaIds);
         $this->logAction($model->getLastActionLog(), 'CREATE');
+        NotificacionService::registrar('modulos', 'CREATE', (string) (Auth::user()['id'] ?? 'ANON'), $eleId);
 
+        $this->invalidateMenuCache();
         $this->flashSuccess(FlashMessages::MODULO_CREATED);
         $this->redirect('/modulos');
     }
@@ -287,7 +310,9 @@ class ElementoController extends Controller
 
         $model->updateElemento($id, $params, $tareaIds);
         $this->logAction($model->getLastActionLog(), 'UPDATE');
+        NotificacionService::registrar('modulos', 'UPDATE', (string) (Auth::user()['id'] ?? 'ANON'), $id);
 
+        $this->invalidateMenuCache();
         $this->flashSuccess(FlashMessages::MODULO_UPDATED);
         $this->redirect('/modulos');
     }
@@ -333,7 +358,9 @@ class ElementoController extends Controller
         $nombre = (string) ($elemento['ele_nombre'] ?? '');
         $model->deleteElemento($id);
         $this->logAction($model->getLastActionLog(), 'DELETE');
+        NotificacionService::registrar('modulos', 'DELETE', (string) (Auth::user()['id'] ?? 'ANON'), $id);
 
+        $this->invalidateMenuCache();
         $this->flashSuccess(FlashMessages::MODULO_DELETED);
         $this->redirect('/modulos');
     }

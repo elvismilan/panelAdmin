@@ -4,6 +4,8 @@ namespace Core;
 
 class MenuService
 {
+    private static array $requestMenuByGroup = [];
+
     private Database $db;
     private string $tablePermiso;
     private string $tableElemento;
@@ -12,6 +14,7 @@ class MenuService
 
     public function __construct()
     {
+        RbacVersion::ensureFresh();
         $this->db = Database::fromEnv();
         $this->tablePermiso = TableNameResolver::resolve($this->db, 'permiso');
         $this->tableElemento = TableNameResolver::resolve($this->db, 'elemento');
@@ -24,6 +27,17 @@ class MenuService
         $groupId = trim($groupId);
         if ($groupId === '') {
             return [];
+        }
+
+        if (isset(self::$requestMenuByGroup[$groupId])) {
+            return self::$requestMenuByGroup[$groupId];
+        }
+
+        Session::start();
+        $cached = Session::get(RbacCache::MENU_KEY);
+        if (is_array($cached) && ($cached['group'] ?? '') === $groupId && is_array($cached['menu'] ?? null)) {
+            self::$requestMenuByGroup[$groupId] = $cached['menu'];
+            return $cached['menu'];
         }
 
         $sql = "SELECT DISTINCT
@@ -47,6 +61,8 @@ class MenuService
 
         $rows = $this->db->query($sql, ['grupo' => $groupId])->fetchAll();
         if ($rows === []) {
+            Session::set(RbacCache::MENU_KEY, ['group' => $groupId, 'menu' => []]);
+            self::$requestMenuByGroup[$groupId] = [];
             return [];
         }
 
@@ -121,7 +137,12 @@ class MenuService
 
         $tree = $sortTree($tree);
 
-        return $this->exportTree($tree, $itemsById);
+        $menu = $this->exportTree($tree, $itemsById);
+
+        Session::set(RbacCache::MENU_KEY, ['group' => $groupId, 'menu' => $menu]);
+        self::$requestMenuByGroup[$groupId] = $menu;
+
+        return $menu;
     }
 
     private function exportTree(array $ids, array $itemsById): array

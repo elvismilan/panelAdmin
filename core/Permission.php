@@ -4,6 +4,10 @@ namespace Core;
 
 class Permission
 {
+    private static array $requestPermissionMatrix = [];
+    private static array $requestElementMap = [];
+    private static array $requestElementIdByPath = [];
+
     private Database $db;
     private string $tablePermiso;
     private string $tableElemento;
@@ -12,6 +16,7 @@ class Permission
 
     public function __construct()
     {
+        RbacVersion::ensureFresh();
         $this->db = Database::fromEnv();
         $this->tablePermiso = TableNameResolver::resolve($this->db, 'permiso');
         $this->tableElemento = TableNameResolver::resolve($this->db, 'elemento');
@@ -21,22 +26,13 @@ class Permission
 
     public function canAccessElement(string $groupId, int $elementId): bool
     {
-        $sql = "SELECT 1
-                FROM {$this->tablePermiso} p
-                INNER JOIN {$this->tableElemento} e ON e.ele_id = p.pmo_ele_id
-                INNER JOIN {$this->tableGrupo} g ON g.gru_id = p.pmo_gru_id
-                WHERE p.pmo_gru_id = :grupo
-                  AND p.pmo_ele_id = :elemento
-                  AND (e.ele_estado IS NULL OR e.ele_estado = 'H')
-                  AND (g.gru_estado IS NULL OR g.gru_estado = 'H')
-                LIMIT 1";
+        $groupId = trim($groupId);
+        if ($groupId === '' || $elementId <= 0) {
+            return false;
+        }
 
-        $stmt = $this->db->query($sql, [
-            'grupo' => $groupId,
-            'elemento' => $elementId,
-        ]);
-
-        return (bool) $stmt->fetchColumn();
+        $matrix = $this->loadPermissionMatrix($groupId);
+        return isset($matrix[$elementId]);
     }
 
     /**
@@ -52,6 +48,10 @@ class Permission
         $groupId = trim($groupId);
         if ($groupId === '') {
             return false;
+        }
+
+        if ($this->isInternalBypassedPath($requestPath)) {
+            return true;
         }
 
         $elementId = $this->resolveElementIdFromPath($requestPath);
@@ -71,6 +71,11 @@ class Permission
         }
 
         $normalizedPath = '/' . trim($normalizedPath, '/');
+        $cacheKey = strtolower($normalizedPath);
+        if (array_key_exists($cacheKey, self::$requestElementIdByPath)) {
+            return self::$requestElementIdByPath[$cacheKey];
+        }
+
         $segments = array_values(array_filter(explode('/', trim($normalizedPath, '/')), static function (string $segment): bool {
             return $segment !== '' && !ctype_digit($segment);
         }));
@@ -90,21 +95,18 @@ class Permission
         }
 
         $candidates = array_values(array_unique($candidates));
+        $elementMap = $this->loadActiveElementMap();
 
         foreach ($candidates as $candidate) {
-            $sql = "SELECT ele_id
-                    FROM {$this->tableElemento}
-                    WHERE LOWER(TRIM(ele_nombre)) = LOWER(TRIM(:nombre))
-                      AND (ele_estado IS NULL OR ele_estado = 'H')
-                    LIMIT 1";
-
-            $stmt = $this->db->query($sql, ['nombre' => $candidate]);
-            $elementId = (int) $stmt->fetchColumn();
+            $lookup = strtolower(trim($candidate));
+            $elementId = (int) ($elementMap[$lookup] ?? 0);
             if ($elementId > 0) {
+                self::$requestElementIdByPath[$cacheKey] = $elementId;
                 return $elementId;
             }
         }
 
+        self::$requestElementIdByPath[$cacheKey] = null;
         return null;
     }
 
@@ -170,39 +172,140 @@ class Permission
             return false;
         }
 
-        $placeholders = [];
-        $params = [
-            'grupo' => $groupId,
-            'elemento' => $elementId,
-        ];
-
-        foreach ($taskCandidates as $index => $task) {
-            $key = 'task_' . $index;
-            $placeholders[] = ':' . $key;
-            $params[$key] = $task;
+        $matrix = $this->loadPermissionMatrix($groupId);
+        $elementPermissions = $matrix[$elementId] ?? null;
+        if (!is_array($elementPermissions)) {
+            return false;
         }
 
         $allowNullTask = in_array('ACCEDER', $taskCandidates, true) || in_array('LISTAR', $taskCandidates, true);
+        if ($allowNullTask && !empty($elementPermissions['allow_null_task'])) {
+            return true;
+        }
 
-        $sql = "SELECT 1
+        $tasks = is_array($elementPermissions['tasks'] ?? null)
+            ? $elementPermissions['tasks']
+            : [];
+
+        foreach ($taskCandidates as $taskCandidate) {
+            if (isset($tasks[$taskCandidate])) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function isInternalBypassedPath(string $requestPath): bool
+    {
+        $path = trim((string) parse_url($requestPath, PHP_URL_PATH));
+        if ($path === '') {
+            return false;
+        }
+
+        return str_starts_with('/' . trim($path, '/'), '/notificaciones');
+    }
+
+    private function loadPermissionMatrix(string $groupId): array
+    {
+        if (isset(self::$requestPermissionMatrix[$groupId])) {
+            return self::$requestPermissionMatrix[$groupId];
+        }
+
+        Session::start();
+        $cached = Session::get(RbacCache::PERMISSION_MATRIX_KEY);
+        if (is_array($cached) && ($cached['group'] ?? '') === $groupId && is_array($cached['matrix'] ?? null)) {
+            self::$requestPermissionMatrix[$groupId] = $cached['matrix'];
+            return $cached['matrix'];
+        }
+
+        $matrix = $this->buildPermissionMatrix($groupId);
+        Session::set(RbacCache::PERMISSION_MATRIX_KEY, [
+            'group' => $groupId,
+            'matrix' => $matrix,
+        ]);
+        self::$requestPermissionMatrix[$groupId] = $matrix;
+
+        return $matrix;
+    }
+
+    private function buildPermissionMatrix(string $groupId): array
+    {
+        $sql = "SELECT p.pmo_ele_id, p.pmo_tar_id, t.tar_nombre
                 FROM {$this->tablePermiso} p
                 INNER JOIN {$this->tableElemento} e ON e.ele_id = p.pmo_ele_id
                 INNER JOIN {$this->tableGrupo} g ON g.gru_id = p.pmo_gru_id
                 LEFT JOIN {$this->tableTarea} t ON t.tar_id = p.pmo_tar_id
                 WHERE p.pmo_gru_id = :grupo
-                  AND p.pmo_ele_id = :elemento
                   AND (e.ele_estado IS NULL OR e.ele_estado = 'H')
-                  AND (g.gru_estado IS NULL OR g.gru_estado = 'H')
-                  AND (
-                        UPPER(TRIM(COALESCE(t.tar_nombre, ''))) IN (" . implode(', ', $placeholders) . ")";
+                  AND (g.gru_estado IS NULL OR g.gru_estado = 'H')";
 
-        if ($allowNullTask) {
-            $sql .= " OR p.pmo_tar_id IS NULL";
+        $rows = $this->db->query($sql, ['grupo' => $groupId])->fetchAll();
+        $matrix = [];
+
+        foreach ($rows as $row) {
+            $elementId = (int) ($row['pmo_ele_id'] ?? 0);
+            if ($elementId <= 0) {
+                continue;
+            }
+
+            if (!isset($matrix[$elementId])) {
+                $matrix[$elementId] = [
+                    'allow_null_task' => false,
+                    'tasks' => [],
+                ];
+            }
+
+            $taskId = $row['pmo_tar_id'] ?? null;
+            if ($taskId === null || $taskId === '') {
+                $matrix[$elementId]['allow_null_task'] = true;
+                continue;
+            }
+
+            $taskName = strtoupper(trim((string) ($row['tar_nombre'] ?? '')));
+            if ($taskName !== '') {
+                $matrix[$elementId]['tasks'][$taskName] = true;
+            }
         }
 
-        $sql .= ") LIMIT 1";
+        return $matrix;
+    }
 
-        $stmt = $this->db->query($sql, $params);
-        return (bool) $stmt->fetchColumn();
+    private function loadActiveElementMap(): array
+    {
+        if (self::$requestElementMap !== []) {
+            return self::$requestElementMap;
+        }
+
+        Session::start();
+        $cached = Session::get(RbacCache::ELEMENT_MAP_KEY);
+        if (is_array($cached) && is_array($cached['map'] ?? null)) {
+            self::$requestElementMap = $cached['map'];
+            return $cached['map'];
+        }
+
+        $rows = $this->db->query(
+            "SELECT ele_id, ele_nombre
+             FROM {$this->tableElemento}
+             WHERE ele_nombre IS NOT NULL
+               AND (ele_estado IS NULL OR ele_estado = 'H')"
+        )->fetchAll();
+
+        $map = [];
+        foreach ($rows as $row) {
+            $name = strtolower(trim((string) ($row['ele_nombre'] ?? '')));
+            $id = (int) ($row['ele_id'] ?? 0);
+
+            if ($name === '' || $id <= 0 || isset($map[$name])) {
+                continue;
+            }
+
+            $map[$name] = $id;
+        }
+
+        Session::set(RbacCache::ELEMENT_MAP_KEY, ['map' => $map]);
+        self::$requestElementMap = $map;
+
+        return $map;
     }
 }

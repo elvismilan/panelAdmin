@@ -271,3 +271,24 @@ body.admin-theme.glass-active .page-wrapper .page-body-wrapper .page-body {
     top: 76px;
   }
 }
+
+/* Theme color dropdown hover bridge */
+.page-main-header .main-header-right .nav-right > ul > li.theme-color-menu:hover::before {
+  content: "";
+  position: absolute;
+  top: 100%;
+  right: -12px;
+  width: 72px;
+  height: 18px;
+}
+
+.page-main-header .main-header-right .nav-right .theme-color-dropdown {
+  top: calc(100% + 8px);
+  right: -18px !important;
+}
+
+.page-main-header .main-header-right .nav-right .theme-color-dropdown::before,
+.page-main-header .main-header-right .nav-right .theme-color-dropdown::after {
+  right: 26px !important;
+  left: auto !important;
+}

@@ -1,6 +1,6 @@
 -- Migration: 0005_create_notificacion_destino_down
 -- Description: Eliminar tabla de entregas por usuario de notificaciones
-DROP TABLE IF EXISTS `notificacion_destino`;
+DROP TABLE IF EXISTS `wr_notificacion_destino`;
 
 -- Intentar eliminar tambien la variante prefijada (si existe).
 SET @schema_name := DATABASE();

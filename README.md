@@ -1,71 +1,134 @@
-# PanelAdmin Template
+# PanelAdmin
 
-Plantilla base MVC en PHP 8 para hosting compartido, con autenticacion sobre tablas reales (`usuario`, `persona`), permisos por `elemento` + `grupo`, y registro de acciones en `logs`.
+Panel administrativo MVC en PHP 8.2+, orientado a hosting compartido, con autenticación sobre tablas reales (`usuario` + `persona`), RBAC por módulo/tarea y sistema de temas.
+
+## Estado de esta documentación
+
+Actualizada según el código del repositorio el **12 de junio de 2026**.
 
 ## Requisitos
 
-- PHP 8.2+
-- MySQL 5.7+
-- Apache con mod_rewrite
+- PHP 8.2 o superior
+- Extensiones PHP: `pdo`, `gd`
+- MySQL 5.7+ o MariaDB compatible
+- Apache con `mod_rewrite`
+- Composer
 
-## Instalacion
+## Instalación rápida
 
 1. Instalar dependencias:
 
-	composer install
+```bash
+composer install
+```
 
-2. Crear entorno local:
+2. Crear archivo de entorno:
 
-	cp .env.example .env
+```bash
+cp .env.example .env
+```
 
-3. Ajustar credenciales en `.env`.
+3. Configurar `.env` (mínimo):
 
-	 - Define `APP_URL` con la URL publica completa (incluye subcarpeta si aplica), por ejemplo:
-		 - `APP_URL=https://tudominio.com/panel`
-	 - `SITE_ROOT` se mantiene para compatibilidad y uso en correos.
+- `APP_URL`
+- `DB_HOST` + `DB_NAME` + `DB_USER` + `DB_PASS` (o `DB_DSN`)
 
-4. Crear/importar tu propia base de datos segun el cliente.
+4. Cargar esquema base:
 
-5. Configurar tablas base de autenticacion y permisos:
+- Importar `core/database/admin_db.sql` en tu base.
 
-- `usuario`
-- `persona`
-- `grupo`
-- `elemento`
-- `permiso`
-- `logs`
+5. Ejecutar migraciones pendientes:
 
-## Estructura base
+```bash
+php migrate.php
+```
 
-- `public/index.php`: front controller
-- `routes/web.php`: rutas web
-- `core/`: nucleo del framework
-- `app/Controllers`: controladores PSR-4
-- `app/Models`: modelos PSR-4
-- `app/Views`: vistas base (fallback)
-- `resources/themes`: templates por pack/area/opcion
+## Comandos útiles
 
-## Themes por area
+```bash
+php migrate.php            # Aplica migraciones pendientes
+php migrate.php status     # Estado de migraciones
+php migrate.php rollback   # Revierte la última migración (si existe *_down.sql)
 
-- `public`: template del sitio publico CMS
-- `default`: template de login y dashboard administrador
+composer phpstan           # Análisis estático
+composer test              # Tests unitarios mínimos
+composer test:reset-password # Smoke test de reset password
+composer verify            # phpstan + tests unitarios
 
-Variables de entorno recomendadas:
+php bin/make-module.php    # Generador interactivo de módulos
 
-- `PUBLIC_THEME_PACK=public`
-- `LOGIN_THEME_PACK=default`
-- `ADMIN_THEME_PACK=default`
+php tests/reset_password_flow_smoke.php
+```
 
-## Seguridad y logs
+## Estructura principal
 
-- Login principal con `usuario` y `persona`
-- Autenticacion solo contra base de datos (sin fallback por credenciales en `.env`)
-- Compatibilidad opcional con hash legacy via `AUTH_LEGACY_ALGO` y `AUTH_LEGACY_SALT`
-- Permisos por grupo/elemento desde `permiso`
-- Log de acciones en `logs` mediante `logAction()` del controlador base
+```text
+panelAdmin/
+├── app/
+│   ├── Controllers/
+│   ├── Models/
+│   └── Views/
+├── core/
+│   ├── database/
+│   │   ├── admin_db.sql
+│   │   └── migrations/
+│   └── *.php
+├── public/
+│   ├── index.php
+│   └── assets/
+├── resources/themes/
+├── routes/web.php
+├── docs/
+├── migrate.php
+└── bin/make-module.php
+```
 
-## Deploy en hosting compartido
+## Módulos actualmente registrados en rutas
 
-- Opcion recomendada: apuntar el dominio a carpeta `public`
-- Opcion alternativa: dejar dominio en raiz y usar `.htaccess` raiz para redirigir a `public`
-- Si el panel se sirve dentro de subcarpeta o reverse proxy, configura `APP_URL` con esa ruta base para generar URLs absolutas correctas.
+- `Auth`: `/login`, `/logout`, `/forgot-password`, `/reset-password/{token}`
+- `Dashboard`: `/dashboard`
+- `Tareas`: `/tareas`
+- `Módulos/Elementos`: `/modulos`
+- `Personas`: `/personas`
+- `Usuarios`: `/usuarios`
+- `Grupos`: `/grupos`
+- `Logs`: `/logs`
+- `Notificaciones`: `/notificaciones`
+- `Parámetros`: `/parametros`
+
+## Seguridad implementada (resumen)
+
+- Tokens CSRF en formularios POST (`Core\Csrf`)
+- Sesión endurecida (`httponly`, `samesite`, `secure` configurable)
+- Rate limit de login/forgot por IP (`Core\RateLimiter`)
+- Cabeceras HTTP de seguridad en `public/index.php` y `public/.htaccess`
+- Permisos RBAC por grupo, elemento y tarea (`Core\Permission`)
+
+## Sistema de temas
+
+Áreas soportadas por `ThemeResolver`:
+
+- `public`
+- `login`
+- `admin`
+
+Variables de entorno principales:
+
+- `PUBLIC_THEME_PACK`, `PUBLIC_THEME_OPTION`
+- `LOGIN_THEME_PACK`, `LOGIN_THEME_OPTION`
+- `ADMIN_THEME_PACK`, `ADMIN_THEME_OPTION`
+
+## Documentación técnica
+
+- Guía general del framework: [`docs/README.md`](docs/README.md)
+- Generador CLI de módulos: [`docs/CLI-GENERATOR.md`](docs/CLI-GENERATOR.md)
+- Plantilla de módulo: [`docs/MODULE_TEMPLATE.md`](docs/MODULE_TEMPLATE.md)
+- Notificaciones: [`docs/NOTIFICACIONES.md`](docs/NOTIFICACIONES.md)
+- Roadmap técnico de optimización: [`docs/ROADMAP-OPTIMIZACION.md`](docs/ROADMAP-OPTIMIZACION.md)
+
+## Convención de tablas
+
+- Las 15 tablas core del sistema usan prefijo fijo `wr_`.
+- Las tablas de módulos de negocio existentes y futuros no usan prefijo.
+- La estructura core activa se define por migraciones.
+- La data actual del sistema puede conservarse importando un export aparte.

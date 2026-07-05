@@ -49,7 +49,7 @@ $hasCurrent  = $uploadCurrent !== '';
             <!-- Preview -->
             <div id="<?= $previewId ?>" style="display:<?= $hasCurrent ? 'block' : 'none' ?>;width:100%;height:100%;">
                 <img id="<?= $previewId ?>_img"
-                     src="<?= $hasCurrent ? '/' . $safeCurrent : '' ?>"
+                     src="<?= $hasCurrent ? rtrim((string)($_ENV['SITE_ROOT'] ?? ''), '/') . '/' . $safeCurrent : '' ?>"
                      alt="Vista previa"
                      style="width:100%;height:100%;object-fit:cover;">
             </div>
@@ -65,7 +65,7 @@ $hasCurrent  = $uploadCurrent !== '';
         <!-- Right side: buttons + info + note -->
         <div style="display:flex;flex-direction:column;justify-content:center;gap:6px;padding-top:4px;">
             <button type="button"
-                    class="btn btn-sm btn-outline-primary"
+                    class="btn btn-sm btn-outline-primary btn-img-upload"
                     onclick="document.getElementById('<?= $inputId ?>').click()">
                 <i class="fa fa-folder-open-o me-1" aria-hidden="true"></i> Seleccionar
             </button>
@@ -87,6 +87,7 @@ $hasCurrent  = $uploadCurrent !== '';
 
     </div>
 
+    <style>.btn-img-upload:hover,.btn-img-upload:focus,.btn-img-upload:active{color:#fff!important}</style>
     <!-- Init call (deferred after DOM + image-upload.js are loaded) -->
     <script>
     document.addEventListener('DOMContentLoaded', function () {

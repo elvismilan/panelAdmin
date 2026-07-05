@@ -6,6 +6,7 @@ use App\Models\TareaModel;
 use Core\Auth;
 use Core\Controller;
 use Core\FlashMessages;
+use Core\NotificacionService;
 use Core\UiMessages;
 use Core\ValidationMessages;
 use Core\Validator;
@@ -117,7 +118,9 @@ class TareaController extends Controller
             'tar_nombre' => $nombre,
         ]);
         $this->logAction($model->getLastActionLog(), 'CREATE');
+        NotificacionService::registrar('tareas', 'CREATE', (string) (Auth::user()['id'] ?? 'ANON'), $tarId);
 
+        $this->invalidateMenuCache();
         $this->flashSuccess(FlashMessages::TAREA_CREATED);
 
         $this->redirect('/tareas');
@@ -188,7 +191,9 @@ class TareaController extends Controller
             'tar_nombre' => $nombre,
         ]);
         $this->logAction($model->getLastActionLog(), 'UPDATE');
+        NotificacionService::registrar('tareas', 'UPDATE', (string) (Auth::user()['id'] ?? 'ANON'), $id);
 
+        $this->invalidateMenuCache();
         $this->flashSuccess(FlashMessages::TAREA_UPDATED);
 
         $this->redirect('/tareas');
@@ -235,7 +240,8 @@ class TareaController extends Controller
         $nombre = (string) ($tarea['tar_nombre'] ?? '');
         $model->deleteTask($id);
         $this->logAction($model->getLastActionLog(), 'DELETE');
-
+        NotificacionService::registrar('tareas', 'DELETE', (string) (Auth::user()['id'] ?? 'ANON'), $id);
+        $this->invalidateMenuCache();
         $this->flashSuccess(FlashMessages::TAREA_DELETED);
         $this->redirect('/tareas');
     }

@@ -1,524 +1,383 @@
-# panelAdmin — Documentación del Framework
+# panelAdmin — Documentación técnica
 
-Panel de administración personalizado en PHP MVC, diseñado para hosting compartido, con RBAC, multi-tema y arquitectura limpia.
+Guía actual del proyecto para desarrollo, operación y onboarding.
 
----
+## Estado de esta guía
 
-## Tabla de contenidos
+Validada contra el código del repositorio el **12 de junio de 2026**.
 
-1. [Estructura del proyecto](#1-estructura-del-proyecto)
-2. [Módulos existentes](#2-módulos-existentes)
-3. [Arquitectura MVC](#3-arquitectura-mvc)
-4. [Sistema de autenticación](#4-sistema-de-autenticación)
-5. [RBAC — Roles y permisos](#5-rbac--roles-y-permisos)
-6. [Sistema de temas](#6-sistema-de-temas)
-7. [Clases base](#7-clases-base)
-8. [Utilidades del framework](#8-utilidades-del-framework)
-9. [Convenciones de nomenclatura](#9-convenciones-de-nomenclatura)
-10. [Configuración (.env)](#10-configuración-env)
-11. [Seguridad implementada](#11-seguridad-implementada)
-12. [Migraciones](#12-migraciones)
+**Última actualización:** 12 de junio de 2026
 
----
+### Cambios recientes (Sesión 11 jun 2026)
 
-## 1. Estructura del proyecto
+#### 1. Módulo de Parámetros (CRUD Completo) ✅
+- **Nuevo módulo generado:** `ParametroController`, `ParametroModel`
+- **Ruta base:** `/parametros`
+- **Tabla:** `wr_parametro` (8 columnas)
+  - `par_clave` (UNIQUE) - identificador del parámetro
+  - `par_valor` (nullable) - valor del parámetro
+  - `par_tipo` - tipo de dato (string, int, json, etc.)
+  - `par_grupo` (INDEX) - agrupación para organización
+  - `par_label` - etiqueta legible para usuarios
+  - Timestamps automáticos (`par_created_at`, `par_updated_at`)
+- **Características:**
+  - Búsqueda por clave/etiqueta
+  - **FilterBar implementado** con filtro por `par_grupo` (chips)
+  - Paginación
+  - Validación de datos
+  - Notificaciones de auditoría en `CREATE`, `UPDATE` y `DELETE`
+- **Migración:** `0005_create_wr_parametro_table.sql` dentro del baseline core activo
+- **Seed inicial recomendado:** `0006_seed_wr_parametro_defaults.sql`
+- **Rutas:** Siguiendo patrón CRUD estándar (index, agregar, guardar, editar, actualizar, eliminar, borrar)
 
-```
+#### 2. Variable de Entorno APP_INDEX ✅
+- **Ubicación:** `.env`
+- **Variable:** `APP_INDEX='login'` (o `'home'`)
+- **Función:** Controla la página de inicio por defecto
+  - `APP_INDEX='home'` → raíz "/" redirige a `HomeController::index`
+  - `APP_INDEX='login'` → raíz "/" redirige a `AuthController::showLogin`
+- **Implementación:** En `routes/web.php` con match expression
+- **Uso:** Permite cambiar fácilmente el índice sin modificar código
+
+#### 3. Sistema de Notificaciones - CRUD alineado ✅
+- **Problema:** La cobertura de notificaciones estaba incompleta y el modelo mantenía ramas legacy.
+- **Solución:** `NotificacionModel` ahora asume como oficiales `wr_notificacion_destino` y `wr_notificacion_lectura`, y `NotificacionService::registrar()` quedó alineado en:
+  - `ElementoController::guardar()` / `actualizar()` / `borrar()`
+  - `TareaController::guardar()` / `actualizar()` / `borrar()`
+  - `ParametroController::guardar()` / `actualizar()` / `borrar()`
+  - PersonaController, GrupoController y UsuarioController ya cubrían el flujo principal
+- **Resultado:** Los CRUD actuales quedan alineados con eventos `CREATE`, `UPDATE` y `DELETE` según el módulo.
+
+#### 4. Baseline core por migraciones ✅
+- **Convención actual:** solo las 15 tablas core usan prefijo fijo `wr_`
+- **Migraciones activas:** definen la estructura base core ordenada
+- **Datos actuales:** si se quieren preservar, deben importarse mediante export separado
+
+#### 5. Criterio UI para filtros de listados ✅
+- **Regla acordada:** si el módulo tiene `1` filtro visible, se usa una UI simple; si tiene `2 o más`, se usa una barra compacta en una sola línea.
+- **Piloto actual:** `Notificaciones`
+- **Implementación actual:** componente reutilizable `app/Views/components/list-toolbar.php`
+- **Primer uso real:** `Notificaciones`
+
+## 1. Resumen del sistema
+
+- Arquitectura MVC en PHP 8.2+.
+- Front controller único: `public/index.php`.
+- Router propio con rutas declaradas en `routes/web.php`.
+- RBAC por `grupo` + `elemento` + `tarea`.
+- Multi-tema por área (`public`, `login`, `admin`) mediante `ThemeResolver`.
+- Solo las 15 tablas core usan prefijo fijo `wr_`.
+- Las tablas de modulos de negocio existentes y los nuevos modulos usan nombres sin prefijo.
+
+## 2. Estructura actual del proyecto
+
+```text
 panelAdmin/
-├── public/                      # Web root — único punto de entrada
-│   ├── index.php                # Front controller
-│   └── assets/                  # CSS, JS, imágenes públicas
 ├── app/
-│   ├── Controllers/             # Controladores de cada módulo
-│   ├── Models/                  # Modelos de cada módulo
+│   ├── Controllers/
+│   ├── Models/
 │   └── Views/
-│       ├── {modulo}/            # Vistas por módulo (index, agregar, editar, eliminar)
-│       └── components/          # Componentes reutilizables
-├── core/                        # Framework — NO modificar salvo extensión
+├── core/
+│   ├── Helpers/
+│   ├── database/
+│   │   ├── admin_db.sql
+│   │   └── migrations/
 │   ├── App.php
+│   ├── Router.php
 │   ├── Controller.php
 │   ├── Model.php
-│   ├── Router.php
-│   ├── Request.php
-│   ├── Auth.php
-│   ├── Permission.php
-│   ├── Validator.php
-│   ├── Csrf.php
-│   ├── Session.php
-│   ├── View.php
-│   ├── MenuService.php
-│   ├── ThemeResolver.php
-│   ├── ActionLogger.php
-│   ├── RateLimiter.php
-│   ├── Mailer.php
-│   ├── Helpers/
-│   │   └── IconHelper.php
-│   └── database/
-│       └── migrations/          # Archivos SQL de migración
+│   └── ...
+├── public/
+│   ├── index.php
+│   ├── .htaccess
+│   └── assets/
 ├── resources/
 │   └── themes/
-│       ├── default/             # Tema por defecto (admin + login)
-│       └── public/              # Tema área pública
 ├── routes/
-│   └── web.php                  # Registro de todas las rutas
-├── vendor/                      # Dependencias Composer
-├── app/.env                     # Configuración del entorno
-└── migrate.php                  # Runner de migraciones
+│   └── web.php
+├── tests/
+│   └── reset_password_flow_smoke.php
+├── bin/
+│   └── make-module.php
+├── migrate.php
+└── .env.example
 ```
 
----
+## 3. Módulos y rutas registradas
 
-## 2. Módulos existentes
+### Módulos principales
 
-| Módulo | Controlador | Modelo | Ruta base | Tabla(s) DB |
+| Módulo | Controller | Modelo(s) | Ruta base | FilterBar |
 |---|---|---|---|---|
-| **Auth** | `AuthController` | `UserModel`, `PasswordResetModel` | `/login`, `/logout`, `/forgot-password`, `/reset-password` | `usuario`, `login_attempts`, `password_resets` |
-| **Dashboard** | `DashboardController` | — | `/dashboard` | — |
-| **Tarea** | `TareaController` | `TareaModel` | `/tareas` | `tarea` |
-| **Elemento (Módulo)** | `ElementoController` | `ElementoModel` | `/modulos` | `elemento`, `elemento_tarea` |
-| **Persona** | `PersonaController` | `PersonaModel` | `/personas` | `persona` |
-| **Usuario** | `UsuarioController` | `UsuarioModel` | `/usuarios` | `usuario`, `persona`, `grupo` |
-| **Grupo** | `GrupoController` | `GrupoModel` | `/grupos` | `grupo` |
+| Home | `HomeController` | — | `/` | — |
+| Auth | `AuthController` | `UserModel`, `PasswordResetModel` | `/login` | — |
+| Dashboard | `DashboardController` | — | `/dashboard` | — |
+| Tareas | `TareaController` | `TareaModel` | `/tareas` | ❌ |
+| Módulos/Elementos | `ElementoController` | `ElementoModel` | `/modulos` | ✅ Padre |
+| Personas | `PersonaController` | `PersonaModel` | `/personas` | ❌ |
+| Usuarios | `UsuarioController` | `UsuarioModel` | `/usuarios` | ❌ |
+| Grupos | `GrupoController` | `GrupoModel` | `/grupos` | ❌ |
+| Logs | `LogController` | `LogModel` | `/logs` | ✅ Tipo |
+| Notificaciones | `NotificacionController` | `NotificacionModel` | `/notificaciones` | ✅ `list-toolbar` |
+| **Parámetros** | **`ParametroController`** | **`ParametroModel`** | **/parametros** | **✅ Grupo** |
 
-Todos los módulos CRUD implementan el mismo conjunto de 7 acciones:
+### Rutas especiales (no CRUD estándar)
 
-| Acción | Método HTTP | Ruta | Descripción |
-|---|---|---|---|
-| `index` | GET | `/{recurso}` | Listado con búsqueda y paginación |
-| `agregar` | GET | `/{recurso}/agregar` | Formulario de creación |
-| `guardar` | POST | `/{recurso}/guardar` | Procesa la creación |
-| `editar` | GET | `/{recurso}/{id}/editar` | Formulario de edición |
-| `actualizar` | POST | `/{recurso}/{id}/actualizar` | Procesa la edición |
-| `eliminar` | GET | `/{recurso}/{id}/eliminar` | Confirmación de borrado |
-| `borrar` | POST | `/{recurso}/{id}/borrar` | Ejecuta el borrado |
+- `GET /login`
+- `POST /login`
+- `POST /logout`
+- `GET /forgot-password`
+- `POST /forgot-password`
+- `GET /reset-password/{token}`
+- `POST /reset-password/{token}`
+- `GET /logs/{id}/ver`
+- `GET /notificaciones/{id}/ver`
+- `POST /notificaciones/{id}/leida`
 
----
+### Patrón CRUD usado en módulos administrativos
 
-## 3. Arquitectura MVC
+Para `tareas`, `modulos`, `personas`, `usuarios`, `grupos`:
 
-### Flujo de una petición
+- `GET /{recurso}` → `index`
+- `GET /{recurso}/agregar` → `agregar`
+- `POST /{recurso}/guardar` → `guardar`
+- `GET /{recurso}/{id}/editar` → `editar`
+- `POST /{recurso}/{id}/actualizar` → `actualizar`
+- `GET /{recurso}/{id}/eliminar` → `eliminar`
+- `POST /{recurso}/{id}/borrar` → `borrar`
 
-```
-Browser HTTP Request
-  ↓
-public/index.php
-  ↓  Carga .env, cabeceras de seguridad
-Core\App::run()
-  ↓
-Core\Router::dispatch()
-  ↓  Encuentra ruta, extrae parámetros, verifica permisos
-App\Controllers\{Modulo}Controller::{accion}()
-  ↓  requireAuth(), validación, lógica de negocio
-App\Models\{Modulo}Model
-  ↓  Consultas PDO preparadas
-Core\Controller::renderAdminModule('modulo/vista', $data)
-  ↓
-Core\View::render()  →  extract($data)
-  ↓
-resources/themes/default/admin/layout.php
-  ├── header-admin.php
-  ├── app/Views/modulo/vista.php
-  └── footer-admin.php
-  ↓
-Response HTML al browser
-```
+## 4. Flujo MVC (request → response)
 
-### Registro de rutas (`routes/web.php`)
-
-```php
-// Rutas simples
-$router->get('/ruta', ControllerClass::class, 'metodo');
-$router->post('/ruta', ControllerClass::class, 'metodo');
-
-// Rutas con parámetros
-$router->get('/recurso/{id}/editar', RecursoController::class, 'editar');
-$router->post('/recurso/{id}/actualizar', RecursoController::class, 'actualizar');
+```text
+Request HTTP
+  -> public/index.php
+  -> Core\App::run()
+  -> Core\Router::dispatch()
+  -> App\Controllers\...::accion()
+  -> App\Models\...
+  -> Core\Controller::render() / renderAdminModule()
+  -> Core\View
+  -> HTML
 ```
 
----
+Notas importantes:
 
-## 4. Sistema de autenticación
+- `Request` normaliza método, path y soporta override por `POST _method`.
+- `Request` elimina el `basePath` detectado desde `APP_URL`/script path.
+- `Router` renderiza errores usando templates:
+  - `resources/themes/default/errors/not-found.php` (404)
+  - `resources/themes/default/errors/forbidden.php` (403)
 
-### Flujo de login
+## 5. Autenticación y recuperación de contraseña
 
-1. `GET /login` → `AuthController::showLogin()` — muestra formulario
-2. `POST /login` → `AuthController::login()`
-   - Rate limiting via `RateLimiter` (5 intentos / 15 min por IP)
-   - `UserModel::authenticate()` — verifica credenciales (bcrypt + HMAC legacy)
-   - `Auth::login($user)` — crea sesión y regenera ID
-3. `POST /logout` → `AuthController::logout()` — destruye sesión
+### Login
 
-### Datos en sesión tras login
+`AuthController::login()` aplica:
 
-```php
-[
-    'id'         => int,       // ID del usuario
-    'username'   => string,
-    'person_id'  => int,       // ID de persona vinculada
-    'group'      => int,       // ID del grupo (para RBAC)
-    'group_name' => string,
-    'full_name'  => string,
-    'email'      => string,
-    'photo'      => string,    // Ruta de foto
-    'auth_driver'=> 'usuario',
-]
-```
+- validación CSRF
+- rate limit por IP (`RateLimiter`)
+- autenticación por `UserModel`
+- `Auth::login()` con regeneración de sesión
 
-### Recuperación de contraseña
+### Logout
 
-```
-GET  /forgot-password              → Formulario de email
-POST /forgot-password              → Genera token, envía email (PHPMailer)
-GET  /reset-password/{token}       → Formulario de nueva contraseña
-POST /reset-password/{token}       → Actualiza contraseña y limpia token
-```
+`POST /logout` exige CSRF y destruye sesión (`Auth::logout()`).
 
----
+### Forgot / Reset Password
 
-## 5. RBAC — Roles y permisos
+- Generación de token por `PasswordResetModel`.
+- Envío de email con `Core\Mailer` + plantilla `app/Views/emails/password-reset.php`.
+- Tokens con caducidad y uso único.
 
-### Modelo de datos
+## 6. RBAC y menú dinámico
 
-```
-grupo (Grupos/Roles)
-  └── permiso (grupo → elemento → tarea)
-        ├── elemento (Módulos del menú)
-        │     └── elemento_tarea (elemento → tarea)
-        └── tarea (Acciones: ACCEDER, LISTAR, AGREGAR, EDITAR, ELIMINAR, etc.)
-```
+### Permisos
 
-### Verificación de permisos en vistas
+`Core\Permission` resuelve acceso por:
 
-```php
-$permission = new \Core\Permission();
-$canAgregar  = $permission->canAccessRoute($groupId, '/recurso/agregar', 'agregar');
-$canEditar   = $permission->canAccessRoute($groupId, '/recurso/1/editar', 'editar');
-$canEliminar = $permission->canAccessRoute($groupId, '/recurso/1/eliminar', 'eliminar');
-```
+- grupo (`pmo_gru_id`)
+- elemento (`pmo_ele_id`)
+- tarea (`pmo_tar_id` / `tarea.tar_nombre`)
 
-### Menú dinámico
+Optimización actual:
 
-`Core\MenuService::buildForGroup($groupId)` genera el árbol de menú solo con los elementos a los que el grupo tiene acceso. El resultado se cachea en sesión (`_menu_cache`).
+- cachea en sesión y por request la resolución `ruta -> elemento`
+- cachea en sesión y por request la matriz de permisos por grupo
+- invalida el cache RBAC actual al cambiar grupos, módulos o tareas
+- revalida la versión global RBAC desde `wr_parametro` cada `30s` por defecto (`RBAC_VERSION_CHECK_INTERVAL`)
 
----
+`Router::isForbidden()` deniega rutas cuando el usuario autenticado no tiene permiso.
 
-## 6. Sistema de temas
+### Menú
 
-### Configuración en `.env`
+`Core\MenuService::buildForGroup($groupId)` construye el árbol visible según permisos y lo cachea en sesión (`_menu_cache`).
 
-```
-ADMIN_THEME_PACK=default
-ADMIN_THEME_OPTION=1
-LOGIN_THEME_PACK=default
-LOGIN_THEME_OPTION=1
-```
+## 7. Temas y layouts
 
-### Estructura de un tema
+Resolución de vistas por área vía `Core\ThemeResolver`.
 
-```
-resources/themes/{pack}/
-├── admin/
-│   ├── layout.php              # Layout principal del admin
-│   ├── dashboard-default.php   # Opción 1 del dashboard
-│   └── (solo opción default)
-├── login/
-│   ├── login-form-default.php
-│   ├── forgot-password.php
-│   └── reset-password.php
-├── errors/
-│   ├── 404.php
-│   └── 403.php
+### Archivos actuales de tema
+
+```text
+resources/themes/default/
+├── admin/layout.php
+├── admin/dashboard-default.php
+├── login/login-form-default.php
+├── login/forgot-password.php
+├── login/reset-password.php
+├── errors/forbidden.php
+├── errors/not-found.php
 ├── header-admin.php
-└── footer-admin.php
+├── footer-admin.php
+└── auth-layout-*.php
+
+resources/themes/public/public/
+├── option1.php
+└── option2.php
 ```
 
----
+Notas:
 
-## 7. Clases base
+- Para `login` y `admin`, la opción efectiva está forzada a `1` en `ThemeResolver`.
+- `renderAdminModule()` usa el layout `admin/layout.php` del pack activo.
 
-### `Core\Controller`
+## 8. Configuración `.env` (realmente usada)
 
-Todo controlador hereda de esta clase.
+### App y URLs
 
-```php
-// Seguridad
-$this->requireAuth();                          // Redirige a /login si no autenticado
-$this->requireCsrf();                          // Valida token CSRF (en POST)
-$this->requireElementPermission($elementId);   // Verifica permiso RBAC
+- `APP_DEBUG` - Modo debug (true|false)
+- `APP_URL` - URL base de la aplicación
+- `APP_INDEX` - **Página de inicio por defecto** (`'home'` | `'login'`) — **Nuevo 11 jun 2026**
+- `SITE_ROOT` - Raíz del sitio
+- `SITE_TITLE` - Título del sitio
+- `LOGO` - Ruta del logo
 
-// Renderizado
-$this->renderAdminModule('modulo/vista', $data); // Con layout admin
-$this->render('template', $data);               // Renderizado directo
-$this->json($data, 200);                        // Respuesta JSON
+### Base de datos
 
-// Navegación
-$this->redirect('/ruta');
+- `DB_DSN` (opcional, tiene prioridad)
+- `DB_HOST`
+- `DB_NAME`
+- `DB_USER`
+- `DB_PASS`
+- `DB_CHARSET`
 
-// Flash messages
-$this->flashSuccess('Mensaje de éxito.');
-$this->flashError('Mensaje de error.');
+### Autenticación y seguridad
 
-// Paginación
-$page     = $this->getCurrentPage();
-$perPage  = $this->getDefaultPerPage();         // Lee PAGINATION_PER_PAGE del .env
-$pagination = $this->buildPagination($total, $page, $perPage, '/ruta', $queryParams);
+- `AUTH_ACTIVE_STATUS`
+- `AUTH_LEGACY_ALGO`
+- `AUTH_LEGACY_SALT`
+- `LOGIN_MAX_ATTEMPTS` (default: `5`)
+- `LOGIN_LOCKOUT_MINUTES` (default: `15`)
+- `CSRF_TOKEN_TTL_SECONDS` (default: `3600`)
+- `SESSION_COOKIE_SECURE` (`auto|true|false`)
+- `SESSION_COOKIE_SAMESITE` (`Lax|Strict|None`)
+- `SESSION_COOKIE_DOMAIN`
 
-// Parámetros de query
-$filters = $this->getQueryParams(['q' => '', 'estado' => '']);
-$value   = $this->getQueryParam('q', '');
+### UI / Paginación / Tema
 
-// Log de acciones
-$this->logAction('Descripción', 'CREATE|UPDATE|DELETE');
+- `PAGINATION_PER_PAGE`
+- `PUBLIC_THEME_PACK`, `PUBLIC_THEME_OPTION`
+- `LOGIN_THEME_PACK`, `LOGIN_THEME_OPTION`
+- `ADMIN_THEME_PACK`, `ADMIN_THEME_OPTION`
+- `LOGIN_OPTION1_ASSET_BASE`
+- `LOGIN_ASSET_BASE`
+- `ADMIN_ASSET_BASE`
+- `ADMIN_META_DESCRIPTION`, `ADMIN_META_KEYWORDS`, `ADMIN_META_AUTHOR`
 
-// Assets
-$this->addCss('/assets/css/extra.css');
-$this->addJs('/assets/js/extra.js');
-```
+### Correo y contacto
 
-### `Core\Model`
+- `MAIL_HOST`
+- `MAIL_PORT`
+- `MAIL_ENCRYPTION`
+- `MAIL_USERNAME`
+- `MAIL_PASSWORD`
+- `MAIL_FROM_ADDRESS`
+- `MAIL_FROM_NAME`
+- `COUNTRY`
+- `ADDRESS`
 
-Todo modelo hereda de esta clase.
+### Testing
 
-```php
-// Constructor mínimo
-public function __construct() {
-    parent::__construct();
-    $this->setTable('nombre_tabla');   // Sin prefijo
-    $this->setPrimaryKey('col_id');
-}
+- `TEST_RESET_EMAIL`
 
-// CRUD heredado
-$this->create(['col' => $val]);        // INSERT → retorna ID como string
-$this->find($id);                      // SELECT por PK
-$this->findAll();                      // SELECT todos
-$this->update($id, ['col' => $val]);   // UPDATE por PK
-$this->delete($id);                    // DELETE (o soft delete si habilitado)
-$this->restore($id);                   // Restaura soft-deleted
+## 9. Seguridad implementada
 
-// Helpers de validación
-$this->existsIn($tabla, $columna, $valor, $excluirCol, $excluirVal); // Unicidad
-$this->linkedTo($tabla, $columna, $valor);                           // FK activa
+- PDO con sentencias preparadas.
+- CSRF token por sesión, con TTL configurable.
+- Sesiones con `httponly`, `samesite` y `secure` configurable.
+- Rate limiting para login/forgot password.
+- Headers de seguridad en `public/index.php` y `public/.htaccess`.
+- CSP activa (actualmente permite `unsafe-inline` para compatibilidad de tema).
 
-// Soft deletes (opcional)
-protected bool $softDeletes = true;    // Activa borrado lógico (deleted_at)
+## 10. Migraciones y esquema
 
-// Log del último INSERT/UPDATE/DELETE
-$this->getLastActionLog();
-```
+### Runner de migraciones
 
----
-
-## 8. Utilidades del framework
-
-### Validator
-
-```php
-$validator = Validator::make($params, [
-    'campo'  => 'required|string|min:2|max:250',
-    'estado' => 'required|in:A,I',
-    'notas'  => 'nullable|string|max:500',
-], [
-    'campo'  => 'Nombre del Campo',
-    'estado' => 'Estado',
-]);
-
-if ($validator->fails()) {
-    $error  = $validator->first();   // Primer error
-    $errors = $validator->errors();  // Todos los errores
-}
-
-$valor = $validator->value('campo', 'default');
-```
-
-Reglas disponibles: `required`, `string`, `min:{n}`, `max:{n}`, `in:{a,b}`, `regex:{pattern}`, `nullable`.
-
-### CSRF
-
-```php
-// En la vista (dentro de <form>):
-<?= $csrfField ?>   // Inyectado automáticamente por renderAdminModule
-
-// En el controlador (POST):
-$this->requireCsrf();
-```
-
-### Session
-
-```php
-Session::set('key', $value);
-Session::get('key', $default);
-Session::has('key');
-Session::remove('key');
-Session::destroy();
-Session::regenerateId();
-```
-
-### Auth
-
-```php
-Auth::check();       // bool — ¿está autenticado?
-Auth::user();        // array — datos del usuario en sesión
-Auth::login($user);  // Crea sesión
-Auth::logout();      // Destruye sesión
-```
-
-### Componentes de vistas reutilizables
-
-| Archivo | Uso | Variables requeridas |
-|---|---|---|
-| `components/flash-messages.php` | Alertas de éxito/error | `$flashes` (inyectado automático) |
-| `components/form-errors.php` | Errores de validación | `$error`, `$errors` |
-| `components/pagination.php` | Controles de paginación | `$pagination`, `$paginationAriaLabel`, `$paginationClass` |
-| `components/search-form.php` | Formulario de búsqueda | `$searchConfig` (array de configuración) |
-| `components/image-upload.php` | Upload de imágenes | configuración inline |
-
----
-
-## 9. Convenciones de nomenclatura
-
-| Elemento | Convención | Ejemplo |
-|---|---|---|
-| Controlador | `{Modulo}Controller.php` — PascalCase | `ProductoController.php` |
-| Modelo | `{Modulo}Model.php` — PascalCase | `ProductoModel.php` |
-| Carpeta de vistas | minúsculas | `app/Views/producto/` |
-| Archivos de vista | minúsculas | `index.php`, `agregar.php` |
-| Tabla DB | `{modulo}` — minúsculas | `producto` |
-| Columnas DB | `{prefijo3}_{nombre}` — snake_case | `pro_nombre`, `pro_estado` |
-| Clave primaria | `{prefijo3}_id` | `pro_id` |
-| Rutas URL | plural minúsculas | `/productos` |
-| Namespace controladores | `App\Controllers` | |
-| Namespace modelos | `App\Models` | |
-
----
-
-## 10. Configuración (.env)
-
-```ini
-# App
-APP_DEBUG=false
-APP_URL=https://dominio.com/panel
-SITE_ROOT=https://dominio.com
-SITE_TITLE=Mi Panel
-LOGO=/assets/images/logo.png
-
-# Base de datos
-DB_HOST=localhost
-DB_NAME=nombre_db
-DB_USER=usuario
-DB_PASS=contraseña
-DB_CHARSET=utf8mb4
-
-# Auth
-AUTH_ACTIVE_STATUS=H
-AUTH_LEGACY_ALGO=sha256
-AUTH_LEGACY_SALT=salt_secreto
-
-# Paginación
-PAGINATION_PER_PAGE=8
-
-# Temas
-ADMIN_THEME_PACK=default
-ADMIN_THEME_OPTION=1
-LOGIN_THEME_PACK=default
-LOGIN_THEME_OPTION=1
-
-# Mail (PHPMailer)
-MAIL_HOST=smtp.gmail.com
-MAIL_PORT=587
-MAIL_ENCRYPTION=tls
-MAIL_USERNAME=correo@dominio.com
-MAIL_PASSWORD=password
-MAIL_FROM_ADDRESS=correo@dominio.com
-MAIL_FROM_NAME=Panel Admin
-```
-
----
-
-## 11. Seguridad implementada
-
-| Amenaza | Mecanismo |
-|---|---|
-| SQL Injection | PDO con sentencias preparadas en todas las consultas |
-| XSS | `htmlspecialchars($val, ENT_QUOTES, 'UTF-8')` en todas las vistas |
-| CSRF | Token de sesión en formularios POST + `requireCsrf()` en controladores |
-| Sesión hijacking | `session_regenerate_id(true)` en cada login |
-| Fuerza bruta | Rate limiting: 5 intentos / 15 min por IP (`login_attempts`) |
-| Contraseñas | bcrypt (`password_hash` / `password_verify`) |
-| Clickjacking | Header `X-Frame-Options: SAMEORIGIN` |
-| MIME sniffing | Header `X-Content-Type-Options: nosniff` |
-| Referrer leak | Header `Referrer-Policy: strict-origin-when-cross-origin` |
-| Scripts inline | Header `Content-Security-Policy` |
-
----
-
-## 12. Migraciones
-
-### Convención de archivos
-
-```
-core/database/migrations/
-├── NNNN_descripcion.sql          # Migración UP
-└── NNNN_descripcion_down.sql     # Rollback DOWN
-```
-
-### Ejecutar migraciones
+Comandos:
 
 ```bash
-php migrate.php          # Aplica todas las pendientes
-php migrate.php rollback # Revierte la última
+php migrate.php
+php migrate.php status
+php migrate.php rollback
 ```
 
-### Ejemplo de migración
+### Migraciones activas
 
-```sql
--- 0005_create_producto.sql
-CREATE TABLE IF NOT EXISTS `{prefix}producto` (
-    `pro_id`     INT UNSIGNED NOT NULL AUTO_INCREMENT,
-    `pro_nombre` VARCHAR(250) NOT NULL,
-    `pro_estado` CHAR(1)      NOT NULL DEFAULT 'A',
-    `pro_created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (`pro_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-```
+- `0001_create_wr_security_tables.sql`
+- `0002_create_wr_access_tables.sql`
+- `0003_create_wr_rbac_tables.sql`
+- `0004_create_wr_notification_tables.sql`
+- `0005_create_wr_parametro_table.sql`
 
----
+### Base inicial
 
-## 13. Catalogos de mensajes
+`core/database/admin_db.sql` queda como referencia histórica/export.
 
-Para reducir duplicacion de textos, el proyecto centraliza mensajes en clases dentro de `core/`:
+La estructura activa del core ahora vive en `core/database/migrations/`.
 
-- `FlashMessages.php`: mensajes de feedback (success, warning, error).
-- `ValidationMessages.php`: mensajes de validacion y errores de formulario.
-- `LogMessages.php`: mensajes/prefijos para `error_log`.
-- `EmailMessages.php`: asuntos y rutas de templates de correo.
-- `UiMessages.php`: titulos de pantalla reutilizables.
+Si se quiere conservar la data actual del sistema, se recomienda importar un export después de crear la estructura base.
 
-Recomendacion: antes de agregar un texto nuevo en un controlador, revisar si corresponde ubicarlo en alguno de estos catalogos.
+## 11. Notificaciones
 
----
+El módulo usa `NotificacionModel` con visibilidad por destinatario y lectura por usuario.
 
-## 14. Smoke test de reset de contraseña
+- `wr_notificacion` guarda el evento.
+- `wr_notificacion_destino` guarda a qué usuarios se entrega cada notificación.
+- `wr_notificacion_lectura` guarda quién ya la leyó (`nrl_usu_id`, `nrl_leida_en`).
+- `wr_notificacion_destino` y `wr_notificacion_lectura` son parte del esquema oficial activo.
+- Si una notificación no tiene filas en `wr_notificacion_destino`, se interpreta como global por compatibilidad.
+- Las rutas `/notificaciones*` son internas: requieren sesión, pero no dependen de `elemento` ni aparecen en el menú RBAC.
 
-Se agrego un test minimo ejecutable para validar el flujo critico de restablecimiento:
+Ruta de consulta para usuario autenticado:
 
-`tests/reset_password_flow_smoke.php`
+- `GET /notificaciones`
+- `GET /notificaciones/{id}/ver` (marca leída al abrir)
+- `POST /notificaciones/{id}/leida`
 
-Casos verificados:
+## 12. Utilidades CLI
 
-1. Consumo exitoso de token valido.
-2. Bloqueo de reutilizacion del mismo token.
-3. Rechazo de token expirado.
+### Generador de módulos
 
-Variable requerida en `.env`:
+- Script: `bin/make-module.php`
+- Guía: [`docs/CLI-GENERATOR.md`](CLI-GENERATOR.md)
+- Plantilla extendida: [`docs/MODULE_TEMPLATE.md`](MODULE_TEMPLATE.md)
 
-`TEST_RESET_EMAIL=correo_existente_en_persona`
-
-Ejecucion:
+### Smoke test de reset password
 
 ```bash
 php tests/reset_password_flow_smoke.php
 ```
 
----
+Valida:
 
-*Generado automáticamente — ver [MODULE_TEMPLATE.md](MODULE_TEMPLATE.md) para crear nuevos módulos.*
+- consumo de token válido
+- bloqueo de reutilización
+- rechazo de token expirado
+
+## 13. Documentos relacionados
+
+- [`../README.md`](../README.md)
+- [`CLI-GENERATOR.md`](CLI-GENERATOR.md)
+- [`MODULE_TEMPLATE.md`](MODULE_TEMPLATE.md)
+- [`NOTIFICACIONES.md`](NOTIFICACIONES.md)
+- [`ROADMAP-OPTIMIZACION.md`](ROADMAP-OPTIMIZACION.md)
