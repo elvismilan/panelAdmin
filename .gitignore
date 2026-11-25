@@ -3,10 +3,10 @@
 *.sass.map
 *.scss.map
 
-/src/
 /vendor/
 /HTML/
-/docs/
+/public/uploads/*
+!/public/uploads/.htaccess
 
 *.DS_Store
 .env
@@ -14,3 +14,4 @@
 .vscode/
 
 composer.lock
+error_log

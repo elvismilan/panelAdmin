@@ -292,3 +292,24 @@ body.admin-theme.glass-active .page-wrapper .page-body-wrapper .page-body {
   right: 26px !important;
   left: auto !important;
 }
+
+/* Badges de estado: success en verde suave con texto oscuro */
+.badge.bg-success {
+  background-color: #c8f5d4 !important;
+  color: #0f5132 !important;
+}
+
+/* Badge claro con texto primario (no existe en esta version del tema) */
+.badge-light-primary {
+  background-color: #dbe7f2;
+  color: #113655;
+}
+
+/* El tema base deja .nav-menu en left:-300px (mecanica off-canvas legacy con
+   .toggle-nav). En este panel el menu vive DENTRO del sidebar .main-nav
+   (mecanica close_icon), asi que debe quedar siempre en su sitio: en versiones
+   del tema donde .nav-menu queda posicionado, ese left lo saca de pantalla y
+   el menu movil se ve vacio. */
+.page-wrapper.compact-wrapper .page-body-wrapper header.main-nav .main-navbar .nav-menu {
+  left: 0;
+}

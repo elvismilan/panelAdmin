@@ -261,7 +261,7 @@ final class ModuleGenerator
         }
 
         // Migrations
-        $migBase = "core/database/migrations/{$this->migNum}_create_{$this->table}";
+        $migBase = "database/migrations/{$this->migNum}_create_{$this->table}";
         $this->writeFile("{$migBase}.sql",      $this->buildMigrationUp());
         $this->writeFile("{$migBase}_down.sql", $this->buildMigrationDown());
 
@@ -334,6 +334,9 @@ final class ModuleGenerator
     private function buildController(): string
     {
         $v = $this->vars();
+        // Los valores por defecto se generan para ir dentro de 'form' => [...];
+        // dentro de renderCreateForm([...]) van con una sangria menos.
+        $v['{{FormDefaultsCall}}'] = (string) preg_replace('/^    /m', '', $v['{{FormDefaults}}']);
 
         $tpl = <<<'PHP'
 <?php
@@ -341,10 +344,9 @@ final class ModuleGenerator
 namespace App\Controllers;
 
 use App\Models\{{Modulo}}Model;
-use Core\Auth;
-use Core\Controller;
-use Core\Validator;
-use Throwable;
+use PanelAdmin\Core\Auth;
+use PanelAdmin\Core\Controller;
+use PanelAdmin\Core\Validator;
 
 class {{Modulo}}Controller extends Controller
 {
@@ -352,43 +354,15 @@ class {{Modulo}}Controller extends Controller
     {
         $this->requireAuth();
 
-        $user    = Auth::user();
-        $items   = [];
-        $page    = $this->getCurrentPage();
-        $perPage = $this->getDefaultPerPage();
-        $filters = $this->getQueryParams(['q' => '']);
-        $search  = $filters['q'];
-        $pagination = $this->buildPagination(0, $page, $perPage, '/{{recursos}}', ['q' => $search]);
-
-        try {
-            $model      = new {{Modulo}}Model();
-            $totalRows  = $model->countAll($search);
-            $pagination = $this->buildPagination($totalRows, $page, $perPage, '/{{recursos}}', ['q' => $search]);
-            $items      = $model->paginate((int) $pagination['offset'], (int) $pagination['perPage'], $search);
-        } catch (Throwable) {
-            $items = [];
-        }
+        $list = $this->searchableIndex('/{{recursos}}', {{Modulo}}Model::class, 'Buscar por {{LabelPrincipal}}...');
 
         $this->renderAdminModule('{{recurso}}/index', [
-            'title'      => '{{TituloPlural}}',
-            'user'       => $user,
-            'items'      => $items,
-            'pagination' => $pagination,
-            'search'     => $search,
-            'searchConfig' => [
-                'action'      => '/{{recursos}}',
-                'method'      => 'GET',
-                'fields'      => [[
-                    'name'        => 'q',
-                    'type'        => 'text',
-                    'placeholder' => 'Buscar por {{LabelPrincipal}}...',
-                    'value'       => $search,
-                    'icon'        => 'fa fa-search',
-                ]],
-                'submitLabel' => 'Buscar',
-                'submitIcon'  => 'fa fa-search',
-                'clearUrl'    => $search !== '' ? '/{{recursos}}' : '',
-            ],
+            'title'        => '{{TituloPlural}}',
+            'user'         => Auth::user(),
+            'items'        => $list['items'],
+            'pagination'   => $list['pagination'],
+            'search'       => $list['search'],
+            'searchConfig' => $list['searchConfig'],
         ]);
     }
 
@@ -396,13 +370,8 @@ class {{Modulo}}Controller extends Controller
     {
         $this->requireAuth();
 
-        $this->renderAdminModule('{{recurso}}/agregar', [
-            'title' => 'Nuevo {{TituloSingular}}',
-            'user'  => Auth::user(),
-            'error' => null,
-            'form'  => [
-{{FormDefaults}}
-            ],
+        $this->renderCreateForm([
+{{FormDefaultsCall}}
         ]);
     }
 
@@ -424,23 +393,12 @@ class {{Modulo}}Controller extends Controller
         $principal = (string) $validator->value('{{CampoPrincipal}}', '');
 
         if (!$passes) {
-            $this->renderAdminModule('{{recurso}}/agregar', [
-                'title'  => 'Nuevo {{TituloSingular}}',
-                'user'   => Auth::user(),
-                'error'  => $validator->first(),
-                'errors' => $validator->errors(),
-                'form'   => $params,
-            ]);
+            $this->renderCreateForm($params, $validator->first(), $validator->errors());
             return;
         }
 
         if ($model->existsByName($principal)) {
-            $this->renderAdminModule('{{recurso}}/agregar', [
-                'title' => 'Nuevo {{TituloSingular}}',
-                'user'  => Auth::user(),
-                'error' => 'Ya existe un registro con ese valor.',
-                'form'  => $params,
-            ]);
+            $this->renderCreateForm($params, 'Ya existe un registro con ese valor.');
             return;
         }
 
@@ -460,13 +418,7 @@ class {{Modulo}}Controller extends Controller
             return;
         }
 
-        $this->renderAdminModule('{{recurso}}/editar', [
-            'title'  => 'Editar {{TituloSingular}}',
-            'user'   => Auth::user(),
-            'error'  => null,
-            'form'   => $item,
-            'itemId' => $id,
-        ]);
+        $this->renderEditForm($id, $item);
     }
 
     public function actualizar(string $id): void
@@ -487,25 +439,12 @@ class {{Modulo}}Controller extends Controller
         $principal = (string) $validator->value('{{CampoPrincipal}}', '');
 
         if (!$passes) {
-            $this->renderAdminModule('{{recurso}}/editar', [
-                'title'  => 'Editar {{TituloSingular}}',
-                'user'   => Auth::user(),
-                'error'  => $validator->first(),
-                'errors' => $validator->errors(),
-                'form'   => $params,
-                'itemId' => $id,
-            ]);
+            $this->renderEditForm($id, $params, $validator->first(), $validator->errors());
             return;
         }
 
         if ($model->existsByName($principal, $id)) {
-            $this->renderAdminModule('{{recurso}}/editar', [
-                'title'  => 'Editar {{TituloSingular}}',
-                'user'   => Auth::user(),
-                'error'  => 'Ya existe un registro con ese valor.',
-                'form'   => $params,
-                'itemId' => $id,
-            ]);
+            $this->renderEditForm($id, $params, 'Ya existe un registro con ese valor.');
             return;
         }
 
@@ -551,6 +490,29 @@ class {{Modulo}}Controller extends Controller
         $this->flashSuccess('{{TituloSingular}} eliminado correctamente.');
         $this->redirect('/{{recursos}}');
     }
+
+    private function renderCreateForm(array $form, ?string $error = null, array $errors = []): void
+    {
+        $this->renderAdminModule('{{recurso}}/agregar', [
+            'title'  => 'Nuevo {{TituloSingular}}',
+            'user'   => Auth::user(),
+            'error'  => $error,
+            'errors' => $errors,
+            'form'   => $form,
+        ]);
+    }
+
+    private function renderEditForm(string $id, array $form, ?string $error = null, array $errors = []): void
+    {
+        $this->renderAdminModule('{{recurso}}/editar', [
+            'title'  => 'Editar {{TituloSingular}}',
+            'user'   => Auth::user(),
+            'error'  => $error,
+            'errors' => $errors,
+            'form'   => $form,
+            'itemId' => $id,
+        ]);
+    }
 }
 PHP;
 
@@ -567,8 +529,8 @@ PHP;
 namespace App\Controllers;
 
 use App\Models\{{Modulo}}Model;
-use Core\Auth;
-use Core\Controller;
+use PanelAdmin\Core\Auth;
+use PanelAdmin\Core\Controller;
 use Throwable;
 
 class {{Modulo}}Controller extends Controller
@@ -577,42 +539,15 @@ class {{Modulo}}Controller extends Controller
     {
         $this->requireAuth();
 
-        $items   = [];
-        $page    = $this->getCurrentPage();
-        $perPage = $this->getDefaultPerPage();
-        $filters = $this->getQueryParams(['q' => '']);
-        $search  = $filters['q'];
-        $pagination = $this->buildPagination(0, $page, $perPage, '/{{recursos}}', ['q' => $search]);
-
-        try {
-            $model      = new {{Modulo}}Model();
-            $totalRows  = $model->countAll($search);
-            $pagination = $this->buildPagination($totalRows, $page, $perPage, '/{{recursos}}', ['q' => $search]);
-            $items      = $model->paginate((int) $pagination['offset'], (int) $pagination['perPage'], $search);
-        } catch (Throwable) {
-            $items = [];
-        }
+        $list = $this->searchableIndex('/{{recursos}}', {{Modulo}}Model::class, 'Buscar por {{LabelPrincipal}}...');
 
         $this->renderAdminModule('{{recurso}}/index', [
-            'title'      => '{{TituloPlural}}',
-            'user'       => Auth::user(),
-            'items'      => $items,
-            'pagination' => $pagination,
-            'search'     => $search,
-            'searchConfig' => [
-                'action'      => '/{{recursos}}',
-                'method'      => 'GET',
-                'fields'      => [[
-                    'name'        => 'q',
-                    'type'        => 'text',
-                    'placeholder' => 'Buscar por {{LabelPrincipal}}...',
-                    'value'       => $search,
-                    'icon'        => 'fa fa-search',
-                ]],
-                'submitLabel' => 'Buscar',
-                'submitIcon'  => 'fa fa-search',
-                'clearUrl'    => $search !== '' ? '/{{recursos}}' : '',
-            ],
+            'title'        => '{{TituloPlural}}',
+            'user'         => Auth::user(),
+            'items'        => $list['items'],
+            'pagination'   => $list['pagination'],
+            'search'       => $list['search'],
+            'searchConfig' => $list['searchConfig'],
         ]);
     }
 
@@ -656,9 +591,6 @@ PHP;
         $softProp  = $this->softDeletes
             ? "\n    protected bool \$softDeletes = true;\n"
             : '';
-        $notDeleted = $this->softDeletes
-            ? "\n                AND ({$this->table}Table}.deleted_at IS NULL)"
-            : '';
 
         $v['{{SoftDeletesProp}}']   = $softProp;
         $v['{{NotDeletedClause}}']  = $this->softDeletes
@@ -670,9 +602,10 @@ PHP;
 
 namespace App\Models;
 
-use Core\Model;
+use PanelAdmin\Core\Contracts\SearchablePaginated;
+use PanelAdmin\Core\Model;
 
-class {{Modulo}}Model extends Model
+class {{Modulo}}Model extends Model implements SearchablePaginated
 {
     private string ${{recurso}}Table;
 {{SoftDeletesProp}}
@@ -791,27 +724,13 @@ PHP;
         $v = $this->vars();
 
         $canCheck = $this->readonly
-            ? <<<TPL
-        \$canVer = false;
-        if (\$groupId !== '') {
-            try {
-                \$permission = new \Core\Permission();
-                \$canVer = \$permission->canAccessRoute(\$groupId, '/{{recursos}}/1/ver', 'ver') === true;
-            } catch (\Throwable) {}
-        }
+            ? <<<'TPL'
+    $canVer = $can('/{{recursos}}/1/ver', 'ver');
 TPL
-            : <<<TPL
-        \$canAgregar  = false;
-        \$canEditar   = false;
-        \$canEliminar = false;
-        if (\$groupId !== '') {
-            try {
-                \$permission  = new \Core\Permission();
-                \$canAgregar  = \$permission->canAccessRoute(\$groupId, '/{{recursos}}/agregar', 'agregar')   === true;
-                \$canEditar   = \$permission->canAccessRoute(\$groupId, '/{{recursos}}/1/editar', 'editar')   === true;
-                \$canEliminar = \$permission->canAccessRoute(\$groupId, '/{{recursos}}/1/eliminar', 'eliminar') === true;
-            } catch (\Throwable) {}
-        }
+            : <<<'TPL'
+    $canAgregar  = $can('/{{recursos}}/agregar', 'agregar');
+    $canEditar   = $can('/{{recursos}}/1/editar', 'editar');
+    $canEliminar = $can('/{{recursos}}/1/eliminar', 'eliminar');
 TPL;
 
         $addButton = $this->readonly ? '' : <<<'TPL'
@@ -856,14 +775,15 @@ TPL
                                         </td>
 TPL;
 
-        $v['{{CanCheck}}']   = $canCheck;
-        $v['{{AddButton}}']  = $addButton;
-        $v['{{RowActions}}'] = $actions;
+        // Estos bloques tienen sus propios {{marcadores}}: se reemplazan antes de
+        // insertarlos, porque replace() no vuelve a procesar el texto insertado.
+        $v['{{CanCheck}}']   = $this->replace($canCheck, $v);
+        $v['{{AddButton}}']  = $this->replace($addButton, $v);
+        $v['{{RowActions}}'] = $this->replace($actions, $v);
 
         $tpl = <<<'TPL'
 <div class="container-fluid">
     <?php
-    $groupId = trim((string) (($user['group'] ?? '')));
 {{CanCheck}}
     ?>
     <div class="row">
@@ -1331,7 +1251,7 @@ TPL;
 
     private function nextMigrationNumber(): string
     {
-        $dir   = ROOT . '/core/database/migrations';
+        $dir   = ROOT . '/database/migrations';
         $last  = 0;
 
         if (is_dir($dir)) {

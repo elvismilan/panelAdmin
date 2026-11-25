@@ -1,0 +1,54 @@
+/*
+ * Override del proyecto (se carga al final): define los tokens --pa-* que usan las
+ * pantallas del core (public/assets/paneladmin/paneladmin.css) con los colores de
+ * theme-one. Contrato: vendor/elvismilan/paneladmin-core/docs/theme-contract.md.
+ * Para otro color, cambia --pa-primary y --pa-secondary.
+ */
+:root {
+  --pa-palette-1: #24695c;
+  --pa-palette-1-secondary: #ba895d;
+  --pa-palette-2: #d97f3d;
+  --pa-palette-2-secondary: #ba895d;
+  --pa-palette-3: #168eea;
+  --pa-palette-3-secondary: #ba895d;
+  --pa-palette-4: #665ed5;
+  --pa-palette-4-secondary: #ba895d;
+  --pa-palette-5: #3a9aa8;
+  --pa-palette-5-secondary: #ba895d;
+  --pa-palette-6: #7951aa;
+  --pa-palette-6-secondary: #ba895d;
+
+  --pa-primary: var(--pa-palette-1);
+  --pa-secondary: var(--pa-palette-1-secondary);
+  --pa-on-primary: #ffffff;
+  --pa-surface: #ffffff;
+  --pa-surface-strong: #f5f7fb;
+  --pa-text: #2c323f;
+  --pa-muted: #6c7a89;
+  --pa-line: #e6edef;
+  --pa-border: #d9e1e4;
+  --pa-shadow: #1c2733;
+  --pa-danger: #dc3545;
+  --pa-success: #198754;
+  --pa-warning: #e0a100;
+}
+
+body.dark-only {
+  --pa-surface: #202938;
+  --pa-surface-strong: #111727;
+  --pa-text: #e6edef;
+  --pa-muted: #98a6ad;
+  --pa-line: #2c3748;
+  --pa-border: #364256;
+  --pa-shadow: #000000;
+}
+
+body.glass-active {
+  --pa-surface: rgba(255, 255, 255, 0.72);
+  --pa-surface-strong: rgba(245, 247, 251, 0.8);
+}
+
+body.dark-only.glass-active {
+  --pa-surface: rgba(32, 41, 56, 0.72);
+  --pa-surface-strong: rgba(17, 23, 39, 0.8);
+}

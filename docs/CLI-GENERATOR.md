@@ -97,8 +97,8 @@ app/Views/{recurso}/index.php              ← listado con búsqueda y paginaci�
 app/Views/{recurso}/agregar.php            ← formulario de creación
 app/Views/{recurso}/editar.php             ← formulario de edición
 app/Views/{recurso}/eliminar.php           ← confirmación de borrado
-core/database/migrations/NNNN_create_{tabla}.sql       ← CREATE TABLE
-core/database/migrations/NNNN_create_{tabla}_down.sql  ← DROP TABLE
+database/migrations/NNNN_create_{tabla}.sql       ← CREATE TABLE
+database/migrations/NNNN_create_{tabla}_down.sql  ← DROP TABLE
 ```
 
 ### Módulo readonly (`--readonly`)
@@ -107,7 +107,7 @@ app/Controllers/{Modulo}Controller.php     ← 2 acciones: index, ver
 app/Models/{Modulo}Model.php               ← paginate, countAll, findById
 app/Views/{recurso}/index.php              ← listado con búsqueda y paginación
 app/Views/{recurso}/ver.php                ← detalle completo del registro
-core/database/migrations/...
+database/migrations/...
 ```
 
 ---
@@ -181,7 +181,7 @@ $router->post('/productos/{id}/borrar',     ProductoController::class, 'borrar')
 
 Luego ejecuta la migración:
 ```bash
-php migrate.php
+vendor/bin/paneladmin migrate
 ```
 
 ---
@@ -189,7 +189,7 @@ php migrate.php
 ## Checklist post-generación
 
 - [ ] Copiar bloque de rutas en `routes/web.php`
-- [ ] Ejecutar `php migrate.php`
+- [ ] Ejecutar `vendor/bin/paneladmin migrate`
 - [ ] Crear el elemento en `/modulos/agregar` con `ele_nombre` = `--route`
 - [ ] Asignar tareas al elemento (ACCEDER, AGREGAR, EDITAR, ELIMINAR)
 - [ ] Asignar permisos al grupo en `/grupos/{id}/editar`
@@ -201,5 +201,5 @@ php migrate.php
 
 - El primer campo de `--fields` se usa como campo de búsqueda y validación de unicidad (`existsByName`).
 - Los archivos existentes **no se sobreescriben** a menos que se use `--force`.
-- El número de migración se auto-detecta leyendo el mayor `NNNN` en `core/database/migrations/`.
+- El número de migración se auto-detecta leyendo el mayor `NNNN` en `database/migrations/`.
 - La opción `--soft-deletes` no está disponible en modo `--readonly`.

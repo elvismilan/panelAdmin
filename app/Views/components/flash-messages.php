@@ -16,10 +16,11 @@ $typeToIcon = [
             continue;
         }
         $icon = $typeToIcon[$type] ?? 'icon-info';
+        // Todos los tipos siguen el color del tema (alert-primary); el icono distingue el tipo.
         ?>
         <div class="row justify-content-center">
             <div class="col-sm-8 mb-3">
-                <div class="alert alert-<?= htmlspecialchars($type, ENT_QUOTES, 'UTF-8') ?> inverse alert-dismissible fade show" role="alert" data-auto-dismiss="10000">
+                <div class="alert alert-primary inverse alert-dismissible fade show flash-<?= htmlspecialchars($type, ENT_QUOTES, 'UTF-8') ?>" role="alert" data-auto-dismiss="10000">
                     <i class="<?= htmlspecialchars($icon, ENT_QUOTES, 'UTF-8') ?>"></i>
                     <p><?= htmlspecialchars($message, ENT_QUOTES, 'UTF-8') ?></p>
                     <button class="btn-close" type="button" data-bs-dismiss="alert" aria-label="Close"></button>

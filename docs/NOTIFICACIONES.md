@@ -6,9 +6,9 @@ Documentación actual del sistema de notificaciones y envíos de correo del pane
 
 Validada contra el código del repositorio el **12 de junio de 2026**.
 
-## 1. Correo saliente (`Core\Mailer`)
+## 1. Correo saliente (`PanelAdmin\Core\Mailer`)
 
-`Core\Mailer` es un wrapper sobre PHPMailer y usa variables SMTP desde `.env`.
+`PanelAdmin\Core\Mailer` es un wrapper sobre PHPMailer y usa variables SMTP desde `.env`.
 
 Variables necesarias:
 
@@ -25,7 +25,7 @@ MAIL_FROM_NAME=Panel Admin
 Uso base:
 
 ```php
-use Core\Mailer;
+use PanelAdmin\Core\Mailer;
 
 $mailer = new Mailer();
 $mailer->send($destinatario, $asunto, $html);
@@ -33,7 +33,7 @@ $mailer->send($destinatario, $asunto, $html);
 
 ## 2. Render de plantillas de email
 
-Las plantillas se renderizan con `Core\EmailTemplatesRenderer`, disponible en controladores como `$this->emailTemplatesRenderer`.
+Las plantillas se renderizan con `PanelAdmin\Core\EmailTemplatesRenderer`, disponible en controladores como `$this->emailTemplatesRenderer`.
 
 Ejemplo real:
 
@@ -102,7 +102,7 @@ Detalles:
 
 ### Servicio
 
-`Core\NotificacionService::registrar(...)` registra eventos para mostrar en UI.
+`PanelAdmin\Core\NotificacionService::registrar(...)` registra eventos para mostrar en UI.
 
 Firma actual:
 
@@ -165,7 +165,7 @@ Cobertura actual:
 
 ### Visualización en UI
 
-- Dropdown del header: `Core\Helpers\NotificationHelper` (últimas 5 no leídas)
+- Dropdown del header: `PanelAdmin\Core\Helpers\NotificationHelper` (últimas 5 no leídas)
 - Listado: `GET /notificaciones`
 - Detalle: `GET /notificaciones/{id}/ver` (auto-marca leída)
 - Marcado explícito: `POST /notificaciones/{id}/leida`
@@ -187,7 +187,7 @@ Cobertura actual:
 Ejecutar:
 
 ```bash
-php migrate.php
+vendor/bin/paneladmin migrate
 ```
 
 ## 7. Plan de WhatsApp (pendiente)

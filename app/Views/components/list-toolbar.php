@@ -21,7 +21,7 @@ $renderSearchToolbar = static function (
         return;
     }
     ?>
-    <form method="<?= htmlspecialchars($method, ENT_QUOTES, 'UTF-8') ?>" action="<?= htmlspecialchars(\Core\Url::to($action), ENT_QUOTES, 'UTF-8') ?>" class="list-toolbar-search-form mb-3">
+    <form method="<?= htmlspecialchars($method, ENT_QUOTES, 'UTF-8') ?>" action="<?= htmlspecialchars(\PanelAdmin\Core\Url::to($action), ENT_QUOTES, 'UTF-8') ?>" class="list-toolbar-search-form mb-3">
         <div class="list-toolbar-search-row d-flex flex-wrap justify-content-center align-items-center gap-2 mb-2">
             <div class="input-group input-group-sm list-toolbar-search-group" style="<?= htmlspecialchars($searchGroupStyle, ENT_QUOTES, 'UTF-8') ?>">
                 <input
@@ -47,7 +47,7 @@ $renderSearchToolbar = static function (
             </div>
 
             <?php if ($clearUrl !== ''): ?>
-                <a href="<?= htmlspecialchars(\Core\Url::to($clearUrl), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-outline-secondary btn-sm list-toolbar-clear-btn <?= htmlspecialchars($buttonClass, ENT_QUOTES, 'UTF-8') ?>">
+                <a href="<?= htmlspecialchars(\PanelAdmin\Core\Url::to($clearUrl), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-outline-secondary btn-sm list-toolbar-clear-btn <?= htmlspecialchars($buttonClass, ENT_QUOTES, 'UTF-8') ?>">
                     <?= htmlspecialchars($clearLabel, ENT_QUOTES, 'UTF-8') ?>
                 </a>
             <?php endif; ?>
@@ -137,12 +137,18 @@ $renderSearchToolbar = static function (
     }
 
     .list-toolbar-clear-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         border-radius: .7rem;
         border: 1px solid rgba(43, 94, 94, 0.18);
         background: rgba(255, 255, 255, 0.72);
     }
 
     .list-toolbar-side-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         border-radius: .7rem;
         border: 1px solid rgba(43, 94, 94, 0.18);
         background: rgba(255, 255, 255, 0.72);
@@ -494,7 +500,7 @@ $renderSearchToolbar(
                 <span class="list-toolbar-active-chip-label"><?= htmlspecialchars($activeFilter['label'], ENT_QUOTES, 'UTF-8') ?>:</span>
                 <?= htmlspecialchars($activeFilter['value'], ENT_QUOTES, 'UTF-8') ?>
                 <a
-                    href="<?= htmlspecialchars(\Core\Url::to($activeFilter['clearUrl']), ENT_QUOTES, 'UTF-8') ?>"
+                    href="<?= htmlspecialchars(\PanelAdmin\Core\Url::to($activeFilter['clearUrl']), ENT_QUOTES, 'UTF-8') ?>"
                     class="list-toolbar-active-chip-clear ms-1"
                     aria-label="Quitar filtro <?= htmlspecialchars($activeFilter['label'], ENT_QUOTES, 'UTF-8') ?>"
                 >×</a>
@@ -502,7 +508,7 @@ $renderSearchToolbar(
         <?php endforeach; ?>
 
         <?php if ($clearUrl !== ''): ?>
-            <a href="<?= htmlspecialchars(\Core\Url::to($clearUrl), ENT_QUOTES, 'UTF-8') ?>" class="small text-decoration-none list-toolbar-active-clear-all">
+            <a href="<?= htmlspecialchars(\PanelAdmin\Core\Url::to($clearUrl), ENT_QUOTES, 'UTF-8') ?>" class="small text-decoration-none list-toolbar-active-clear-all">
                 Limpiar filtros
             </a>
         <?php endif; ?>
@@ -511,7 +517,7 @@ $renderSearchToolbar(
 
 <?php if ($filters !== []): ?>
     <div class="collapse<?= $filtersOpen ? ' show' : '' ?>" id="<?= htmlspecialchars($collapseId, ENT_QUOTES, 'UTF-8') ?>">
-        <form method="<?= htmlspecialchars($method, ENT_QUOTES, 'UTF-8') ?>" action="<?= htmlspecialchars(\Core\Url::to($action), ENT_QUOTES, 'UTF-8') ?>" class="list-toolbar-compact-filters">
+        <form method="<?= htmlspecialchars($method, ENT_QUOTES, 'UTF-8') ?>" action="<?= htmlspecialchars(\PanelAdmin\Core\Url::to($action), ENT_QUOTES, 'UTF-8') ?>" class="list-toolbar-compact-filters">
             <input type="hidden" name="<?= htmlspecialchars($searchName, ENT_QUOTES, 'UTF-8') ?>" value="<?= htmlspecialchars($searchValue, ENT_QUOTES, 'UTF-8') ?>">
 
             <?php foreach ($filters as $filter): ?>
@@ -557,7 +563,7 @@ $renderSearchToolbar(
                     <?= htmlspecialchars($applyLabel, ENT_QUOTES, 'UTF-8') ?>
                 </button>
                 <?php if ($clearUrl !== ''): ?>
-                    <a href="<?= htmlspecialchars(\Core\Url::to($clearUrl), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-link btn-sm text-decoration-none px-2 list-toolbar-compact-clear">
+                    <a href="<?= htmlspecialchars(\PanelAdmin\Core\Url::to($clearUrl), ENT_QUOTES, 'UTF-8') ?>" class="btn btn-link btn-sm text-decoration-none px-2 list-toolbar-compact-clear">
                         <?= htmlspecialchars($clearLabel, ENT_QUOTES, 'UTF-8') ?>
                     </a>
                 <?php endif; ?>

@@ -1,48 +1,50 @@
 <?php
 
-use App\Controllers\AuthController;
-use App\Controllers\DashboardController;
-use App\Controllers\ElementoController;
-use App\Controllers\GrupoController;
+use App\Controllers\BlogController;
+use App\Controllers\BlogsController;
+use App\Controllers\ContactoController;
+use App\Controllers\ContenidosController;
+use App\Controllers\GaleriaController;
 use App\Controllers\HomeController;
-use App\Controllers\LogController;
-use App\Controllers\NotificacionController;
-use App\Controllers\ParametroController;
-use App\Controllers\PersonaController;
-use App\Controllers\TareaController;
-use App\Controllers\UsuarioController;
+use App\Controllers\RedesSocialesController;
+use App\Controllers\SeoController;
+use App\Controllers\ServicioPublicController;
+use App\Controllers\ServicioController;
+use App\Controllers\SliderController;
+use App\Controllers\TestimonioController;
 
-// Determinar la ruta raíz según configuración APP_INDEX
-$defaultIndex = $_ENV['APP_INDEX'] ?? 'home';
-$indexRoute = match ($defaultIndex) {
-    'login' => [AuthController::class, 'showLogin'],
-    'home' => [HomeController::class, 'index'],
-    default => [HomeController::class, 'index']
-};
+// El admin (login, Dashboard, Usuarios, Personas, Grupos, Modulos, Tareas, Bitacora,
+// Parametros y Notificaciones) lo sirve el core con sus pantallas: mejoran con
+// `composer update`. Aqui solo van las rutas del proyecto.
+$router->get('/', HomeController::class, 'index');
 
-$router->get('/', $indexRoute[0], $indexRoute[1]);
-$router->get('/login', AuthController::class, 'showLogin');
-$router->post('/login', AuthController::class, 'login');
-$router->post('/logout', AuthController::class, 'logout');
-$router->get('/forgot-password', AuthController::class, 'showForgotPassword');
-$router->post('/forgot-password', AuthController::class, 'processForgotPassword');
-$router->get('/reset-password/{token}', AuthController::class, 'showResetPassword');
-$router->post('/reset-password/{token}', AuthController::class, 'processResetPassword');
-$router->get('/dashboard', DashboardController::class, 'index');
+// Modulos CMS (Website)
+$router->crud('/blogs', BlogsController::class);
+$router->post('/blogs/categorias/agregar', BlogsController::class, 'guardarCategoria');
+$router->post('/blogs/categorias/{id}/eliminar', BlogsController::class, 'borrarCategoria');
+$router->crud('/contenidos', ContenidosController::class);
+$router->crud('/redes', RedesSocialesController::class);
+$router->crud('/slider', SliderController::class);
+$router->post('/slider/{id}/ordenar', SliderController::class, 'ordenar');
+$router->crud('/galerias', GaleriaController::class);
+$router->crud('/servicios', ServicioController::class);
+$router->crud('/testimonios', TestimonioController::class);
+$router->post('/testimonios/{id}/ordenar', TestimonioController::class, 'ordenar');
+$router->get('/galerias/{id}/fotos', GaleriaController::class, 'fotos');
+$router->post('/galerias/{id}/fotos/guardar', GaleriaController::class, 'fotosGuardar');
+$router->post('/galerias/{id}/fotos/{fotoId}/borrar', GaleriaController::class, 'fotosBorrar');
 
-$router->crud('/tareas', TareaController::class);
-$router->crud('/modulos', ElementoController::class);
-$router->crud('/personas', PersonaController::class);
-$router->crud('/usuarios', UsuarioController::class);
+// Blog (sitio publico)
+$router->get('/blog', BlogController::class, 'index');
+$router->get('/blog/{slug}', BlogController::class, 'detalle');
 
-// Logs
-$router->get('/logs', LogController::class, 'index');
-$router->get('/logs/{id}/ver', LogController::class, 'ver');
+// Contacto (sitio publico)
+$router->get('/contacto', ContactoController::class, 'index');
+$router->post('/contacto/enviar', ContactoController::class, 'enviar');
 
-// Notificaciones
-$router->get('/notificaciones',              NotificacionController::class, 'index');
-$router->get('/notificaciones/{id}/ver',     NotificacionController::class, 'ver');
-$router->post('/notificaciones/{id}/leida',  NotificacionController::class, 'marcarLeida');
+// Servicio (sitio publico)
+$router->get('/servicio/{slug}', ServicioPublicController::class, 'detalle');
 
-$router->crud('/grupos', GrupoController::class);
-$router->crud('/parametros', ParametroController::class);
+// SEO (sitio publico)
+$router->get('/sitemap.xml', SeoController::class, 'sitemap');
+$router->get('/robots.txt', SeoController::class, 'robots');

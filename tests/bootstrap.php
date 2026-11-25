@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-use Core\Database;
-use Core\RbacCache;
-use Core\Session;
+use PanelAdmin\Core\Database;
+use PanelAdmin\Core\RbacCache;
+use PanelAdmin\Core\Session;
 
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -105,6 +105,9 @@ function reset_environment(): void
         $_ENV['AUTH_ACTIVE_STATUS'],
         $_ENV['TEST_RESET_EMAIL']
     );
+
+    // paneladmin-core 1.0 exige APP_URL; coincide con el host simulado en $_SERVER.
+    $_ENV['APP_URL'] = 'http://localhost';
 }
 
 function reset_session_state(): void
@@ -144,11 +147,11 @@ function reset_database_instances(): void
 
 function reset_permission_caches(): void
 {
-    reset_static_cache(Core\Permission::class, 'requestPermissionMatrix');
-    reset_static_cache(Core\Permission::class, 'requestElementMap');
-    reset_static_cache(Core\Permission::class, 'requestElementIdByPath');
-    reset_static_cache(Core\MenuService::class, 'requestMenuByGroup');
-    reset_static_cache(Core\RbacVersion::class, 'requestSyncDone');
+    reset_static_cache(PanelAdmin\Core\Permission::class, 'requestPermissionMatrix');
+    reset_static_cache(PanelAdmin\Core\Permission::class, 'requestElementMap');
+    reset_static_cache(PanelAdmin\Core\Permission::class, 'requestElementIdByPath');
+    reset_static_cache(PanelAdmin\Core\MenuService::class, 'requestMenuByGroup');
+    reset_static_cache(PanelAdmin\Core\RbacVersion::class, 'requestSyncDone');
 
     reset_session_state();
     RbacCache::clearSession();

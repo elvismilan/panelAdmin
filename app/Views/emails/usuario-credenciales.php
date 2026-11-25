@@ -5,7 +5,7 @@
  */
 $siteTitle = htmlspecialchars((string) ($siteTitle ?? 'Web Revolution'), ENT_QUOTES, 'UTF-8');
 $userName  = htmlspecialchars((string) ($userName  ?? 'Usuario'),        ENT_QUOTES, 'UTF-8');
-$siteRoot  = rtrim((string) ($_ENV['SITE_ROOT'] ?? ''), '/');
+$siteRoot  = rtrim(\PanelAdmin\Core\Url::to('/'), '/');
 $logoRaw   = ltrim(preg_replace('#^public/#', '', (string) ($_ENV['LOGO'] ?? 'assets/theme-one/images/logo/logo-h.png')), '/');
 $logoUrl   = htmlspecialchars($siteRoot . '/' . $logoRaw, ENT_QUOTES, 'UTF-8');
 $usuId     = htmlspecialchars((string) ($usuId     ?? ''),               ENT_QUOTES, 'UTF-8');

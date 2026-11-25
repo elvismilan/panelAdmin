@@ -21,7 +21,7 @@ if (empty($filterBarGroups)) {
                 </span>
             <?php endif; ?>
             <?php foreach ($group['chips'] as $chip): ?>
-                <a href="<?= htmlspecialchars(\Core\Url::to($chip['url']), ENT_QUOTES, 'UTF-8') ?>"
+                <a href="<?= htmlspecialchars(\PanelAdmin\Core\Url::to($chip['url']), ENT_QUOTES, 'UTF-8') ?>"
                    class="badge rounded-pill text-decoration-none <?= $chip['active'] ? 'bg-primary text-white' : 'bg-light text-dark border' ?>"
                    style="font-size: 0.78rem; font-weight: <?= $chip['active'] ? '600' : '400' ?>;">
                     <?= htmlspecialchars($chip['label'], ENT_QUOTES, 'UTF-8') ?>

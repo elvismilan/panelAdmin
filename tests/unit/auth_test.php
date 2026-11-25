@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Core\Auth;
+use PanelAdmin\Core\Auth;
 
 test('Auth login check user y logout funcionan con session', function (): void {
     assert_false(Auth::check());

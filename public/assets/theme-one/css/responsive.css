@@ -1686,8 +1686,8 @@
   .bg-sky-blue .main-landing .position-cards .landing-card-5 {
     right: -3%;
   }
-  .viho-demo-section .gallery_content p,
-  .viho-demo-section .viho-demo-content p {
+  .theme-demo-section .gallery_content p,
+  .theme-demo-section .theme-demo-content p {
     width: 70% !important;
   }
   .landing_gallery_section_img {
@@ -2623,12 +2623,12 @@
   .bg-sky-blue .main-landing .position-cards .landing-card-2 {
     right: 44%;
   }
-  .viho-demo-section .viho-demo-content img,
-  .viho-demo-section .gallery_content img {
+  .theme-demo-section .theme-demo-content img,
+  .theme-demo-section .gallery_content img {
     width: 30px !important;
   }
-  .viho-demo-section .viho-demo-content p,
-  .viho-demo-section .gallery_content p {
+  .theme-demo-section .theme-demo-content p,
+  .theme-demo-section .gallery_content p {
     width: 100% !important;
   }
   .and-more {
@@ -4184,8 +4184,8 @@
   .and-many-more {
     font-size: 45px;
   }
-  .viho-demo-section .viho-demo-content p,
-  .viho-demo-section .gallery_content p {
+  .theme-demo-section .theme-demo-content p,
+  .theme-demo-section .gallery_content p {
     font-size: 13px;
   }
   .and-more {

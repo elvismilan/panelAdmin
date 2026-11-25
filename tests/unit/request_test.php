@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Core\Request;
+use PanelAdmin\Core\Request;
 
 test('Request normaliza metodo path y params basicos', function (): void {
     $_ENV['APP_URL'] = 'http://localhost/panel';

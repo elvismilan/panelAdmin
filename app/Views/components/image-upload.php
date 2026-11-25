@@ -8,12 +8,14 @@
  *   $uploadLabel      string  Human-readable label text.                   Default: 'Foto'
  *   $uploadCurrent    string  Relative path of current image (edit mode).  Default: ''
  *   $uploadNote       string  Helper note shown below the drop zone.        Default: 'JPG, PNG, GIF, WEBP — max. 2 MB'
+ *   $uploadRecommended string Tamaño ideal de la imagen, encima de la nota. Default: '' (no se muestra)
  *   $uploadId         string  Unique ID suffix (avoid conflicts per page).  Default: '1'
  */
 $uploadFieldName = $uploadFieldName ?? 'foto';
 $uploadLabel     = $uploadLabel     ?? 'Foto';
 $uploadCurrent   = $uploadCurrent   ?? '';
 $uploadNote      = $uploadNote      ?? 'JPG, PNG, GIF, WEBP — max. 2 MB';
+$uploadRecommended = trim((string) ($uploadRecommended ?? ''));
 $uploadId        = $uploadId        ?? '1';
 
 $zoneId      = 'imgZone_'    . $uploadId;
@@ -49,7 +51,7 @@ $hasCurrent  = $uploadCurrent !== '';
             <!-- Preview -->
             <div id="<?= $previewId ?>" style="display:<?= $hasCurrent ? 'block' : 'none' ?>;width:100%;height:100%;">
                 <img id="<?= $previewId ?>_img"
-                     src="<?= $hasCurrent ? rtrim((string)($_ENV['SITE_ROOT'] ?? ''), '/') . '/' . $safeCurrent : '' ?>"
+                     src="<?= $hasCurrent ? \PanelAdmin\Core\Url::to('/' . ltrim($safeCurrent, '/')) : '' ?>"
                      alt="Vista previa"
                      style="width:100%;height:100%;object-fit:cover;">
             </div>
@@ -82,6 +84,9 @@ $hasCurrent  = $uploadCurrent !== '';
                 <span id="<?= $infoId ?>_name"><?= $hasCurrent ? basename($safeCurrent) : '' ?></span>
                 <span id="<?= $infoId ?>_size"></span>
             </div>
+            <?php if ($uploadRecommended !== ''): ?>
+                <small class="d-block text-muted"><i class="fa fa-crop me-1" aria-hidden="true"></i><?= htmlspecialchars($uploadRecommended, ENT_QUOTES, 'UTF-8') ?></small>
+            <?php endif; ?>
             <small class="text-muted"><?= htmlspecialchars($uploadNote, ENT_QUOTES, 'UTF-8') ?></small>
         </div>
 
@@ -101,3 +106,6 @@ $hasCurrent  = $uploadCurrent !== '';
     });
     </script>
 </div>
+<?php
+// Para que la medida de un campo no pase al siguiente include en el mismo formulario.
+unset($uploadRecommended);

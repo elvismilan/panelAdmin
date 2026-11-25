@@ -28,7 +28,7 @@ app/
     ├── editar.php
     └── eliminar.php
 
-core/database/migrations/
+database/migrations/
 ├── NNNN_create_{tabla}.sql
 └── NNNN_create_{tabla}_down.sql
 
@@ -45,9 +45,9 @@ routes/web.php    ← Se agregan 7 rutas al final
 namespace App\Controllers;
 
 use App\Models\{Modulo}Model;
-use Core\Auth;
-use Core\Controller;
-use Core\Validator;
+use PanelAdmin\Core\Auth;
+use PanelAdmin\Core\Controller;
+use PanelAdmin\Core\Validator;
 use Throwable;
 
 class {Modulo}Controller extends Controller
@@ -299,7 +299,7 @@ class {Modulo}Controller extends Controller
 
 namespace App\Models;
 
-use Core\Model;
+use PanelAdmin\Core\Model;
 
 class {Modulo}Model extends Model
 {
@@ -619,7 +619,7 @@ class {Modulo}Model extends Model
 
 ---
 
-## 7. Migración — `core/database/migrations/NNNN_create_{tabla}.sql`
+## 7. Migración — `database/migrations/NNNN_create_{tabla}.sql`
 
 ```sql
 CREATE TABLE IF NOT EXISTS `{tabla}` (
@@ -666,10 +666,10 @@ $router->post('/{recursos}/{id}/borrar',         {Modulo}Controller::class, 'bor
 - [ ] Crear `app/Views/{recurso}/agregar.php`
 - [ ] Crear `app/Views/{recurso}/editar.php`
 - [ ] Crear `app/Views/{recurso}/eliminar.php`
-- [ ] Crear `core/database/migrations/NNNN_create_{tabla}.sql`
-- [ ] Crear `core/database/migrations/NNNN_create_{tabla}_down.sql`
+- [ ] Crear `database/migrations/NNNN_create_{tabla}.sql`
+- [ ] Crear `database/migrations/NNNN_create_{tabla}_down.sql`
 - [ ] Agregar 7 rutas en `routes/web.php`
-- [ ] Ejecutar `php migrate.php`
+- [ ] Ejecutar `vendor/bin/paneladmin migrate`
 - [ ] Registrar el elemento en la tabla `elemento` (para el menú)
 - [ ] Asignar permisos al grupo en la tabla `permiso`
 

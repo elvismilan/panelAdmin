@@ -4,60 +4,7 @@ Guía actual del proyecto para desarrollo, operación y onboarding.
 
 ## Estado de esta guía
 
-Validada contra el código del repositorio el **12 de junio de 2026**.
-
-**Última actualización:** 12 de junio de 2026
-
-### Cambios recientes (Sesión 11 jun 2026)
-
-#### 1. Módulo de Parámetros (CRUD Completo) ✅
-- **Nuevo módulo generado:** `ParametroController`, `ParametroModel`
-- **Ruta base:** `/parametros`
-- **Tabla:** `wr_parametro` (8 columnas)
-  - `par_clave` (UNIQUE) - identificador del parámetro
-  - `par_valor` (nullable) - valor del parámetro
-  - `par_tipo` - tipo de dato (string, int, json, etc.)
-  - `par_grupo` (INDEX) - agrupación para organización
-  - `par_label` - etiqueta legible para usuarios
-  - Timestamps automáticos (`par_created_at`, `par_updated_at`)
-- **Características:**
-  - Búsqueda por clave/etiqueta
-  - **FilterBar implementado** con filtro por `par_grupo` (chips)
-  - Paginación
-  - Validación de datos
-  - Notificaciones de auditoría en `CREATE`, `UPDATE` y `DELETE`
-- **Migración:** `0005_create_wr_parametro_table.sql` dentro del baseline core activo
-- **Seed inicial recomendado:** `0006_seed_wr_parametro_defaults.sql`
-- **Rutas:** Siguiendo patrón CRUD estándar (index, agregar, guardar, editar, actualizar, eliminar, borrar)
-
-#### 2. Variable de Entorno APP_INDEX ✅
-- **Ubicación:** `.env`
-- **Variable:** `APP_INDEX='login'` (o `'home'`)
-- **Función:** Controla la página de inicio por defecto
-  - `APP_INDEX='home'` → raíz "/" redirige a `HomeController::index`
-  - `APP_INDEX='login'` → raíz "/" redirige a `AuthController::showLogin`
-- **Implementación:** En `routes/web.php` con match expression
-- **Uso:** Permite cambiar fácilmente el índice sin modificar código
-
-#### 3. Sistema de Notificaciones - CRUD alineado ✅
-- **Problema:** La cobertura de notificaciones estaba incompleta y el modelo mantenía ramas legacy.
-- **Solución:** `NotificacionModel` ahora asume como oficiales `wr_notificacion_destino` y `wr_notificacion_lectura`, y `NotificacionService::registrar()` quedó alineado en:
-  - `ElementoController::guardar()` / `actualizar()` / `borrar()`
-  - `TareaController::guardar()` / `actualizar()` / `borrar()`
-  - `ParametroController::guardar()` / `actualizar()` / `borrar()`
-  - PersonaController, GrupoController y UsuarioController ya cubrían el flujo principal
-- **Resultado:** Los CRUD actuales quedan alineados con eventos `CREATE`, `UPDATE` y `DELETE` según el módulo.
-
-#### 4. Baseline core por migraciones ✅
-- **Convención actual:** solo las 15 tablas core usan prefijo fijo `wr_`
-- **Migraciones activas:** definen la estructura base core ordenada
-- **Datos actuales:** si se quieren preservar, deben importarse mediante export separado
-
-#### 5. Criterio UI para filtros de listados ✅
-- **Regla acordada:** si el módulo tiene `1` filtro visible, se usa una UI simple; si tiene `2 o más`, se usa una barra compacta en una sola línea.
-- **Piloto actual:** `Notificaciones`
-- **Implementación actual:** componente reutilizable `app/Views/components/list-toolbar.php`
-- **Primer uso real:** `Notificaciones`
+Actualizada el **25 de noviembre de 2026**. panelAdmin consume `elvismilan/paneladmin-core` `^1.0` por Composer (no tiene carpeta `core/`) y es la **plantilla** de las webs nuevas: pasos en [NUEVO-PROYECTO.md](NUEVO-PROYECTO.md) y de despliegue en [DESPLIEGUE.md](DESPLIEGUE.md).
 
 ## 1. Resumen del sistema
 
@@ -74,32 +21,25 @@ Validada contra el código del repositorio el **12 de junio de 2026**.
 ```text
 panelAdmin/
 ├── app/
-│   ├── Controllers/
+│   ├── Controllers/      módulos de contenido
+│   │                     (Blogs, Contenidos, Redes, Slider, Galerías, Servicios, Testimonios)
+│   │                     + sitio público (Home, Blog, Contacto, Servicio, Seo)
+│   ├── Messages/         textos de negocio (Flash, Ui, Validation)
 │   ├── Models/
 │   └── Views/
-├── core/
-│   ├── Helpers/
-│   ├── database/
-│   │   ├── admin_db.sql
-│   │   └── migrations/
-│   ├── App.php
-│   ├── Router.php
-│   ├── Controller.php
-│   ├── Model.php
-│   └── ...
+├── database/migrations/  migraciones del proyecto (el core trae las suyas, core/000N)
 ├── public/
 │   ├── index.php
 │   ├── .htaccess
-│   └── assets/
+│   └── assets/           theme-one (admin), paneladmin (pantallas del core), app/admin.css (tokens), public-theme (sitio), js
 ├── resources/
-│   └── themes/
+│   └── themes/admin/     layout, header/footer, login y errores del admin
 ├── routes/
 │   └── web.php
 ├── tests/
-│   └── reset_password_flow_smoke.php
 ├── bin/
 │   └── make-module.php
-├── migrate.php
+├── vendor/               incluye vendor/elvismilan/paneladmin-core (el core)
 └── .env.example
 ```
 
@@ -109,17 +49,16 @@ panelAdmin/
 
 | Módulo | Controller | Modelo(s) | Ruta base | FilterBar |
 |---|---|---|---|---|
-| Home | `HomeController` | — | `/` | — |
-| Auth | `AuthController` | `UserModel`, `PasswordResetModel` | `/login` | — |
-| Dashboard | `DashboardController` | — | `/dashboard` | — |
-| Tareas | `TareaController` | `TareaModel` | `/tareas` | ❌ |
-| Módulos/Elementos | `ElementoController` | `ElementoModel` | `/modulos` | ✅ Padre |
-| Personas | `PersonaController` | `PersonaModel` | `/personas` | ❌ |
-| Usuarios | `UsuarioController` | `UsuarioModel` | `/usuarios` | ❌ |
-| Grupos | `GrupoController` | `GrupoModel` | `/grupos` | ❌ |
-| Logs | `LogController` | `LogModel` | `/logs` | ✅ Tipo |
-| Notificaciones | `NotificacionController` | `NotificacionModel` | `/notificaciones` | ✅ `list-toolbar` |
-| **Parámetros** | **`ParametroController`** | **`ParametroModel`** | **/parametros** | **✅ Grupo** |
+| Admin (login, Dashboard, Usuarios, Personas, Grupos, Módulos, Tareas, Logs, Parámetros, Notificaciones) | **del core** (`PanelAdmin\Core\Admin\Controllers`) | del core | `/login`, `/dashboard`, `/usuarios`… | — |
+| Home | `HomeController` | `SliderModel`, `ServicioModel`, `BlogsModel`, `TestimonioModel` | `/` | — |
+| Blog (+categorías) | `BlogsController` | `BlogsModel`, `CategoriaModel` | `/blogs` | ✅ |
+| Contenidos | `ContenidosController` | `ContenidosModel` | `/contenidos` | ✅ |
+| Redes sociales | `RedesSocialesController` | `RedesSocialesModel` | `/redes` | ❌ |
+| Slider | `SliderController` | `SliderModel` | `/slider` | ❌ |
+| Galerías | `GaleriaController` | `GaleriaModel` | `/galerias` | ❌ |
+| Servicios | `ServicioController` | `ServicioModel` | `/servicios` | ❌ |
+| Testimonios | `TestimonioController` | `TestimonioModel` | `/testimonios` | ❌ |
+| Sitio público | `BlogController`, `ContactoController`, `ServicioPublicController`, `SeoController` | `BlogModel`, `ContactoModel` | `/blog`, `/contacto`, `/servicio/{slug}`, `/sitemap.xml`, `/robots.txt` | — |
 
 ### Rutas especiales (no CRUD estándar)
 
@@ -151,12 +90,12 @@ Para `tareas`, `modulos`, `personas`, `usuarios`, `grupos`:
 ```text
 Request HTTP
   -> public/index.php
-  -> Core\App::run()
-  -> Core\Router::dispatch()
+  -> PanelAdmin\Core\App::run()
+  -> PanelAdmin\Core\Router::dispatch()
   -> App\Controllers\...::accion()
   -> App\Models\...
-  -> Core\Controller::render() / renderAdminModule()
-  -> Core\View
+  -> PanelAdmin\Core\Controller::render() / renderAdminModule()
+  -> PanelAdmin\Core\View
   -> HTML
 ```
 
@@ -186,14 +125,14 @@ Notas importantes:
 ### Forgot / Reset Password
 
 - Generación de token por `PasswordResetModel`.
-- Envío de email con `Core\Mailer` + plantilla `app/Views/emails/password-reset.php`.
+- Envío de email con `PanelAdmin\Core\Mailer` + plantilla `app/Views/emails/password-reset.php`.
 - Tokens con caducidad y uso único.
 
 ## 6. RBAC y menú dinámico
 
 ### Permisos
 
-`Core\Permission` resuelve acceso por:
+`PanelAdmin\Core\Permission` resuelve acceso por:
 
 - grupo (`pmo_gru_id`)
 - elemento (`pmo_ele_id`)
@@ -210,36 +149,26 @@ Optimización actual:
 
 ### Menú
 
-`Core\MenuService::buildForGroup($groupId)` construye el árbol visible según permisos y lo cachea en sesión (`_menu_cache`).
+`PanelAdmin\Core\MenuService::buildForGroup($groupId)` construye el árbol visible según permisos y lo cachea en sesión (`_menu_cache`).
 
 ## 7. Temas y layouts
 
-Resolución de vistas por área vía `Core\ThemeResolver`.
+Resolución de vistas por área vía `PanelAdmin\Core\ThemeResolver`.
 
-### Archivos actuales de tema
+### Archivos del admin
 
 ```text
-resources/themes/default/
-├── admin/layout.php
-├── admin/dashboard-default.php
-├── login/login-form-default.php
-├── login/forgot-password.php
-├── login/reset-password.php
-├── errors/forbidden.php
-├── errors/not-found.php
+resources/themes/admin/
+├── layout.php
 ├── header-admin.php
 ├── footer-admin.php
-└── auth-layout-*.php
-
-resources/themes/public/public/
-├── option1.php
-└── option2.php
+├── auth-layout-header.php
+├── auth-layout-footer.php
+├── login/{login,forgot-password,reset-password}.php
+└── errors/{forbidden,not-found}.php
 ```
 
-Notas:
-
-- Para `login` y `admin`, la opción efectiva está forzada a `1` en `ThemeResolver`.
-- `renderAdminModule()` usa el layout `admin/layout.php` del pack activo.
+Las pantallas del admin son las del core (`vendor/elvismilan/paneladmin-core/resources/views/`): una vista en `app/Views/<pantalla>/` la reemplaza. El `ThemeResolver` del core busca primero en `resources/themes/admin/` del proyecto, después en el del paquete y por último en `app/Views/`. Los estilos y scripts del admin son los de `public/assets/theme-one/`. El sitio público usa `app/Views/shared/` y `public/assets/public-theme/`.
 
 ## 8. Configuración `.env` (realmente usada)
 
@@ -248,7 +177,6 @@ Notas:
 - `APP_DEBUG` - Modo debug (true|false)
 - `APP_URL` - URL base de la aplicación
 - `APP_INDEX` - **Página de inicio por defecto** (`'home'` | `'login'`) — **Nuevo 11 jun 2026**
-- `SITE_ROOT` - Raíz del sitio
 - `SITE_TITLE` - Título del sitio
 - `LOGO` - Ruta del logo
 
@@ -276,13 +204,7 @@ Notas:
 ### UI / Paginación / Tema
 
 - `PAGINATION_PER_PAGE`
-- `PUBLIC_THEME_PACK`, `PUBLIC_THEME_OPTION`
-- `LOGIN_THEME_PACK`, `LOGIN_THEME_OPTION`
-- `ADMIN_THEME_PACK`, `ADMIN_THEME_OPTION`
-- `LOGIN_OPTION1_ASSET_BASE`
-- `LOGIN_ASSET_BASE`
-- `ADMIN_ASSET_BASE`
-- `ADMIN_META_DESCRIPTION`, `ADMIN_META_KEYWORDS`, `ADMIN_META_AUTHOR`
+- `ADMIN_*`, `LOGIN_*` y `SITE_ROOT` ya no se leen (core 1.0).
 
 ### Correo y contacto
 
@@ -316,26 +238,20 @@ Notas:
 Comandos:
 
 ```bash
-php migrate.php
-php migrate.php status
-php migrate.php rollback
+vendor/bin/paneladmin migrate
+vendor/bin/paneladmin status
+vendor/bin/paneladmin rollback
 ```
 
-### Migraciones activas
+### Migraciones
 
-- `0001_create_wr_security_tables.sql`
-- `0002_create_wr_access_tables.sql`
-- `0003_create_wr_rbac_tables.sql`
-- `0004_create_wr_notification_tables.sql`
-- `0005_create_wr_parametro_table.sql`
+- **Del core** (en el paquete, `core/0001` a `core/0008`): tablas `wr_*`, RBAC por defecto (grupo `Administrador`, sección `adm`) y `parametros`.
+- **Del proyecto** (`database/migrations/`):
+  - `0001_create_content_tables`: `categorias`, `categoria_relacion`, `posts`, `contenidos`, `servicios`, `slider`, `galeria`, `galeria_foto`, `redes_sociales`.
+  - `0002_create_testimonios_table` y `0003_create_contactos_table`.
+  - `0004_seed_website_elementos`: sección Website, módulos de contenido, tareas `FOTOS` y `ORDENAR` y permisos de Administrador.
 
-### Base inicial
-
-`core/database/admin_db.sql` queda como referencia histórica/export.
-
-La estructura activa del core ahora vive en `core/database/migrations/`.
-
-Si se quiere conservar la data actual del sistema, se recomienda importar un export después de crear la estructura base.
+Base nueva: `vendor/bin/paneladmin migrate` y `vendor/bin/paneladmin admin:create`.
 
 ## 11. Notificaciones
 

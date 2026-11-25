@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Core\Permission;
+use PanelAdmin\Core\Permission;
 function create_permission_schema(PDO $pdo): void
 {
     $pdo->exec('CREATE TABLE wr_elemento (ele_id INTEGER PRIMARY KEY, ele_nombre TEXT, ele_estado TEXT)');

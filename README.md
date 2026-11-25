@@ -1,134 +1,77 @@
-# PanelAdmin
+# PanelAdmin (plantilla)
 
-Panel administrativo MVC en PHP 8.2+, orientado a hosting compartido, con autenticación sobre tablas reales (`usuario` + `persona`), RBAC por módulo/tarea y sistema de temas.
+Plantilla de las webs nuevas: admin MVC en PHP 8.3+ con login, RBAC por módulo y tarea, módulos de contenido (Blog, Contenidos, Redes, Slider, Galerías, Servicios, Testimonios, Contacto) y un sitio público mínimo. El core (`elvismilan/paneladmin-core` `^1.0`) se instala por Composer y vive en `vendor/`; este repo solo tiene el código del proyecto.
 
-## Estado de esta documentación
-
-Actualizada según el código del repositorio el **12 de junio de 2026**.
+- **Crear una web nueva desde aquí:** [`docs/NUEVO-PROYECTO.md`](docs/NUEVO-PROYECTO.md)
+- **Subir a producción:** [`docs/DESPLIEGUE.md`](docs/DESPLIEGUE.md)
 
 ## Requisitos
 
-- PHP 8.2 o superior
-- Extensiones PHP: `pdo`, `gd`
+- PHP 8.3 o superior (en MAMP: `/Applications/MAMP/bin/php/php8.3.0/bin/php`; la CLI 8.2 no instala el paquete)
+- Extensiones: `pdo`, `gd`, `mbstring`, `ctype`
 - MySQL 5.7+ o MariaDB compatible
 - Apache con `mod_rewrite`
-- Composer
+- Composer, y acceso SSH a GitHub (el core es un repositorio privado y se instala desde el código fuente)
 
-## Instalación rápida
-
-1. Instalar dependencias:
+## Instalación
 
 ```bash
-composer install
+cp .env.example .env        # APP_URL, DB_* y lo demás que haga falta
+composer install            # con el PHP 8.3
+vendor/bin/paneladmin assets:publish   # CSS y JS de las pantallas del core (public/assets/paneladmin)
+vendor/bin/paneladmin migrate
+vendor/bin/paneladmin admin:create
 ```
 
-2. Crear archivo de entorno:
+`migrate` aplica primero las migraciones del core (`core/0001` a `core/0008`, que cargan el RBAC por defecto) y después las del proyecto (`database/migrations/`). Después se entra en `/login`.
+
+## Comandos
 
 ```bash
-cp .env.example .env
+vendor/bin/paneladmin migrate        # aplica las migraciones pendientes
+vendor/bin/paneladmin status         # estado de las migraciones
+vendor/bin/paneladmin rollback       # revierte la última del proyecto (rollback --core, la del core)
+vendor/bin/paneladmin admin:create   # crea el primer administrador
+
+composer phpstan                     # análisis estático (nivel 5)
+composer test                        # tests
+composer verify                      # phpstan + tests
+
+php bin/make-module.php              # generador de módulos
 ```
 
-3. Configurar `.env` (mínimo):
-
-- `APP_URL`
-- `DB_HOST` + `DB_NAME` + `DB_USER` + `DB_PASS` (o `DB_DSN`)
-
-4. Cargar esquema base:
-
-- Importar `core/database/admin_db.sql` en tu base.
-
-5. Ejecutar migraciones pendientes:
-
-```bash
-php migrate.php
-```
-
-## Comandos útiles
-
-```bash
-php migrate.php            # Aplica migraciones pendientes
-php migrate.php status     # Estado de migraciones
-php migrate.php rollback   # Revierte la última migración (si existe *_down.sql)
-
-composer phpstan           # Análisis estático
-composer test              # Tests unitarios mínimos
-composer test:reset-password # Smoke test de reset password
-composer verify            # phpstan + tests unitarios
-
-php bin/make-module.php    # Generador interactivo de módulos
-
-php tests/reset_password_flow_smoke.php
-```
-
-## Estructura principal
+## Estructura
 
 ```text
-panelAdmin/
-├── app/
-│   ├── Controllers/
-│   ├── Models/
-│   └── Views/
-├── core/
-│   ├── database/
-│   │   ├── admin_db.sql
-│   │   └── migrations/
-│   └── *.php
-├── public/
-│   ├── index.php
-│   └── assets/
-├── resources/themes/
+├── app/                  módulos de contenido y sitio público (Controllers, Models, Views, Messages)
+├── database/migrations/  migraciones del proyecto
+├── public/               index.php, .htaccess, uploads y assets: theme-one (admin), paneladmin (pantallas del core,
+│                         de assets:publish), app/admin.css (tokens --pa-*), public-theme (sitio) y js
+├── resources/themes/admin/  layout, header, footer, login y errores del admin con theme-one
 ├── routes/web.php
-├── docs/
-├── migrate.php
-└── bin/make-module.php
+├── tests/
+├── bin/make-module.php
+└── docs/
 ```
 
-## Módulos actualmente registrados en rutas
+## Módulos y rutas
 
-- `Auth`: `/login`, `/logout`, `/forgot-password`, `/reset-password/{token}`
-- `Dashboard`: `/dashboard`
-- `Tareas`: `/tareas`
-- `Módulos/Elementos`: `/modulos`
-- `Personas`: `/personas`
-- `Usuarios`: `/usuarios`
-- `Grupos`: `/grupos`
-- `Logs`: `/logs`
-- `Notificaciones`: `/notificaciones`
-- `Parámetros`: `/parametros`
+- Admin (pantallas del **core**; mejoran con `composer update` y `assets:publish`): `/login`, `/dashboard`, `/usuarios`, `/personas`, `/grupos`, `/modulos`, `/tareas`, `/logs`, `/parametros`, `/notificaciones`
+- Contenido (Website): `/blogs`, `/contenidos`, `/redes`, `/slider`, `/galerias`, `/servicios`, `/testimonios`
+- Sitio público: `/`, `/blog`, `/blog/{slug}`, `/servicio/{slug}`, `/contacto`, `/sitemap.xml`, `/robots.txt`
 
-## Seguridad implementada (resumen)
+## Seguridad (resumen)
 
-- Tokens CSRF en formularios POST (`Core\Csrf`)
-- Sesión endurecida (`httponly`, `samesite`, `secure` configurable)
-- Rate limit de login/forgot por IP (`Core\RateLimiter`)
-- Cabeceras HTTP de seguridad en `public/index.php` y `public/.htaccess`
-- Permisos RBAC por grupo, elemento y tarea (`Core\Permission`)
+- CSRF en los formularios POST, sesión endurecida, rate limit del login.
+- Cabeceras de seguridad y CSP en `public/index.php` y `public/.htaccess`.
+- Permisos por grupo, elemento y tarea; `APP_DEBUG=false` en producción.
 
-## Sistema de temas
+## Documentación
 
-Áreas soportadas por `ThemeResolver`:
-
-- `public`
-- `login`
-- `admin`
-
-Variables de entorno principales:
-
-- `PUBLIC_THEME_PACK`, `PUBLIC_THEME_OPTION`
-- `LOGIN_THEME_PACK`, `LOGIN_THEME_OPTION`
-- `ADMIN_THEME_PACK`, `ADMIN_THEME_OPTION`
-
-## Documentación técnica
-
-- Guía general del framework: [`docs/README.md`](docs/README.md)
-- Generador CLI de módulos: [`docs/CLI-GENERATOR.md`](docs/CLI-GENERATOR.md)
-- Plantilla de módulo: [`docs/MODULE_TEMPLATE.md`](docs/MODULE_TEMPLATE.md)
-- Notificaciones: [`docs/NOTIFICACIONES.md`](docs/NOTIFICACIONES.md)
-- Roadmap técnico de optimización: [`docs/ROADMAP-OPTIMIZACION.md`](docs/ROADMAP-OPTIMIZACION.md)
+- [`docs/README.md`](docs/README.md): guía técnica
+- [`docs/CLI-GENERATOR.md`](docs/CLI-GENERATOR.md), [`docs/MODULE_TEMPLATE.md`](docs/MODULE_TEMPLATE.md), [`docs/NOTIFICACIONES.md`](docs/NOTIFICACIONES.md)
+- Del core: `vendor/elvismilan/paneladmin-core/README.md` y `UPGRADE.md`
 
 ## Convención de tablas
 
-- Las 15 tablas core del sistema usan prefijo fijo `wr_`.
-- Las tablas de módulos de negocio existentes y futuros no usan prefijo.
-- La estructura core activa se define por migraciones.
-- La data actual del sistema puede conservarse importando un export aparte.
+Las tablas del core llevan el prefijo `wr_`; las del negocio no llevan prefijo.

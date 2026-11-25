@@ -5,20 +5,22 @@
  *   $iconActual   string  — valor actual (clase FA, puede ser vacío)
  *   $iconOptions  array   — resultado de IconHelper::options() o optionsWithSelected()
  *   $pickerId     string  — ID único para este picker en la página (default: 'ele_icono')
+ *   $pickerName   string  — atributo name del input oculto (default: 'ele_icono')
  */
 $_pickerId   = $pickerId ?? 'ele_icono';
+$_pickerName = $pickerName ?? 'ele_icono';
 $_current    = (string) ($iconActual ?? '');
 $_options    = $iconOptions ?? [];
 $_gridId     = 'icon-picker-grid-' . $_pickerId;
 $_searchId   = 'icon-picker-search-' . $_pickerId;
 $_labelId    = 'icon-picker-label-' . $_pickerId;
-$_previewId  = 'preview_ele_icono';
+$_previewId  = 'icon-picker-preview-' . $_pickerId;
 ?>
 <div id="grupo_icono">
     <label class="form-label">Icono</label>
 
     <input type="hidden" id="<?= htmlspecialchars($_pickerId, ENT_QUOTES, 'UTF-8') ?>"
-           name="ele_icono"
+           name="<?= htmlspecialchars($_pickerName, ENT_QUOTES, 'UTF-8') ?>"
            value="<?= htmlspecialchars($_current, ENT_QUOTES, 'UTF-8') ?>">
 
     <div class="input-group input-group-sm mb-2">

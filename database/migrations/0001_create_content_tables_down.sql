@@ -1,0 +1,9 @@
+DROP TABLE IF EXISTS `redes_sociales`;
+DROP TABLE IF EXISTS `galeria_foto`;
+DROP TABLE IF EXISTS `galeria`;
+DROP TABLE IF EXISTS `slider`;
+DROP TABLE IF EXISTS `servicios`;
+DROP TABLE IF EXISTS `contenidos`;
+DROP TABLE IF EXISTS `posts`;
+DROP TABLE IF EXISTS `categoria_relacion`;
+DROP TABLE IF EXISTS `categorias`;

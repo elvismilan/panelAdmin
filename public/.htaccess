@@ -1,5 +1,38 @@
 RewriteEngine On
 
+# Pagina propia para 410: el hosting tiene un ErrorDocument que pasa los errores
+# a index.php y el router convertia el 410 en 404.
+ErrorDocument 410 "<!doctype html><title>410 Gone</title><h1>Gone</h1>"
+
+# Redirige www.dominio.com -> dominio.com (301). Las URLs de assets y formularios
+# se generan con APP_URL (sin www) y la CSP 'self' bloquea recursos de otro origen,
+# asi que el sitio debe servirse siempre desde un solo dominio.
+RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+RewriteRule ^ https://%1%{REQUEST_URI} [R=301,L]
+
+# Redirige http -> https (301): una sola version del sitio para Google.
+# X-Forwarded-Proto cubre hostings que terminan SSL en un proxy/CDN.
+RewriteCond %{HTTPS} !=on
+RewriteCond %{HTTP:X-Forwarded-Proto} !=https
+RewriteCond %{HTTP_HOST} !^(localhost|127\.0\.0\.1)(:[0-9]+)?$ [NC]
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
+# /index.php -> / (301): evita contenido duplicado de la home.
+RewriteCond %{THE_REQUEST} \s/index\.php[\s?] [NC]
+RewriteRule ^index\.php$ / [R=301,L]
+
+# Quita la barra final (/blog/ -> /blog, 301). Las rutas del CMS no la usan.
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.+)/$ /$1 [R=301,L]
+
+# WebP en la misma URL: si el navegador acepta image/webp y existe
+# {archivo}.webp con contenido (-s), se sirve ese. Lo generan PanelAdmin\Core\Helpers\Img
+# (uploads) o se suben ya hechos (imagenes del tema). Cubre <img> y fondos CSS.
+RewriteCond %{HTTP_ACCEPT} image/webp
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteCond %{REQUEST_FILENAME}.webp -s
+RewriteRule ^(.+\.(?:jpe?g|png))$ $1.webp [NC,T=image/webp,L]
+
 # Serve real files/folders directly
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
@@ -18,4 +51,35 @@ RewriteRule ^ index.php [L,QSA]
     Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
     Header always unset X-Powered-By
     Header always unset Server
+</IfModule>
+
+# -------------------------------------------------------------------------
+# Cache del navegador para archivos estaticos (las paginas PHP no se tocan)
+#  - uploads/: nombres aleatorios que nunca se reutilizan -> 1 ano, immutable
+#  - CSS/JS con ?v= (Url::versioned() en el layout publico) -> 1 ano, immutable
+#  - CSS/JS sin version (admin) -> 1 dia
+#  - resto de imagenes, iconos y fuentes del tema -> 30 dias
+# Vary: Accept porque la misma URL de JPG/PNG puede responder WebP.
+# -------------------------------------------------------------------------
+<IfModule mod_headers.c>
+    <FilesMatch "\.(?i:jpe?g|png|gif|webp|svg|ico|woff2?|ttf|otf|eot)$">
+        Header set Cache-Control "public, max-age=2592000"
+    </FilesMatch>
+    <FilesMatch "\.(?i:jpe?g|png|webp)$">
+        Header merge Vary Accept
+    </FilesMatch>
+    <FilesMatch "\.(?i:css|js)$">
+        Header set Cache-Control "public, max-age=86400"
+    </FilesMatch>
+    <If "%{QUERY_STRING} =~ /(^|&)v=/ && %{REQUEST_URI} =~ /\.(css|js)$/">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </If>
+    <If "%{REQUEST_URI} =~ m#/uploads/.+\.(jpe?g|png|gif|webp)$#i">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </If>
+</IfModule>
+
+# Compresion de los tipos que el hosting no comprime (HTML, CSS y JS ya llegan con gzip).
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE image/svg+xml application/manifest+json application/json
 </IfModule>
