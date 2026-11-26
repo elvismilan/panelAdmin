@@ -20,10 +20,10 @@ cp .env.example .env        # APP_URL, DB_* y lo demás que haga falta
 composer install            # con el PHP 8.3
 vendor/bin/paneladmin assets:publish   # CSS y JS de las pantallas del core (public/assets/paneladmin)
 vendor/bin/paneladmin migrate
-vendor/bin/paneladmin admin:create
+vendor/bin/paneladmin admin:create --group=Developer
 ```
 
-`migrate` aplica primero las migraciones del core (`core/0001` a `core/0008`, que cargan el RBAC por defecto) y después las del proyecto (`database/migrations/`). Después se entra en `/login`.
+`migrate` aplica primero las migraciones del core (`core/0001` a `core/0009`, que cargan el RBAC por defecto y el grupo oculto `Developer`) y después las del proyecto (`database/migrations/`). Después se entra en `/login`.
 
 ## Comandos
 
@@ -31,7 +31,7 @@ vendor/bin/paneladmin admin:create
 vendor/bin/paneladmin migrate        # aplica las migraciones pendientes
 vendor/bin/paneladmin status         # estado de las migraciones
 vendor/bin/paneladmin rollback       # revierte la última del proyecto (rollback --core, la del core)
-vendor/bin/paneladmin admin:create   # crea el primer administrador
+vendor/bin/paneladmin admin:create   # crea un usuario (--group=Developer para el primero)
 
 composer phpstan                     # análisis estático (nivel 5)
 composer test                        # tests
@@ -46,7 +46,7 @@ php bin/make-module.php              # generador de módulos
 ├── app/                  módulos de contenido y sitio público (Controllers, Models, Views, Messages)
 ├── database/migrations/  migraciones del proyecto
 ├── public/               index.php, .htaccess, uploads y assets: theme-one (admin), paneladmin (pantallas del core,
-│                         de assets:publish), app/admin.css (tokens --pa-*), public-theme (sitio) y js
+│                         de assets:publish), app/admin.css (ajustes propios), public-theme (sitio) y js
 ├── resources/themes/admin/  layout, header, footer, login y errores del admin con theme-one
 ├── routes/web.php
 ├── tests/

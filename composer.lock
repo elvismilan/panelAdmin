@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5afeeb8a1a8447880eb88fc4c19c9f02",
+    "content-hash": "1c88baa9a255ff4dccc4f6aea8f055ad",
     "packages": [
         {
             "name": "elvismilan/paneladmin-core",
-            "version": "v1.0.0",
+            "version": "v1.1.0",
             "source": {
                 "type": "git",
                 "url": "git@github.com:elvismilan/paneladmin-core.git",
-                "reference": "de627b38f4f3d7837077f8d23639c771b4e9fc20"
+                "reference": "cb9e9ee42831ddda230e92aa0c4a77e6ee17a761"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/elvismilan/paneladmin-core/zipball/de627b38f4f3d7837077f8d23639c771b4e9fc20",
-                "reference": "de627b38f4f3d7837077f8d23639c771b4e9fc20",
+                "url": "https://api.github.com/repos/elvismilan/paneladmin-core/zipball/cb9e9ee42831ddda230e92aa0c4a77e6ee17a761",
+                "reference": "cb9e9ee42831ddda230e92aa0c4a77e6ee17a761",
                 "shasum": ""
             },
             "require": {
@@ -116,7 +116,7 @@
                 "php",
                 "rbac"
             ],
-            "time": "2026-11-19T09:15:22+00:00"
+            "time": "2026-11-26T04:31:49+00:00"
         },
         {
             "name": "graham-campbell/result-type",

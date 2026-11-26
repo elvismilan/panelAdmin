@@ -351,6 +351,12 @@ class GaleriaController extends Controller
             $errors['estado'] = [$error];
         }
 
+        if ($passes && !GaleriaModel::isValidDate($params['fecha'] ?? '')) {
+            $passes = false;
+            $error = ValidationMessages::GALERIA_FECHA_INVALIDA;
+            $errors['fecha'] = [$error];
+        }
+
         return [$passes, $error, $errors];
     }
 

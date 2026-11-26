@@ -45,8 +45,26 @@ each('[data-pa-toggle="' + name + '"]', function (button) {
 button.setAttribute('aria-pressed', enabled ? 'true' : 'false');
 });
 }
+function followColorStylesheet() {
+var link = document.getElementById('color');
+if (!link || link.tagName !== 'LINK') {
+return;
+}
+function apply() {
+var match = /color-(\d+)\.css/.exec(link.getAttribute('href') || '');
+var number = match && Number(match[1]) <= PALETTES ? match[1] : '1';
+[['--pa-primary', 'primary', ''], ['--pa-secondary', 'secondary', '-secondary']].forEach(function (token) {
+var color = stored(token[1]);
+var valid = stored('color') && /^#[0-9a-f]{3,8}$/i.test(color || '');
+document.documentElement.style.setProperty(token[0], valid ? color : 'var(--pa-palette-' + number + token[2] + ')');
+});
+}
+apply();
+new MutationObserver(apply).observe(link, { attributes: true, attributeFilter: ['href'] });
+}
 function initPreferences() {
 applyPalette(stored('pa-palette') || '1');
+followColorStylesheet();
 Object.keys(TOGGLES).forEach(function (name) {
 applyToggle(name, stored(TOGGLES[name].key) === 'on');
 });

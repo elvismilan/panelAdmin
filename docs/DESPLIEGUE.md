@@ -20,20 +20,37 @@ Un proyecto con el core como paquete se sube por FTP, sin SSH. Estos puntos evit
 
 ## Archivos del proyecto
 
-Subir, con la misma ruta: `app/`, `resources/themes/admin/` (con `login/` y `errors/`), `routes/web.php`, `public/index.php`, `public/.htaccess`, `public/assets/` (theme-one, `paneladmin/` y `app/` —de `assets:publish` y los tokens—, public-theme y js), `composer.json` y `composer.lock`.
+Subir, con la misma ruta: `app/`, `resources/themes/admin/` (con `login/` y `errors/`), `routes/web.php`, `.htaccess` (el de la raíz, ver abajo), `public/index.php`, `public/.htaccess`, `public/assets/` (theme-one, `paneladmin/` —de `assets:publish`—, `app/`, public-theme y js), `composer.json` y `composer.lock`.
 
 No se suben: `tests/`, `docs/`, `bin/`, `phpstan.neon`, `README.md`, `.env.example` ni `database/` (las migraciones se corren en phpMyAdmin). `public/uploads/` solo la primera vez.
 
 Después de cada `composer update` del core: `vendor/bin/paneladmin assets:publish` en local y subir `vendor/` y `public/assets/paneladmin/`.
 
+## El `.htaccess` de la raíz
+
+Responde 404 a las carpetas internas (`app/`, `vendor/`, `database/`…) y manda todo lo demás a `public/`, así `.env` y `composer.json` no se pueden abrir cuando el hosting apunta a la raíz del proyecto.
+
+**Cuidado:** cPanel escribe en ese archivo el bloque que elige la versión de PHP (`ea-php83`). Al subir el nuestro, el bloque se borra y el sitio da **500**. Antes de subirlo, copia del servidor el bloque `# php -- BEGIN cPanel-generated handler` … `# php -- END cPanel-generated handler` y pégalo al final del archivo ya subido (o vuelve a elegir PHP 8.3 en MultiPHP Manager).
+
+Si se agrega una carpeta en la raíz, súmala a la regla del 404. No uses `DirectorySlash Off`: en el hosting no funciona.
+
 ## SQL
 
-Primero el SQL, después el código. Sin SSH, el SQL de las migraciones se pega en phpMyAdmin, con juego de caracteres **utf-8**. Con una base nueva: el de `vendor/elvismilan/paneladmin-core/database/migrations/` (en orden) y el de `database/migrations/` (en orden), y los registros de `wr_migrations` (`migrate --baseline --sql` los imprime para una base que ya tiene las tablas del core). El primer administrador: `vendor/bin/paneladmin admin:create --sql`.
+Primero el SQL, después el código. Sin SSH, el SQL de las migraciones se pega en phpMyAdmin, con juego de caracteres **utf-8**. Con una base nueva: el de `vendor/elvismilan/paneladmin-core/database/migrations/` (en orden) y el de `database/migrations/` (en orden), y los registros de `wr_migrations` (`migrate --baseline --sql` los imprime para una base que ya tiene las tablas del core). El primer usuario: `vendor/bin/paneladmin admin:create --group=Developer --sql`.
+
+### Grupo `Developer` (core 1.1)
+
+`Developer` es un grupo oculto con acceso completo; el `Administrador` no tiene Grupos, Módulos, Tareas ni Bitácora. En un sitio que ya existe con el core 1.0:
+
+1. Correr `0009_hidden_developer_group.sql`.
+2. Pasar un usuario al grupo: `UPDATE wr_usuario SET usu_gru_id = 'Developer' WHERE usu_id = '<usuario>';`
+3. **Entrar con ese usuario y comprobar que abre Grupos.**
+4. Solo entonces, el bloque opcional "take Grupos, Módulos, Tareas and Bitácora away from Administrador" del `UPGRADE.md` del core. Si se corre antes, nadie puede abrir esas pantallas ni devolver los permisos.
 
 ## Después de subir
 
 - Volver a iniciar sesión (las sesiones viejas se pierden).
 - Probar: login, Dashboard, un módulo con imagen, el sitio público y el envío de Contacto.
-- Que `/core/`, `/vendor/` y `/.env` no se puedan abrir.
+- Que `/vendor/`, `/app`, `/composer.json` y `/.env` no se puedan abrir.
 - Sin avisos ni trazas de PHP en el HTML.
 - Al día siguiente, si todo anda: borrar `vendor_old/`.

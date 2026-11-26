@@ -3,8 +3,7 @@ use PanelAdmin\Core\Helpers\MenuHelper;
 use PanelAdmin\Core\Helpers\NotificationHelper;
 
 $adminAssetBase = \PanelAdmin\Core\Url::to(rtrim((string) ($_ENV['ADMIN_ASSET_BASE'] ?? ($_ENV['LOGIN_OPTION1_ASSET_BASE'] ?? '/assets/theme-one')), '/'));
-// Las pantallas del core no pasan $user: se toma de la sesion.
-$adminUser      = \PanelAdmin\Core\Auth::user() ?? [];
+$adminUser      = $user ?? \PanelAdmin\Core\Auth::user() ?? [];
 $adminUserName  = trim((string) ($adminUser['full_name'] ?? $adminUser['username'] ?? 'Usuario'));
 $adminUserPhoto = trim((string) ($adminUser['photo'] ?? ''));
 $adminGroupName = trim((string) ($adminUser['group_name'] ?? $adminUser['group'] ?? ''));
@@ -107,7 +106,7 @@ $adminGroupName = trim((string) ($adminUser['group_name'] ?? $adminUser['group']
               </li>
               <?= NotificationHelper::renderDropdown() ?>
               <li>
-                <div class="mode"><i class="fa fa-moon-o"></i></div>
+                <a class="text-dark" href="#" data-pa-toggle="dark" aria-label="Activar o desactivar modo oscuro" title="Modo oscuro"><i class="fa fa-moon-o"></i></a>
               </li>
               
               <li class="onhover-dropdown p-0">
@@ -128,16 +127,7 @@ $adminGroupName = trim((string) ($adminUser['group_name'] ?? $adminUser['group']
         <header class="main-nav">
           <div class="sidebar-user text-center">
             <a class="setting-primary" href="javascript:void(0)"><i data-feather="settings"></i></a>
-            <?php if ($adminUserPhoto !== ''): ?>
-              <img class="img-70 rounded-circle"
-                   src="<?= htmlspecialchars(\PanelAdmin\Core\Url::to('/' . ltrim((string) $adminUserPhoto, '/')), ENT_QUOTES, 'UTF-8') ?>"
-                   alt="<?= htmlspecialchars($adminUserName, ENT_QUOTES, 'UTF-8') ?>"
-                   style="object-fit:cover;">
-            <?php else: ?>
-              <img class="img-70 rounded-circle"
-                   src="<?= htmlspecialchars($adminAssetBase, ENT_QUOTES, 'UTF-8') ?>/images/dashboard/1.png"
-                   alt="<?= htmlspecialchars($adminUserName, ENT_QUOTES, 'UTF-8') ?>">
-            <?php endif; ?>
+            <?= \PanelAdmin\Core\Support\Html::avatar($adminUserName, $adminUserPhoto, 'pa-avatar--lg') ?>
             <a href="#">
               <h6 class="mt-3 f-14 f-w-600"><?= htmlspecialchars($adminUserName, ENT_QUOTES, 'UTF-8') ?></h6>
             </a>

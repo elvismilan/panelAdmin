@@ -118,6 +118,18 @@ class GaleriaModel extends Model implements SearchablePaginated
         );
     }
 
+    /** La fecha es opcional; si viene, debe ser AAAA-MM-DD y existir. */
+    public static function isValidDate(mixed $date): bool
+    {
+        if ($date === null || $date === '') {
+            return true;
+        }
+
+        return is_string($date)
+            && preg_match('/\A(\d{4})-(\d{2})-(\d{2})\z/', $date, $parts) === 1
+            && checkdate((int) $parts[2], (int) $parts[3], (int) $parts[1]);
+    }
+
     public function getLastActionLog(): string
     {
         return $this->lastActionLog !== '' ? $this->lastActionLog : parent::getLastActionLog();

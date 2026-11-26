@@ -31,7 +31,7 @@ panelAdmin/
 ├── public/
 │   ├── index.php
 │   ├── .htaccess
-│   └── assets/           theme-one (admin), paneladmin (pantallas del core), app/admin.css (tokens), public-theme (sitio), js
+│   └── assets/           theme-one (admin), paneladmin (pantallas del core), app/admin.css (ajustes propios), public-theme (sitio), js
 ├── resources/
 │   └── themes/admin/     layout, header/footer, login y errores del admin
 ├── routes/
@@ -245,13 +245,13 @@ vendor/bin/paneladmin rollback
 
 ### Migraciones
 
-- **Del core** (en el paquete, `core/0001` a `core/0008`): tablas `wr_*`, RBAC por defecto (grupo `Administrador`, sección `adm`) y `parametros`.
+- **Del core** (en el paquete, `core/0001` a `core/0009`): tablas `wr_*`, RBAC por defecto (grupo `Administrador`, grupo oculto `Developer`, sección `adm`) y `parametros`.
 - **Del proyecto** (`database/migrations/`):
   - `0001_create_content_tables`: `categorias`, `categoria_relacion`, `posts`, `contenidos`, `servicios`, `slider`, `galeria`, `galeria_foto`, `redes_sociales`.
   - `0002_create_testimonios_table` y `0003_create_contactos_table`.
   - `0004_seed_website_elementos`: sección Website, módulos de contenido, tareas `FOTOS` y `ORDENAR` y permisos de Administrador.
 
-Base nueva: `vendor/bin/paneladmin migrate` y `vendor/bin/paneladmin admin:create`.
+Base nueva: `vendor/bin/paneladmin migrate` y `vendor/bin/paneladmin admin:create --group=Developer`.
 
 ## 11. Notificaciones
 

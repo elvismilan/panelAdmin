@@ -19,6 +19,7 @@ class ValidationMessages extends \PanelAdmin\Core\ValidationMessages
     public const GALERIA_SLUG_INVALID = 'El slug solo puede contener letras minusculas, numeros y guiones.';
     public const GALERIA_SLUG_ALREADY_EXISTS = 'Ya existe una galeria con ese slug.';
     public const GALERIA_ESTADO_INVALIDO = 'El estado seleccionado no es valido.';
+    public const GALERIA_FECHA_INVALIDA = 'La fecha no es valida (usa el formato AAAA-MM-DD).';
     public const GALERIA_FOTO_ALT_REQUIRED = 'El nombre de la foto es obligatorio (maximo 100 caracteres).';
     public const GALERIA_FOTO_IMAGE_REQUIRED = 'Selecciona una imagen para subir.';
     public const CONTACTO_EMAIL_INVALID = 'Ingresa un correo electronico valido.';

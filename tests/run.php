@@ -10,6 +10,7 @@ $files = [
     __DIR__ . '/unit/auth_test.php',
     __DIR__ . '/unit/permission_test.php',
     __DIR__ . '/unit/testimonios_test.php',
+    __DIR__ . '/unit/galeria_test.php',
 ];
 
 load_test_files($files);

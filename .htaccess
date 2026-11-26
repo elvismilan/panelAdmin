@@ -1,7 +1,10 @@
 RewriteEngine On
 
-# If hosting points to project root (not /public), forward requests to /public
+# Carpetas internas de la raiz: nunca se sirven. Responden 404 sin pasar por la redireccion
+# de Apache a "carpeta/" (que con la regla de la barra final de public/ daba un bucle de 301).
+RewriteRule ^(app|bin|database|docs|resources|routes|tests|vendor)(/|$) - [R=404,L]
+
+# Si el hosting apunta a la raiz del proyecto (no a /public), todo va a /public.
+# Asi no se sirve .env, composer.json ni ningun otro archivo de la raiz.
 RewriteCond %{REQUEST_URI} !^/public/
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)$ public/$1 [L,QSA]
